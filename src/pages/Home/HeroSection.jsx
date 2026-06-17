@@ -1,18 +1,18 @@
 // ============================================
-// BIT SOFTWARE — Hero Section (Ultra-Premium)
+// BIT SOFTWARE — Hero Section (High-Fidelity Premium)
 // ============================================
 
 import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
-import { ArrowRight, Terminal, Shield, Sparkles, Zap, Globe, CheckCircle2 } from 'lucide-react';
+import { motion, AnimatePresence } from 'motion/react';
+import { ArrowRight, ShieldCheck, Sparkles, Zap, Globe, Check, BarChart3, TrendingUp, Cpu } from 'lucide-react';
 import './Home.css';
 
 const SERVICES_WORDS = [
   'Custom Software',
   'Web Applications',
   'Mobile Apps',
-  'ERP Solutions',
+  'ZATCA ERPs',
   'Digital Marketing'
 ];
 
@@ -26,9 +26,9 @@ const TRUST_LOGOS = [
 ];
 
 const HERO_HIGHLIGHTS = [
-  { icon: CheckCircle2, text: 'ZATCA Phase-2 Certified' },
-  { icon: CheckCircle2, text: '250+ Projects Delivered' },
-  { icon: CheckCircle2, text: '24/7 Support' },
+  { text: 'ZATCA Phase-2 Compliant' },
+  { text: '100% In-House Engineering' },
+  { text: 'Full Source Code Ownership' },
 ];
 
 function WordSwap() {
@@ -46,10 +46,10 @@ function WordSwap() {
       <AnimatePresence mode="wait">
         <motion.span
           key={SERVICES_WORDS[index]}
-          initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
+          initial={{ opacity: 0, y: 15, filter: 'blur(4px)' }}
           animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
-          exit={{ opacity: 0, y: -30, filter: 'blur(8px)' }}
-          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          exit={{ opacity: 0, y: -15, filter: 'blur(4px)' }}
+          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
           className="hero__word-swap-item"
         >
           {SERVICES_WORDS[index]}
@@ -59,20 +59,19 @@ function WordSwap() {
   );
 }
 
-// Floating particles background
 function FloatingParticles() {
   return (
     <div className="hero__particles">
-      {Array.from({ length: 20 }).map((_, i) => (
+      {Array.from({ length: 15 }).map((_, i) => (
         <div
           key={i}
           className="hero__particle"
           style={{
             '--x': `${Math.random() * 100}%`,
             '--y': `${Math.random() * 100}%`,
-            '--size': `${2 + Math.random() * 4}px`,
-            '--duration': `${15 + Math.random() * 25}s`,
-            '--delay': `${Math.random() * 10}s`,
+            '--size': `${3 + Math.random() * 3}px`,
+            '--duration': `${12 + Math.random() * 18}s`,
+            '--delay': `${Math.random() * 5}s`,
           }}
         />
       ))}
@@ -81,10 +80,8 @@ function FloatingParticles() {
 }
 
 export default function HeroSection() {
-  const heroRef = useRef(null);
-
   return (
-    <section className="hero" ref={heroRef}>
+    <section className="hero">
       {/* Background Orbs & Grids */}
       <div className="hero__bg">
         <div className="hero__bg-orb hero__bg-orb--1" />
@@ -99,33 +96,30 @@ export default function HeroSection() {
         {/* Left Column: Copy & Actions */}
         <motion.div
           className="hero__content"
-          initial={{ opacity: 0, y: 40 }}
+          initial={{ opacity: 0, y: 30 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="hero__badge">
             <Sparkles size={14} className="hero__badge-icon" />
-            Saudi Arabia's #1 Technology Partner
+            Saudi Arabia's Premier IT Partner
           </div>
 
           <h1 className="hero__title">
-            We Build
+            We Build <WordSwap />
             <br />
-            <WordSwap />
-            <br />
-            <span className="hero__title-line">That Drive Growth</span>
+            <span className="hero__title-line">To Scale Your Business</span>
           </h1>
 
           <p className="hero__subtitle">
-            From ZATCA-compliant ERPs to next-gen web & mobile apps — we transform ambitious ideas into
-            <strong> scalable, revenue-generating</strong> digital products for Saudi businesses.
+            Providing ZATCA Phase-2 e-invoicing platforms, bespoke enterprise software, and conversion-optimized web applications built for Saudi growth.
           </p>
 
           {/* Quick highlights */}
           <div className="hero__highlights">
             {HERO_HIGHLIGHTS.map((h) => (
               <div key={h.text} className="hero__highlight-item">
-                <h.icon size={16} />
+                <ShieldCheck size={16} className="hero__highlight-icon" />
                 <span>{h.text}</span>
               </div>
             ))}
@@ -143,12 +137,12 @@ export default function HeroSection() {
           </div>
         </motion.div>
 
-        {/* Right Column: Animated Mock Product Panel */}
+        {/* Right Column: High-Fidelity Interactive Dashboard Mockup */}
         <motion.div
           className="hero__visual"
-          initial={{ opacity: 0, scale: 0.9, y: 30 }}
+          initial={{ opacity: 0, scale: 0.95, y: 20 }}
           animate={{ opacity: 1, scale: 1, y: 0 }}
-          transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+          transition={{ duration: 0.9, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
         >
           <div className="hero__mock-panel">
             {/* Header / Chrome Controls */}
@@ -159,21 +153,24 @@ export default function HeroSection() {
                 <span className="dot green" />
               </div>
               <div className="hero__mock-url">
-                <Terminal size={12} />
-                <span>dashboard.bitsoftware.sa</span>
+                <Globe size={12} />
+                <span>zatca-erp.bitsoftware.sa</span>
               </div>
             </div>
 
-            {/* Panel Body */}
+            {/* Dashboard Body */}
             <div className="hero__mock-body">
-              {/* Sidebar Skeletons */}
+              {/* Sidebar */}
               <div className="hero__mock-sidebar">
-                <div className="sidebar-logo skeleton-block" style={{ width: '40px', height: '14px' }} />
+                <div className="mock-brand">
+                  <div className="mock-brand-dot" />
+                  <span>BIT ERP</span>
+                </div>
                 <div className="sidebar-nav">
-                  <div className="nav-item skeleton-block" style={{ width: '100%', height: '12px' }} />
-                  <div className="nav-item skeleton-block" style={{ width: '85%', height: '12px' }} />
-                  <div className="nav-item skeleton-block" style={{ width: '90%', height: '12px' }} />
-                  <div className="nav-item skeleton-block" style={{ width: '70%', height: '12px' }} />
+                  <div className="nav-item active">Sales Dashboard</div>
+                  <div className="nav-item">ZATCA Clearance</div>
+                  <div className="nav-item">POS Terminal</div>
+                  <div className="nav-item">Settings</div>
                 </div>
               </div>
 
@@ -182,44 +179,49 @@ export default function HeroSection() {
                 {/* Stats Widgets Row */}
                 <div className="mock-widgets">
                   <div className="widget-card">
-                    <div className="widget-icon skeleton-block" style={{ width: '24px', height: '24px', borderRadius: '4px' }} />
-                    <div className="widget-info">
-                      <div className="skeleton-block" style={{ width: '32px', height: '8px', marginBottom: '6px' }} />
-                      <div className="skeleton-block" style={{ width: '48px', height: '14px' }} />
+                    <div className="widget-header">
+                      <span className="widget-title">Cleared Invoices</span>
+                      <TrendingUp size={14} className="text-emerald" />
                     </div>
+                    <div className="widget-value">99.98%</div>
+                    <div className="widget-footer">ZATCA Phase-2 Connected</div>
                   </div>
+                  
                   <div className="widget-card">
-                    <div className="widget-icon skeleton-block" style={{ width: '24px', height: '24px', borderRadius: '4px' }} />
-                    <div className="widget-info">
-                      <div className="skeleton-block" style={{ width: '32px', height: '8px', marginBottom: '6px' }} />
-                      <div className="skeleton-block" style={{ width: '48px', height: '14px' }} />
+                    <div className="widget-header">
+                      <span className="widget-title">Daily Sales</span>
+                      <BarChart3 size={14} className="text-cyan" />
                     </div>
+                    <div className="widget-value">SAR 45,820</div>
+                    <div className="widget-footer">+12.4% vs Yesterday</div>
                   </div>
                 </div>
 
                 {/* Shimmering Graph Visual */}
                 <div className="mock-graph-container">
                   <div className="mock-graph-header">
-                    <div className="skeleton-block" style={{ width: '80px', height: '12px' }} />
-                    <div className="skeleton-block" style={{ width: '40px', height: '12px' }} />
+                    <span className="graph-label">Transaction Flow (Realtime)</span>
+                    <span className="graph-status">Live</span>
                   </div>
                   <div className="mock-graph-svg">
-                    <svg viewBox="0 0 300 100" fill="none" xmlns="http://www.w3.org/2000/svg" className="shimmering-chart">
+                    <svg viewBox="0 0 300 90" fill="none" xmlns="http://www.w3.org/2000/svg" className="shimmering-chart">
                       {/* Grid Lines */}
-                      <line x1="0" y1="20" x2="300" y2="20" stroke="rgba(0, 255, 255, 0.05)" strokeWidth="1" />
-                      <line x1="0" y1="50" x2="300" y2="50" stroke="rgba(0, 255, 255, 0.05)" strokeWidth="1" />
-                      <line x1="0" y1="80" x2="300" y2="80" stroke="rgba(0, 255, 255, 0.05)" strokeWidth="1" />
+                      <line x1="0" y1="20" x2="300" y2="20" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" />
+                      <line x1="0" y1="50" x2="300" y2="50" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" />
+                      <line x1="0" y1="80" x2="300" y2="80" stroke="rgba(255, 255, 255, 0.05)" strokeWidth="1" />
+                      
                       {/* Graph Path */}
                       <path
-                        d="M0 80 Q 40 20, 80 50 T 160 30 T 240 70 T 300 10"
+                        d="M0 75 Q 30 35, 60 55 T 120 40 T 180 70 T 240 25 T 300 45"
                         stroke="url(#gradient-cyan-blue)"
                         strokeWidth="3"
                         strokeLinecap="round"
                         className="path-draw"
                       />
-                      {/* Area fill */}
+                      
+                      {/* Area Fill */}
                       <path
-                        d="M0 80 Q 40 20, 80 50 T 160 30 T 240 70 T 300 10 L 300 100 L 0 100 Z"
+                        d="M0 75 Q 30 35, 60 55 T 120 40 T 180 70 T 240 25 T 300 45 L 300 90 L 0 90 Z"
                         fill="url(#gradient-area)"
                         className="path-draw"
                         opacity="0.15"
@@ -229,7 +231,7 @@ export default function HeroSection() {
                           <stop offset="0%" stopColor="var(--color-primary)" />
                           <stop offset="100%" stopColor="#0080FF" />
                         </linearGradient>
-                        <linearGradient id="gradient-area" x1="150" y1="0" x2="150" y2="100" gradientUnits="userSpaceOnUse">
+                        <linearGradient id="gradient-area" x1="150" y1="0" x2="150" y2="90" gradientUnits="userSpaceOnUse">
                           <stop offset="0%" stopColor="var(--color-primary)" />
                           <stop offset="100%" stopColor="transparent" />
                         </linearGradient>
@@ -244,17 +246,20 @@ export default function HeroSection() {
           {/* Floating badge overlays */}
           <motion.div
             className="hero__float-badge hero__float-badge--1"
-            animate={{ y: [0, -8, 0] }}
-            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+            animate={{ y: [0, -6, 0] }}
+            transition={{ duration: 3.5, repeat: Infinity, ease: 'easeInOut' }}
           >
-            <Globe size={14} /> 250+ Projects
+            <ShieldCheck size={14} className="text-emerald" /> 
+            <span>ZATCA Phase-2 Approved</span>
           </motion.div>
+          
           <motion.div
             className="hero__float-badge hero__float-badge--2"
-            animate={{ y: [0, 8, 0] }}
-            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+            animate={{ y: [0, 6, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 0.5 }}
           >
-            <Shield size={14} /> ZATCA Certified
+            <Cpu size={14} className="text-cyan" /> 
+            <span>100% Custom React</span>
           </motion.div>
         </motion.div>
       </div>
@@ -262,10 +267,9 @@ export default function HeroSection() {
       {/* Infinite Logo Marquee Strip */}
       <div className="hero__marquee">
         <div className="hero__marquee-track">
-          {/* Render twice for seamless looping */}
           {[...TRUST_LOGOS, ...TRUST_LOGOS].map((logo, index) => (
             <div key={index} className="hero__marquee-item">
-              <Shield size={16} className="hero__marquee-icon" />
+              <ShieldCheck size={16} className="hero__marquee-icon" />
               <span>{logo}</span>
             </div>
           ))}
