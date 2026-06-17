@@ -13,6 +13,7 @@ import {
 import { SEOHead } from '@/components/common/SEOHead';
 import { FadeInUp } from '@/components/animations/FadeInUp';
 import { COMPANY } from '@/utils/constants';
+import MapPicker from './MapPicker';
 import './GoogleMyBusiness.css';
 
 const COUNTRIES = [
@@ -54,6 +55,8 @@ export default function GoogleMyBusiness() {
     state: '',
     postalCode: '',
     country: 'Saudi Arabia',
+    latitude: 24.7136,
+    longitude: 46.6753,
     serviceAreas: '',
     phoneCode: '+966',
     phone: '',
@@ -100,6 +103,25 @@ export default function GoogleMyBusiness() {
     setActiveHours((prev) => ({
       ...prev,
       [day]: { ...prev[day], [field]: value }
+    }));
+  };
+
+  const handleAddressUpdate = (addressObj) => {
+    setForm((prev) => ({
+      ...prev,
+      streetAddress: addressObj.streetAddress || prev.streetAddress,
+      city: addressObj.city || prev.city,
+      state: addressObj.state || prev.state,
+      postalCode: addressObj.postalCode || prev.postalCode,
+      country: addressObj.country || prev.country
+    }));
+  };
+
+  const handleLocationSelect = ({ lat, lng }) => {
+    setForm((prev) => ({
+      ...prev,
+      latitude: lat,
+      longitude: lng
     }));
   };
 
@@ -328,6 +350,17 @@ export default function GoogleMyBusiness() {
 
                   {form.hasPhysicalLocation === 'yes' ? (
                     <div className="address-fields animate-fade-in">
+                      <div className="form-group">
+                        <label className="form-label">Search & Pin Precise Map Location *</label>
+                        <MapPicker 
+                          latitude={form.latitude}
+                          longitude={form.longitude}
+                          countryName={form.country}
+                          onLocationSelect={handleLocationSelect}
+                          onAddressUpdate={handleAddressUpdate}
+                        />
+                      </div>
+
                       <div className="form-group">
                         <label className="form-label">Country / Region</label>
                         <select 
@@ -603,6 +636,21 @@ export default function GoogleMyBusiness() {
 
               {/* Business Overview Card */}
               <div className="mock-business-card">
+                {form.hasPhysicalLocation === 'yes' && (
+                  <div className="mock-map-widget">
+                    <iframe 
+                      title="Google Maps Location Preview"
+                      width="100%" 
+                      height="150" 
+                      style={{ border: 0, borderRadius: '12px', marginBottom: '1.25rem', display: 'block' }}
+                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${form.longitude - 0.008}%2C${form.latitude - 0.004}%2C${form.longitude + 0.008}%2C${form.latitude + 0.004}&layer=mapnik&marker=${form.latitude}%2C${form.longitude}`}
+                    />
+                    <div className="map-badge-coords">
+                      <span>Coordinates: {form.latitude.toFixed(5)}, {form.longitude.toFixed(5)}</span>
+                    </div>
+                  </div>
+                )}
+
                 <div className="mock-card-header">
                   <h4 className="mock-business-title">{form.businessName || 'Your Business Name'}</h4>
                   <p className="mock-business-category">{form.category || 'Software & IT Solutions'}</p>
