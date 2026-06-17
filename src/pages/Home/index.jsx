@@ -1,10 +1,11 @@
 // ============================================
-// BIT SOFTWARE — HOME PAGE (Premium Rebuild)
+// BIT SOFTWARE — HOME PAGE (Ultra-Premium)
 // ============================================
 
 import { SEOHead } from '@/components/common/SEOHead';
 import { ScrollBlurReveal } from '@/components/animations/ScrollBlurReveal';
 import HeroSection from './HeroSection';
+import ClientsSection from './ClientsSection';
 import ServicesOverview from './ServicesOverview';
 import WhyChooseUs from './WhyChooseUs';
 import StatsSection from './StatsSection';
@@ -23,17 +24,20 @@ export default function Home() {
       />
       {/* Hero is above the fold, so it loads without scroll-blur reveal for instant interaction */}
       <HeroSection />
+
+      {/* Clients trust band — immediately after hero for social proof */}
+      <ClientsSection />
       
       <ScrollBlurReveal>
         <ServicesOverview />
       </ScrollBlurReveal>
       
       <ScrollBlurReveal>
-        <WhyChooseUs />
-      </ScrollBlurReveal>
-      
-      <ScrollBlurReveal>
         <StatsSection />
+      </ScrollBlurReveal>
+
+      <ScrollBlurReveal>
+        <WhyChooseUs />
       </ScrollBlurReveal>
       
       <ScrollBlurReveal>

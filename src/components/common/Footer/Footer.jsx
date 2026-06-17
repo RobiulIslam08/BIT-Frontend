@@ -1,5 +1,5 @@
 // BIT SOFTWARE — Footer Component
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { Mail, Phone, MapPin, ExternalLink, Globe, MessageCircle, Users, Play, AtSign } from 'lucide-react';
 import { FadeInUp } from '../../animations/FadeInUp';
@@ -24,25 +24,29 @@ const QUICK_LINKS = [
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
+  const location = useLocation();
+  const isHomePage = location.pathname === '/';
 
   return (
     <footer className="footer">
-      <div className="footer__cta">
-        <div className="container">
-          <FadeInUp>
-            <div className="footer__cta-inner">
-              <div className="footer__cta-content">
-                <h3 className="h3">Ready to Start Your Project?</h3>
-                <p className="body-base" style={{ color: 'var(--color-text-muted)' }}>Let's discuss how we can help transform your business.</p>
+      {!isHomePage && (
+        <div className="footer__cta">
+          <div className="container">
+            <FadeInUp>
+              <div className="footer__cta-inner">
+                <div className="footer__cta-content">
+                  <h3 className="h3">Ready to Start Your Project?</h3>
+                  <p className="body-base" style={{ color: 'var(--color-text-muted)' }}>Let's discuss how we can help transform your business.</p>
+                </div>
+                <div className="footer__cta-actions">
+                  <Link to="/contact" className="btn btn-primary btn-lg">Get Started</Link>
+                  <a href={COMPANY.whatsapp} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-lg"><Phone size={18} /> WhatsApp Us</a>
+                </div>
               </div>
-              <div className="footer__cta-actions">
-                <Link to="/contact" className="btn btn-primary btn-lg">Get Started</Link>
-                <a href={COMPANY.whatsapp} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-lg"><Phone size={18} /> WhatsApp Us</a>
-              </div>
-            </div>
-          </FadeInUp>
+            </FadeInUp>
+          </div>
         </div>
-      </div>
+      )}
 
       <div className="footer__main">
         <div className="container">

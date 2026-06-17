@@ -1,11 +1,11 @@
 // ============================================
-// BIT SOFTWARE — Hero Section (Premium Rebuild)
+// BIT SOFTWARE — Hero Section (Ultra-Premium)
 // ============================================
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'motion/react';
-import { ArrowRight, Terminal, Layout, Shield, Cpu, Cloud, Check } from 'lucide-react';
+import { motion, AnimatePresence, useMotionValue, useTransform } from 'motion/react';
+import { ArrowRight, Terminal, Shield, Sparkles, Zap, Globe, CheckCircle2 } from 'lucide-react';
 import './Home.css';
 
 const SERVICES_WORDS = [
@@ -25,6 +25,12 @@ const TRUST_LOGOS = [
   'SCA Cybersecurity Standard'
 ];
 
+const HERO_HIGHLIGHTS = [
+  { icon: CheckCircle2, text: 'ZATCA Phase-2 Certified' },
+  { icon: CheckCircle2, text: '250+ Projects Delivered' },
+  { icon: CheckCircle2, text: '24/7 Support' },
+];
+
 function WordSwap() {
   const [index, setIndex] = useState(0);
 
@@ -40,10 +46,10 @@ function WordSwap() {
       <AnimatePresence mode="wait">
         <motion.span
           key={SERVICES_WORDS[index]}
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={{ opacity: 0, y: -20 }}
-          transition={{ duration: 0.4, ease: [0.16, 1, 0.3, 1] }}
+          initial={{ opacity: 0, y: 30, filter: 'blur(8px)' }}
+          animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+          exit={{ opacity: 0, y: -30, filter: 'blur(8px)' }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
           className="hero__word-swap-item"
         >
           {SERVICES_WORDS[index]}
@@ -53,39 +59,81 @@ function WordSwap() {
   );
 }
 
-export default function HeroSection() {
+// Floating particles background
+function FloatingParticles() {
   return (
-    <section className="hero">
+    <div className="hero__particles">
+      {Array.from({ length: 20 }).map((_, i) => (
+        <div
+          key={i}
+          className="hero__particle"
+          style={{
+            '--x': `${Math.random() * 100}%`,
+            '--y': `${Math.random() * 100}%`,
+            '--size': `${2 + Math.random() * 4}px`,
+            '--duration': `${15 + Math.random() * 25}s`,
+            '--delay': `${Math.random() * 10}s`,
+          }}
+        />
+      ))}
+    </div>
+  );
+}
+
+export default function HeroSection() {
+  const heroRef = useRef(null);
+
+  return (
+    <section className="hero" ref={heroRef}>
       {/* Background Orbs & Grids */}
       <div className="hero__bg">
         <div className="hero__bg-orb hero__bg-orb--1" />
         <div className="hero__bg-orb hero__bg-orb--2" />
+        <div className="hero__bg-orb hero__bg-orb--3" />
         <div className="hero__bg-grid" />
         <div className="hero__bg-gradient" />
+        <FloatingParticles />
       </div>
 
       <div className="container hero__container">
         {/* Left Column: Copy & Actions */}
-        <div className="hero__content">
+        <motion.div
+          className="hero__content"
+          initial={{ opacity: 0, y: 40 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
+        >
           <div className="hero__badge">
-            <span className="hero__badge-dot" />
-            Saudi Arabia's Premier Technology Partner
+            <Sparkles size={14} className="hero__badge-icon" />
+            Saudi Arabia's #1 Technology Partner
           </div>
 
           <h1 className="hero__title">
-            We Engineer
+            We Build
             <br />
             <WordSwap />
             <br />
-            For Saudi Businesses
+            <span className="hero__title-line">That Drive Growth</span>
           </h1>
 
           <p className="hero__subtitle">
-            Providing ZATCA-compliant ERPs, custom SaaS, and next-gen web & mobile applications built to accelerate growth.
+            From ZATCA-compliant ERPs to next-gen web & mobile apps — we transform ambitious ideas into
+            <strong> scalable, revenue-generating</strong> digital products for Saudi businesses.
           </p>
 
+          {/* Quick highlights */}
+          <div className="hero__highlights">
+            {HERO_HIGHLIGHTS.map((h) => (
+              <div key={h.text} className="hero__highlight-item">
+                <h.icon size={16} />
+                <span>{h.text}</span>
+              </div>
+            ))}
+          </div>
+
           <div className="hero__ctas">
-            <Link to="/contact" className="btn btn-primary btn-lg">
+            <Link to="/contact" className="btn btn-primary btn-lg hero__cta-primary">
+              <Zap size={18} />
               Start Your Project
               <ArrowRight size={18} />
             </Link>
@@ -93,10 +141,15 @@ export default function HeroSection() {
               View Our Work
             </Link>
           </div>
-        </div>
+        </motion.div>
 
         {/* Right Column: Animated Mock Product Panel */}
-        <div className="hero__visual">
+        <motion.div
+          className="hero__visual"
+          initial={{ opacity: 0, scale: 0.9, y: 30 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 0.9, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+        >
           <div className="hero__mock-panel">
             {/* Header / Chrome Controls */}
             <div className="hero__mock-header">
@@ -164,10 +217,21 @@ export default function HeroSection() {
                         strokeLinecap="round"
                         className="path-draw"
                       />
+                      {/* Area fill */}
+                      <path
+                        d="M0 80 Q 40 20, 80 50 T 160 30 T 240 70 T 300 10 L 300 100 L 0 100 Z"
+                        fill="url(#gradient-area)"
+                        className="path-draw"
+                        opacity="0.15"
+                      />
                       <defs>
                         <linearGradient id="gradient-cyan-blue" x1="0" y1="0" x2="300" y2="0" gradientUnits="userSpaceOnUse">
                           <stop offset="0%" stopColor="var(--color-primary)" />
                           <stop offset="100%" stopColor="#0080FF" />
+                        </linearGradient>
+                        <linearGradient id="gradient-area" x1="150" y1="0" x2="150" y2="100" gradientUnits="userSpaceOnUse">
+                          <stop offset="0%" stopColor="var(--color-primary)" />
+                          <stop offset="100%" stopColor="transparent" />
                         </linearGradient>
                       </defs>
                     </svg>
@@ -176,7 +240,23 @@ export default function HeroSection() {
               </div>
             </div>
           </div>
-        </div>
+
+          {/* Floating badge overlays */}
+          <motion.div
+            className="hero__float-badge hero__float-badge--1"
+            animate={{ y: [0, -8, 0] }}
+            transition={{ duration: 3, repeat: Infinity, ease: 'easeInOut' }}
+          >
+            <Globe size={14} /> 250+ Projects
+          </motion.div>
+          <motion.div
+            className="hero__float-badge hero__float-badge--2"
+            animate={{ y: [0, 8, 0] }}
+            transition={{ duration: 4, repeat: Infinity, ease: 'easeInOut', delay: 1 }}
+          >
+            <Shield size={14} /> ZATCA Certified
+          </motion.div>
+        </motion.div>
       </div>
 
       {/* Infinite Logo Marquee Strip */}

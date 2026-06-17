@@ -1,9 +1,9 @@
 // ============================================
-// BIT SOFTWARE — CTA Section (Premium Rebuild)
+// BIT SOFTWARE — CTA Section (Ultra-Premium)
 // ============================================
 
 import { Link } from 'react-router-dom';
-import { ArrowRight, Phone } from 'lucide-react';
+import { ArrowRight, Phone, Sparkles, Rocket } from 'lucide-react';
 import { COMPANY } from '@/utils/constants';
 import './Home.css';
 
@@ -15,15 +15,23 @@ export default function CTASection() {
           {/* Overlay gradient layers managed by CSS */}
           <div className="cta-section__overlay" />
           
+          {/* Animated grid lines */}
+          <div className="cta-section__grid-bg" />
+
           <div className="cta-section__content">
+            <div className="cta-section__icon-badge">
+              <Rocket size={24} />
+            </div>
             <h2 className="h2 cta-section__title">
-              Ready to Accelerate Your Digital Transformation?
+              Let's Build Something <span className="text-gradient">Extraordinary</span> Together
             </h2>
             <p className="cta-section__desc">
-              Discuss your custom SaaS, ERP system, or web & mobile app goals with our engineering team. Get a transparent roadmap and quote.
+              Whether you need a ZATCA-compliant ERP, a high-converting e-commerce platform, or a custom SaaS — 
+              our engineering team is ready to turn your vision into reality. <strong>Get a free consultation today.</strong>
             </p>
             <div className="cta-section__buttons">
               <Link to="/contact" className="btn btn-primary btn-lg">
+                <Sparkles size={18} />
                 Start Your Project
                 <ArrowRight size={18} />
               </Link>
@@ -34,9 +42,10 @@ export default function CTASection() {
                 className="btn btn-outline-white btn-lg"
               >
                 <Phone size={18} />
-                WhatsApp Consult
+                WhatsApp Us Now
               </a>
             </div>
+            <p className="cta-section__note">Free consultation • No commitment • Response within 2 hours</p>
           </div>
         </div>
       </div>
