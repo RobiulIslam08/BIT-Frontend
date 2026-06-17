@@ -857,70 +857,176 @@
 
 
 /* ==========================================
-   8. TECH STACK (GRayscale to Color)
+   8. TECH STACK — FLOATING CLOUD
    ========================================== */
 .tech-stack {
   background: var(--color-bg-secondary);
+  overflow: hidden;
 }
 
 .tech-stack__inner {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2rem;
+  gap: 1.5rem;
 }
 
 .tech-stack__label {
   font-family: var(--font-display);
   font-size: var(--text-xs);
   text-transform: uppercase;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.15em;
   font-weight: 700;
+  color: var(--color-primary);
+}
+
+.tech-stack__subtitle {
+  font-size: var(--text-sm);
   color: var(--color-text-secondary);
+  margin-bottom: 1rem;
 }
 
-.tech-stack__grid {
+/* ─── Floating Container ─── */
+.tech-float {
   display: flex;
-  justify-content: center;
   flex-wrap: wrap;
-  gap: 1.5rem 3rem;
+  justify-content: center;
+  gap: 1rem;
   width: 100%;
+  max-width: 1000px;
+  padding: 1rem 0;
+  position: relative;
 }
 
-.tech-stack__logo-item {
+/* ─── Individual Floating Item ─── */
+.tech-float__item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: var(--item-size, 60px);
+  height: var(--item-size, 60px);
+  padding: 0.6rem;
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  border: 1px solid color-mix(in srgb, var(--tech-color) 30%, var(--color-border));
+  cursor: pointer;
+  position: relative;
+  animation: tech-float-y var(--float-duration, 5s) ease-in-out var(--float-delay, 0s) infinite alternate;
+  transform: translate(var(--parallax-x, 0), var(--parallax-y, 0));
+  transition: border-color 0.3s ease, box-shadow 0.3s ease, background 0.3s ease, transform 0.3s ease;
+  will-change: transform;
+  box-shadow: 0 0 10px color-mix(in srgb, var(--tech-color) 10%, transparent),
+              0 2px 8px rgba(0,0,0,0.06);
+}
+
+/* Default subtle radial tint */
+.tech-float__item::before {
+  content: '';
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  background: radial-gradient(circle at center, var(--tech-color) 0%, transparent 70%);
+  opacity: 0.05;
+  transition: opacity 0.3s ease;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* Hover: stronger glow + scale + lift */
+.tech-float__item:hover::before {
+  opacity: 0.15;
+}
+
+.tech-float__item:hover {
+  border-color: var(--tech-color);
+  box-shadow: 0 0 24px color-mix(in srgb, var(--tech-color) 35%, transparent),
+              0 0 48px color-mix(in srgb, var(--tech-color) 15%, transparent),
+              0 12px 40px rgba(0,0,0,0.18);
+  z-index: 5;
+  animation-play-state: paused;
+  transform: translate(var(--parallax-x, 0), var(--parallax-y, 0)) scale(1.18) translateY(-4px);
+}
+
+/* ─── Icon (colored by default) ─── */
+.tech-float__icon {
+  width: 22px;
+  height: 22px;
+  color: var(--tech-color);
+  filter: drop-shadow(0 0 3px color-mix(in srgb, var(--tech-color) 20%, transparent));
+  transition: color 0.3s ease, filter 0.3s ease, transform 0.3s ease;
+  position: relative;
+  z-index: 1;
   display: flex;
   align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  filter: grayscale(100%);
-  opacity: 0.45;
-  transition: filter 0.3s ease, opacity 0.3s ease, transform 0.3s ease;
+  justify-content: center;
 }
 
-.tech-stack__logo-item:hover {
-  filter: grayscale(0%);
-  opacity: 1;
-  transform: translateY(-2px);
+.tech-float__icon svg {
+  width: 100%;
+  height: 100%;
 }
 
-.tech-stack__icon {
-  color: var(--color-text-secondary);
-  transition: color 0.3s ease;
+/* Hover: intensify glow + slight rotate */
+.tech-float__item:hover .tech-float__icon {
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--tech-color) 55%, transparent));
+  transform: scale(1.1) rotate(-3deg);
 }
 
-.tech-stack__logo-item:hover .tech-stack__icon {
-  color: var(--tech-color-hover);
-}
-
-.tech-stack__name {
-  font-size: var(--text-sm);
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  transition: color 0.3s ease;
-}
-
-.tech-stack__logo-item:hover .tech-stack__name {
+/* ─── Name (visible by default) ─── */
+.tech-float__name {
+  font-size: 0.55rem;
+  font-weight: 700;
   color: var(--color-text-primary);
+  text-align: center;
+  letter-spacing: 0.02em;
+  transition: color 0.3s ease, text-shadow 0.3s ease;
+  position: relative;
+  z-index: 1;
+  line-height: 1.1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
+
+.tech-float__item:hover .tech-float__name {
+  color: var(--tech-color);
+  text-shadow: 0 0 8px color-mix(in srgb, var(--tech-color) 30%, transparent);
+}
+
+/* ─── Float Animation ─── */
+@keyframes tech-float-y {
+  0%   { transform: translate(var(--parallax-x, 0), var(--parallax-y, 0)) translateY(0); }
+  100% { transform: translate(var(--parallax-x, 0), var(--parallax-y, 0)) translateY(-10px); }
+}
+
+/* ─── Responsive ─── */
+@media (max-width: 768px) {
+  .tech-float {
+    gap: 0.75rem;
+  }
+  .tech-float__item {
+    --item-size: 52px !important;
+  }
+  .tech-float__icon {
+    width: 18px;
+    height: 18px;
+  }
+  .tech-float__name {
+    font-size: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .tech-float__item {
+    --item-size: 46px !important;
+  }
+  .tech-float__icon {
+    width: 16px;
+    height: 16px;
+  }
 }
 
 
