@@ -5,11 +5,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X, ChevronDown, Phone } from 'lucide-react';
+import { Menu, X, ChevronDown, Phone, Mail, Globe, AtSign, Users, MessageCircle } from 'lucide-react';
 import { ThemeToggle } from '../ThemeToggle';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { toggleMobileMenu, closeMobileMenu } from '@/features/ui/uiSlice';
-import { NAV_ITEMS, COMPANY } from '@/utils/constants';
+import { NAV_ITEMS, COMPANY, SOCIALS } from '@/utils/constants';
 import './Navbar.css';
 
 export function Navbar() {
@@ -53,18 +53,46 @@ export function Navbar() {
         transition={{ duration: 0.3, ease: [0.16, 1, 0.3, 1] }}
       >
         <div className="navbar__trust-bar">
-          <span
-            style={{
-              display: 'inline-block',
-              width: '8px',
-              height: '8px',
-              borderRadius: '50%',
-              backgroundColor: 'var(--color-success)',
-              boxShadow: '0 0 8px var(--color-success)'
-            }}
-            className="animate-pulse"
-          />
-          <span>Currently serving 40+ clients</span>
+          <div className="container navbar__trust-container">
+            <div className="navbar__trust-left">
+              <span
+                style={{
+                  display: 'inline-block',
+                  width: '8px',
+                  height: '8px',
+                  borderRadius: '50%',
+                  backgroundColor: 'var(--color-success)',
+                  boxShadow: '0 0 8px var(--color-success)'
+                }}
+                className="animate-pulse"
+              />
+              <span>Currently serving 40+ clients</span>
+            </div>
+            <div className="navbar__trust-right">
+              <a href={`mailto:${COMPANY.email}`} className="navbar__trust-link">
+                <Mail size={12} />
+                <span>{COMPANY.email}</span>
+              </a>
+              <a href={COMPANY.whatsapp} target="_blank" rel="noopener noreferrer" className="navbar__trust-link">
+                <Phone size={12} />
+                <span>{COMPANY.phone}</span>
+              </a>
+              <div className="navbar__trust-socials">
+                <a href={SOCIALS.facebook} target="_blank" rel="noopener noreferrer" className="navbar__trust-social-icon" aria-label="Facebook">
+                  <Globe size={12} />
+                </a>
+                <a href={SOCIALS.instagram} target="_blank" rel="noopener noreferrer" className="navbar__trust-social-icon" aria-label="Instagram">
+                  <AtSign size={12} />
+                </a>
+                <a href={SOCIALS.linkedin} target="_blank" rel="noopener noreferrer" className="navbar__trust-social-icon" aria-label="Linkedin">
+                  <Users size={12} />
+                </a>
+                <a href={SOCIALS.twitter} target="_blank" rel="noopener noreferrer" className="navbar__trust-social-icon" aria-label="Twitter">
+                  <MessageCircle size={12} />
+                </a>
+              </div>
+            </div>
+          </div>
         </div>
         <div className="navbar__main-wrapper">
           <div className="navbar__container container">

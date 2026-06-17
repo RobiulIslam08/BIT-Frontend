@@ -950,24 +950,8 @@ export default function GoogleMyBusiness() {
         </div>
       </section>
 
-      {/* SECTION 6: CTA Section */}
-      <section className="section" style={{ paddingTop: 0 }}>
-        <div className="container">
-          <FadeInUp>
-            <div className="cta-section__inner gmb-cta-wrapper">
-              <div className="gmb-cta-glow" />
-              <h2 className="h2 cta-section__title" style={{ color: '#fff' }}>Ready to Dominate Your Local Market?</h2>
-              <p className="body-lg cta-section__desc" style={{ color: 'rgba(255,255,255,0.8)' }}>
-                Contact our local SEO specialists today to claim your Google Maps listing, align your citations, and start ranking.
-              </p>
-              <div className="cta-section__buttons">
-                <Link to="/contact" className="btn btn-primary btn-lg">Optimize My Listing <ArrowRight size={18} /></Link>
-                <a href={COMPANY.whatsapp} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-lg" style={{ borderColor: 'rgba(255,255,255,0.2)', color: '#fff' }}><Phone size={18} /> WhatsApp</a>
-              </div>
-            </div>
-          </FadeInUp>
-        </div>
-      </section>
+  
+   
     </>
   );
 }
