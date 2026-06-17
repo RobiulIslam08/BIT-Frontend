@@ -106,13 +106,13 @@
 
 .btn-secondary {
   background: transparent;
-  color: var(--color-white);
+  color: var(--color-text-primary);
   border: 2px solid var(--color-border-strong);
 }
 
 .btn-secondary:hover {
   border-color: var(--color-primary);
-  color: var(--color--white);
+  color: var(--color-primary);
   background: var(--color-primary-muted);
 }
 

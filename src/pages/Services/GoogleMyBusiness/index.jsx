@@ -5,8 +5,8 @@
 import { useState } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
-import { 
-  MapPin, Star, Search, CheckCircle2, Send, Globe, Phone, Clock, 
+import {
+  MapPin, Star, Search, CheckCircle2, Send, Globe, Phone, Clock,
   ArrowLeft, ArrowRight, Sparkles, Building2, Navigation, Heart, ShieldCheck,
   ChevronDown, Award, ThumbsUp, ShieldAlert, BarChart3
 } from 'lucide-react';
@@ -165,13 +165,13 @@ export default function GoogleMyBusiness() {
   if (submitted) {
     return (
       <>
-        <SEOHead 
-          title="Profile Submitted — Google My Business Setup" 
-          description="Your Google Business Profile details have been submitted for optimization." 
+        <SEOHead
+          title="Profile Submitted — Google My Business Setup"
+          description="Your Google Business Profile details have been submitted for optimization."
         />
         <section className="gmb-success-section">
           <div className="container gmb-success-container">
-            <motion.div 
+            <motion.div
               className="gmb-success-card"
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
@@ -205,9 +205,9 @@ export default function GoogleMyBusiness() {
 
   return (
     <>
-      <SEOHead 
-        title="Google My Business (GBP) Setup — International Local SEO" 
-        description="Launch your Google Maps listing globally. Follows official Google business onboarding system for international & local audiences." 
+      <SEOHead
+        title="Google My Business (GBP) Setup — International Local SEO"
+        description="Launch your Google Maps listing globally. Follows official Google business onboarding system for international & local audiences."
       />
 
       {/* Hero Section */}
@@ -259,9 +259,9 @@ export default function GoogleMyBusiness() {
                 </span>
               </div>
               <div className="progress-bar-bg">
-                <div 
-                  className="progress-bar-fill" 
-                  style={{ width: `${progressPercentage}%` }} 
+                <div
+                  className="progress-bar-fill"
+                  style={{ width: `${progressPercentage}%` }}
                 />
               </div>
             </div>
@@ -275,25 +275,25 @@ export default function GoogleMyBusiness() {
 
                   <div className="form-group">
                     <label className="form-label">Business Name *</label>
-                    <input 
+                    <input
                       type="text"
                       className="input"
-                      name="businessName" 
-                      value={form.businessName} 
-                      onChange={handleChange} 
+                      name="businessName"
+                      value={form.businessName}
+                      onChange={handleChange}
                       placeholder="e.g. Acme Tech Solutions"
-                      required 
+                      required
                     />
                     <span className="form-tip">Use your official business name without adding keyword stuffing.</span>
                   </div>
 
                   <div className="form-group">
                     <label className="form-label">Primary Business Category *</label>
-                    <select 
-                      className="input" 
-                      name="category" 
-                      value={form.category} 
-                      onChange={handleChange} 
+                    <select
+                      className="input"
+                      name="category"
+                      value={form.category}
+                      onChange={handleChange}
                       required
                     >
                       <option value="">Choose a primary category...</option>
@@ -318,9 +318,9 @@ export default function GoogleMyBusiness() {
 
                   <div className="location-toggle-group">
                     <label className={`location-toggle-card ${form.hasPhysicalLocation === 'yes' ? 'active' : ''}`}>
-                      <input 
-                        type="radio" 
-                        name="hasPhysicalLocation" 
+                      <input
+                        type="radio"
+                        name="hasPhysicalLocation"
                         value="yes"
                         checked={form.hasPhysicalLocation === 'yes'}
                         onChange={handleChange}
@@ -333,9 +333,9 @@ export default function GoogleMyBusiness() {
                     </label>
 
                     <label className={`location-toggle-card ${form.hasPhysicalLocation === 'no' ? 'active' : ''}`}>
-                      <input 
-                        type="radio" 
-                        name="hasPhysicalLocation" 
+                      <input
+                        type="radio"
+                        name="hasPhysicalLocation"
                         value="no"
                         checked={form.hasPhysicalLocation === 'no'}
                         onChange={handleChange}
@@ -352,7 +352,7 @@ export default function GoogleMyBusiness() {
                     <div className="address-fields animate-fade-in">
                       <div className="form-group">
                         <label className="form-label">Search & Pin Precise Map Location *</label>
-                        <MapPicker 
+                        <MapPicker
                           latitude={form.latitude}
                           longitude={form.longitude}
                           countryName={form.country}
@@ -363,10 +363,10 @@ export default function GoogleMyBusiness() {
 
                       <div className="form-group">
                         <label className="form-label">Country / Region</label>
-                        <select 
-                          className="input" 
-                          name="country" 
-                          value={form.country} 
+                        <select
+                          className="input"
+                          name="country"
+                          value={form.country}
                           onChange={handleChange}
                         >
                           {COUNTRIES.map((c) => <option key={c.name} value={c.name}>{c.name}</option>)}
@@ -375,51 +375,51 @@ export default function GoogleMyBusiness() {
 
                       <div className="form-group">
                         <label className="form-label">Street Address *</label>
-                        <input 
+                        <input
                           type="text"
-                          className="input" 
-                          name="streetAddress" 
-                          value={form.streetAddress} 
-                          onChange={handleChange} 
+                          className="input"
+                          name="streetAddress"
+                          value={form.streetAddress}
+                          onChange={handleChange}
                           placeholder="e.g. 123 Business Avenue, Suite 400"
-                          required 
+                          required
                         />
                       </div>
 
                       <div className="grid-3col">
                         <div className="form-group">
                           <label className="form-label">City *</label>
-                          <input 
+                          <input
                             type="text"
-                            className="input" 
-                            name="city" 
-                            value={form.city} 
-                            onChange={handleChange} 
+                            className="input"
+                            name="city"
+                            value={form.city}
+                            onChange={handleChange}
                             placeholder="e.g. Riyadh or London"
-                            required 
+                            required
                           />
                         </div>
                         <div className="form-group">
                           <label className="form-label">State / Region</label>
-                          <input 
+                          <input
                             type="text"
-                            className="input" 
-                            name="state" 
-                            value={form.state} 
-                            onChange={handleChange} 
+                            className="input"
+                            name="state"
+                            value={form.state}
+                            onChange={handleChange}
                             placeholder="e.g. California or Riyadh Dist."
                           />
                         </div>
                         <div className="form-group">
                           <label className="form-label">Postal / ZIP Code *</label>
-                          <input 
+                          <input
                             type="text"
-                            className="input" 
-                            name="postalCode" 
-                            value={form.postalCode} 
-                            onChange={handleChange} 
+                            className="input"
+                            name="postalCode"
+                            value={form.postalCode}
+                            onChange={handleChange}
                             placeholder="e.g. 12211"
-                            required 
+                            required
                           />
                         </div>
                       </div>
@@ -428,14 +428,14 @@ export default function GoogleMyBusiness() {
                     <div className="address-fields animate-fade-in">
                       <div className="form-group">
                         <label className="form-label">Service Areas *</label>
-                        <input 
+                        <input
                           type="text"
-                          className="input" 
-                          name="serviceAreas" 
-                          value={form.serviceAreas} 
-                          onChange={handleChange} 
+                          className="input"
+                          name="serviceAreas"
+                          value={form.serviceAreas}
+                          onChange={handleChange}
                           placeholder="e.g. Worldwide, London, Middle East, GCC"
-                          required 
+                          required
                         />
                         <span className="form-tip">Specify countries, cities, or regions where you provide services.</span>
                       </div>
@@ -462,10 +462,10 @@ export default function GoogleMyBusiness() {
                   <div className="form-group">
                     <label className="form-label">Phone Number *</label>
                     <div className="phone-input-wrap">
-                      <select 
-                        className="phone-code-select" 
-                        name="phoneCode" 
-                        value={form.phoneCode} 
+                      <select
+                        className="phone-code-select"
+                        name="phoneCode"
+                        value={form.phoneCode}
                         onChange={handleChange}
                       >
                         {COUNTRIES.map((c) => (
@@ -474,52 +474,52 @@ export default function GoogleMyBusiness() {
                           </option>
                         ))}
                       </select>
-                      <input 
+                      <input
                         type="tel"
-                        className="input phone-number-field" 
-                        name="phone" 
-                        value={form.phone} 
-                        onChange={handleChange} 
+                        className="input phone-number-field"
+                        name="phone"
+                        value={form.phone}
+                        onChange={handleChange}
                         placeholder="e.g. 50 123 4567"
-                        required 
+                        required
                       />
                     </div>
                   </div>
 
                   <div className="form-group">
                     <label className="form-label">WhatsApp (Optional)</label>
-                    <input 
+                    <input
                       type="text"
-                      className="input" 
-                      name="whatsapp" 
-                      value={form.whatsapp} 
-                      onChange={handleChange} 
+                      className="input"
+                      name="whatsapp"
+                      value={form.whatsapp}
+                      onChange={handleChange}
                       placeholder="e.g. +966501234567"
                     />
                   </div>
 
                   <div className="form-group">
                     <label className="form-label">Google Account Email *</label>
-                    <input 
+                    <input
                       type="email"
-                      className="input" 
-                      name="email" 
-                      value={form.email} 
-                      onChange={handleChange} 
+                      className="input"
+                      name="email"
+                      value={form.email}
+                      onChange={handleChange}
                       placeholder="yourbusiness@gmail.com"
-                      required 
+                      required
                     />
                     <span className="form-tip">We will use this email to request owner verification rights for you.</span>
                   </div>
 
                   <div className="form-group">
                     <label className="form-label">Website URL (Optional)</label>
-                    <input 
+                    <input
                       type="url"
-                      className="input" 
-                      name="website" 
-                      value={form.website} 
-                      onChange={handleChange} 
+                      className="input"
+                      name="website"
+                      value={form.website}
+                      onChange={handleChange}
                       placeholder="https://example.com"
                     />
                   </div>
@@ -547,27 +547,27 @@ export default function GoogleMyBusiness() {
                       {Object.keys(activeHours).map((day) => (
                         <div key={day} className="hours-day-row">
                           <label className="checkbox-wrap">
-                            <input 
-                              type="checkbox" 
-                              checked={activeHours[day].active} 
-                              onChange={() => handleHoursToggle(day)} 
+                            <input
+                              type="checkbox"
+                              checked={activeHours[day].active}
+                              onChange={() => handleHoursToggle(day)}
                             />
                             <span className="day-name">{day}</span>
                           </label>
-                          
+
                           {activeHours[day].active ? (
                             <div className="time-selects">
-                              <input 
-                                type="time" 
-                                className="time-picker" 
-                                value={activeHours[day].open} 
+                              <input
+                                type="time"
+                                className="time-picker"
+                                value={activeHours[day].open}
                                 onChange={(e) => handleHoursChange(day, 'open', e.target.value)}
                               />
                               <span className="time-separator">to</span>
-                              <input 
-                                type="time" 
-                                className="time-picker" 
-                                value={activeHours[day].close} 
+                              <input
+                                type="time"
+                                className="time-picker"
+                                value={activeHours[day].close}
                                 onChange={(e) => handleHoursChange(day, 'close', e.target.value)}
                               />
                             </div>
@@ -581,26 +581,26 @@ export default function GoogleMyBusiness() {
 
                   <div className="form-group">
                     <label className="form-label">Business Description *</label>
-                    <textarea 
-                      className="input" 
-                      name="description" 
-                      value={form.description} 
-                      onChange={handleChange} 
-                      rows={3} 
+                    <textarea
+                      className="input"
+                      name="description"
+                      value={form.description}
+                      onChange={handleChange}
+                      rows={3}
                       placeholder="Describe what your business does, your values, and special offerings..."
-                      required 
+                      required
                       style={{ resize: 'vertical' }}
                     />
                   </div>
 
                   <div className="form-group">
                     <label className="form-label">Services List / Keywords (Comma separated)</label>
-                    <input 
+                    <input
                       type="text"
-                      className="input" 
-                      name="servicesList" 
-                      value={form.servicesList} 
-                      onChange={handleChange} 
+                      className="input"
+                      name="servicesList"
+                      value={form.servicesList}
+                      onChange={handleChange}
                       placeholder="e.g. Web Development, Custom Software Development, ERP Installation"
                     />
                   </div>
@@ -638,10 +638,10 @@ export default function GoogleMyBusiness() {
               <div className="mock-business-card">
                 {form.hasPhysicalLocation === 'yes' && (
                   <div className="mock-map-widget">
-                    <iframe 
+                    <iframe
                       title="Google Maps Location Preview"
-                      width="100%" 
-                      height="150" 
+                      width="100%"
+                      height="150"
                       style={{ border: 0, borderRadius: '12px', marginBottom: '1.25rem', display: 'block' }}
                       src={`https://www.openstreetmap.org/export/embed.html?bbox=${form.longitude - 0.008}%2C${form.latitude - 0.004}%2C${form.longitude + 0.008}%2C${form.latitude + 0.004}&layer=mapnik&marker=${form.latitude}%2C${form.longitude}`}
                     />
@@ -654,7 +654,7 @@ export default function GoogleMyBusiness() {
                 <div className="mock-card-header">
                   <h4 className="mock-business-title">{form.businessName || 'Your Business Name'}</h4>
                   <p className="mock-business-category">{form.category || 'Software & IT Solutions'}</p>
-                  
+
                   <div className="mock-rating-row">
                     <span className="rating-value">5.0</span>
                     <div className="stars-row">
@@ -848,7 +848,7 @@ export default function GoogleMyBusiness() {
               <p className="body-base gmb-stats-desc">
                 Local buyers have immediate purchasing intent. They aren't browsing; they are searching for a solution right now. Optimization places you in front of them exactly when they are ready to buy.
               </p>
-              
+
               <div className="gmb-stats-grid">
                 <div className="gmb-stat-box">
                   <span className="gmb-stat-number text-gradient">88%</span>
@@ -998,8 +998,8 @@ export default function GoogleMyBusiness() {
         </div>
       </section>
 
-  
-   
+
+
     </>
   );
 }
