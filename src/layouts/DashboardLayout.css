@@ -1,0 +1,164 @@
+/* ============================================
+   BIT SOFTWARE — DASHBOARD LAYOUT STYLES
+   ============================================ */
+
+.dashboard { display: flex; min-height: 100vh; background: var(--color-bg-secondary); }
+
+/* ─── SIDEBAR ─── */
+.dashboard__sidebar {
+  width: var(--sidebar-width);
+  background: var(--color-surface);
+  border-right: 1px solid var(--color-border);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  z-index: var(--z-sticky);
+  transition: width var(--transition-base);
+}
+
+.dashboard__sidebar--collapsed { width: 72px; }
+
+.dashboard__sidebar-header {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.dashboard__logo {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-decoration: none;
+}
+
+.dashboard__logo-icon {
+  width: 32px; height: 32px;
+  border-radius: var(--radius-sm);
+  background: var(--color-accent-gradient);
+  display: flex; align-items: center; justify-content: center;
+  font-weight: 800; color: var(--color-accent-1); font-size: var(--text-sm);
+  flex-shrink: 0;
+}
+
+.dashboard__logo-text {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+}
+
+.dashboard__sidebar-nav {
+  flex: 1;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  overflow-y: auto;
+}
+
+.dashboard__sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  border-radius: var(--radius-md);
+  transition: all var(--transition-fast);
+  white-space: nowrap;
+  border: none;
+  background: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.dashboard__sidebar-link:hover {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+}
+
+.dashboard__sidebar-link--active {
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  font-weight: 600;
+}
+
+.dashboard__sidebar-footer {
+  padding: 0.75rem;
+  border-top: 1px solid var(--color-border);
+}
+
+/* ─── MAIN ─── */
+.dashboard__main {
+  flex: 1;
+  margin-left: var(--sidebar-width);
+  transition: margin-left var(--transition-base);
+  display: flex;
+  flex-direction: column;
+}
+
+.dashboard__main--expanded { margin-left: 72px; }
+
+.dashboard__header {
+  height: 60px;
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.5rem;
+  position: sticky;
+  top: 0;
+  z-index: calc(var(--z-sticky) - 1);
+}
+
+.dashboard__header-left { display: flex; align-items: center; gap: 1rem; }
+.dashboard__header-right { display: flex; align-items: center; gap: 0.75rem; }
+
+.dashboard__menu-btn {
+  width: 36px; height: 36px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+}
+.dashboard__menu-btn:hover { background: var(--color-primary-muted); color: var(--color-text-primary); }
+
+.dashboard__content { flex: 1; padding: 1.5rem; }
+
+/* ─── MOBILE ─── */
+.dashboard__overlay {
+  position: fixed; inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: calc(var(--z-modal) - 1);
+  display: none;
+}
+
+.dashboard__mobile-sidebar {
+  position: fixed; top: 0; left: 0; bottom: 0;
+  width: min(280px, 80vw);
+  background: var(--color-surface);
+  z-index: var(--z-modal);
+  display: none;
+  flex-direction: column;
+}
+
+@media (max-width: 1024px) {
+  .dashboard__sidebar { display: none; }
+  .dashboard__main { margin-left: 0; }
+  .dashboard__main--expanded { margin-left: 0; }
+  .dashboard__overlay { display: block; }
+  .dashboard__mobile-sidebar { display: flex; }
+}

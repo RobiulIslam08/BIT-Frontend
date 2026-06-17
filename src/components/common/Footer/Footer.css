@@ -1,0 +1,156 @@
+/* ============================================
+   BIT SOFTWARE — FOOTER STYLES
+   ============================================ */
+
+.footer {
+  background: var(--color-accent-1);
+  color: var(--color-text-inverse);
+}
+
+/* ─── CTA SECTION ─── */
+.footer__cta {
+  padding: 4rem 0;
+  background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-accent-1) 100%);
+}
+
+[data-theme="dark"] .footer__cta {
+  background: linear-gradient(180deg, var(--color-bg) 0%, var(--color-accent-1) 100%);
+}
+
+.footer__cta-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 3rem;
+  background: var(--color-accent-2);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: var(--radius-2xl);
+}
+
+.footer__cta-content { max-width: 500px; }
+.footer__cta-content .h3 { color: #fff; margin-bottom: 0.5rem; }
+.footer__cta-actions { display: flex; gap: 1rem; flex-shrink: 0; }
+
+/* ─── MAIN FOOTER ─── */
+.footer__main { padding: 4rem 0 3rem; }
+
+.footer__grid {
+  display: grid;
+  grid-template-columns: 1.5fr 1fr 1fr 1fr;
+  gap: 3rem;
+}
+
+.footer__logo {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  text-decoration: none;
+  margin-bottom: 1rem;
+}
+
+.footer__logo-icon {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: var(--color-accent-gradient);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: var(--text-lg);
+  color: var(--color-accent-1);
+}
+
+.footer__logo-name { font-weight: 700; font-size: var(--text-sm); color: #fff; }
+.footer__logo-tagline { font-size: 0.625rem; color: var(--color-text-muted); }
+
+.footer__desc {
+  color: rgba(255, 255, 255, 0.6);
+  margin-bottom: 1.5rem;
+  max-width: 280px;
+}
+
+.footer__socials {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.footer__social-icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-md);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.6);
+  transition: all var(--transition-fast);
+}
+
+.footer__social-icon:hover {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: rgba(0, 255, 255, 0.08);
+}
+
+.footer__col-title {
+  font-family: var(--font-display);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 1.25rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.footer__links { display: flex; flex-direction: column; gap: 0.5rem; }
+
+.footer__link {
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.5);
+  transition: color var(--transition-fast);
+}
+.footer__link:hover { color: #ffffff; }
+
+.footer__contact-list { display: flex; flex-direction: column; gap: 0.875rem; }
+
+.footer__contact-item {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  font-size: var(--text-sm);
+  color: rgba(255, 255, 255, 0.5);
+  transition: color var(--transition-fast);
+}
+.footer__contact-item:hover { color: #ffffff; }
+
+/* ─── BOTTOM BAR ─── */
+.footer__bottom {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  padding: 1.5rem 0;
+}
+
+.footer__bottom-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: var(--text-xs);
+  color: rgba(255, 255, 255, 0.35);
+}
+
+.footer__bottom-links { display: flex; gap: 1.5rem; }
+.footer__bottom-links a { color: rgba(255, 255, 255, 0.35); transition: color var(--transition-fast); }
+.footer__bottom-links a:hover { color: #ffffff; }
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 1024px) {
+  .footer__grid { grid-template-columns: 1fr 1fr; gap: 2.5rem; }
+}
+@media (max-width: 768px) {
+  .footer__cta-inner { flex-direction: column; text-align: center; padding: 2rem; }
+  .footer__cta-actions { flex-direction: column; width: 100%; }
+  .footer__cta-actions .btn { width: 100%; justify-content: center; }
+  .footer__grid { grid-template-columns: 1fr; gap: 2rem; }
+  .footer__bottom-inner { flex-direction: column; gap: 0.75rem; text-align: center; }
+}
