@@ -40,7 +40,7 @@ export function Footer() {
                 </div>
                 <div className="footer__cta-actions">
                   <Link to="/contact" className="btn btn-primary btn-lg">Get Started</Link>
-                  <a href={COMPANY.whatsapp} target="_blank" rel="noopener noreferrer" className="btn btn-secondary btn-lg"><Phone size={18} /> WhatsApp Us</a>
+                  <a href={COMPANY.whatsapp} target="_blank" rel="noopener noreferrer" className="btn btn-secondary  btn-lg"><Phone size={18} /> WhatsApp Us</a>
                 </div>
               </div>
             </FadeInUp>

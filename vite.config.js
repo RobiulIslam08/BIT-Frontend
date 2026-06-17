@@ -20,11 +20,22 @@ export default defineConfig({
     target: 'es2020',
     rollupOptions: {
       output: {
-        manualChunks: {
-          'react-vendor': ['react', 'react-dom'],
-          'router': ['react-router-dom'],
-          'redux': ['@reduxjs/toolkit', 'react-redux'],
-          'motion': ['motion'],
+        manualChunks(id) {
+          if (id.includes('node_modules')) {
+            if (id.includes('react-dom') || id.includes('react/')) {
+              return 'react-vendor';
+            }
+            if (id.includes('react-router-dom')) {
+              return 'router';
+            }
+            if (id.includes('@reduxjs/toolkit') || id.includes('react-redux')) {
+              return 'redux';
+            }
+            if (id.includes('motion')) {
+              return 'motion';
+            }
+            return 'vendor';
+          }
         },
       },
     },

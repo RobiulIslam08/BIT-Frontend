@@ -100,10 +100,7 @@ export default function HeroSection() {
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
         >
-          <div className="hero__badge">
-            <Sparkles size={14} className="hero__badge-icon" />
-            Saudi Arabia's Premier IT Partner
-          </div>
+      
 
           <h1 className="hero__title">
             We Build <WordSwap />

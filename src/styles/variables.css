@@ -5,14 +5,14 @@
    ============================================ */
 
 :root {
-  /* ─── PRIMARY BRAND COLOR ─── */
-  --color-primary: #00FFFF;
-  --color-primary-hover: #00E5E5;
-  --color-primary-active: #00CCCC;
-  --color-primary-muted: rgba(0, 255, 255, 0.12);
-  --color-primary-border: rgba(0, 255, 255, 0.3);
-  --color-primary-rgb: 0, 255, 255;
-  --color-on-primary: #05181A;
+  /* ─── PRIMARY BRAND COLOR (Light Mode: Readable Tech Blue) ─── */
+  --color-primary: #0066CC;
+  --color-primary-hover: #0052A3;
+  --color-primary-active: #003D7A;
+  --color-primary-muted: rgba(0, 102, 204, 0.08);
+  --color-primary-border: rgba(0, 102, 204, 0.25);
+  --color-primary-rgb: 0, 102, 204;
+  --color-on-primary: #FFFFFF;
 
   /* ─── NEUTRAL SCALE (Light Theme) ─── */
   --color-bg: #FFFFFF;
@@ -38,7 +38,7 @@
   /* ─── ACCENT PALETTE ─── */
   --color-accent-1: #0F172A;
   --color-accent-2: #1E293B;
-  --color-accent-gradient: linear-gradient(135deg, #00FFFF 0%, #0080FF 100%);
+  --color-accent-gradient: linear-gradient(135deg, #0066CC 0%, #0080FF 100%);
 
   /* ─── TYPOGRAPHY ─── */
   --font-display: 'Plus Jakarta Sans', 'Noto Sans Arabic', sans-serif;
@@ -76,8 +76,8 @@
   --shadow-md: 0 4px 16px rgba(0,0,0,0.08);
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.10);
   --shadow-xl: 0 16px 48px rgba(0,0,0,0.14);
-  --shadow-primary: 0 8px 32px rgba(0, 255, 255, 0.2);
-  --shadow-primary-hover: 0 12px 40px rgba(0, 255, 255, 0.35);
+  --shadow-primary: 0 8px 32px rgba(0, 102, 204, 0.15);
+  --shadow-primary-hover: 0 12px 40px rgba(0, 102, 204, 0.25);
 
   /* ─── TRANSITIONS ─── */
   --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
@@ -98,6 +98,19 @@
 
 /* ─── DARK THEME ─── */
 [data-theme="dark"] {
+  /* ─── PRIMARY BRAND COLOR (Dark Mode: Glowing Cyan) ─── */
+  --color-primary: #00FFFF;
+  --color-primary-hover: #00E5E5;
+  --color-primary-active: #00CCCC;
+  --color-primary-muted: rgba(0, 255, 255, 0.12);
+  --color-primary-border: rgba(0, 255, 255, 0.3);
+  --color-primary-rgb: 0, 255, 255;
+  --color-on-primary: #05181A;
+
+  --color-accent-gradient: linear-gradient(135deg, #00FFFF 0%, #0080FF 100%);
+  --shadow-primary: 0 8px 32px rgba(0, 255, 255, 0.2);
+  --shadow-primary-hover: 0 12px 40px rgba(0, 255, 255, 0.35);
+
   --color-bg: #050D1A;
   --color-bg-secondary: #0A1628;
   --color-bg-tertiary: #0F1F35;
