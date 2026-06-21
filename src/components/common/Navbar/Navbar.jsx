@@ -10,9 +10,11 @@ import { ThemeToggle } from '../ThemeToggle';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { toggleMobileMenu, closeMobileMenu } from '@/features/ui/uiSlice';
 import { NAV_ITEMS, COMPANY, SOCIALS } from '@/utils/constants';
+import { useAuth } from '@/hooks/useAuth';
 import './Navbar.css';
 
 export function Navbar() {
+  const { isAuthenticated, logout } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [mobileExpandedItems, setMobileExpandedItems] = useState({});
@@ -162,6 +164,29 @@ export function Navbar() {
             {/* Right Section */}
             <div className="navbar__actions">
               <ThemeToggle />
+
+              {/* Authentication Buttons (Desktop) */}
+              <div className="navbar__auth-desktop" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                {isAuthenticated ? (
+                  <>
+                    <Link to="/dashboard" className="btn btn-ghost btn-sm">
+                      Dashboard
+                    </Link>
+                    <button onClick={logout} className="btn btn-secondary btn-sm">
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link to="/auth/login" className="btn btn-ghost btn-sm">
+                      Sign In
+                    </Link>
+                    <Link to="/auth/register" className="btn btn-primary btn-sm">
+                      Register
+                    </Link>
+                  </>
+                )}
+              </div>
            
               <button
                 className="navbar__hamburger"
@@ -289,6 +314,27 @@ export function Navbar() {
               </nav>
 
               <div className="navbar__mobile-footer">
+                <div className="navbar__mobile-auth" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
+                  {isAuthenticated ? (
+                    <>
+                      <Link to="/dashboard" className="btn btn-secondary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
+                        Dashboard
+                      </Link>
+                      <button onClick={logout} className="btn btn-outline-cyan btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
+                        Logout
+                      </button>
+                    </>
+                  ) : (
+                    <>
+                      <Link to="/auth/login" className="btn btn-secondary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
+                        Sign In
+                      </Link>
+                      <Link to="/auth/register" className="btn btn-outline-cyan btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
+                        Register
+                      </Link>
+                    </>
+                  )}
+                </div>
                 <a
                   href={COMPANY.whatsapp}
                   target="_blank"

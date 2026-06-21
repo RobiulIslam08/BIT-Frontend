@@ -2,42 +2,13 @@
    BIT SOFTWARE — HOME PAGE PREMIUM STYLES
    ========================================================================== */
 
-/* ─── COMMON SECTION HEADERS ─── */
-.section-subtitle {
-  font-family: var(--font-display);
-  font-size: var(--text-sm);
-  text-transform: uppercase;
-  letter-spacing: 0.15em;
-  color: var(--color-primary);
-  margin-bottom: 0.75rem;
-  display: inline-block;
-  position: relative;
-}
-
-.section-subtitle::after {
-  content: '';
-  display: block;
-  width: 24px;
-  height: 2px;
-  background: var(--color-primary);
-  margin-top: 4px;
-}
-
-.section-header {
-  text-align: center;
-  max-width: 680px;
-  margin: 0 auto 4rem;
-}
-
-.section-header__title {
-  margin-bottom: 1.25rem;
-}
-
-.section-header__desc {
-  font-size: var(--text-base);
-  color: var(--color-text-secondary);
-  line-height: 1.6;
-}
+/* ─── SHARED STYLES ───
+   section-header, section-subtitle, stats, why-us, cta-section,
+   service-card, etc. are all defined in:
+   → src/styles/components.css (globally imported)
+   → src/styles/typography.css
+   Do NOT redefine them here. Edit components.css to change globally.
+   ─────────────────────────────────────────────── */
 
 /* ==========================================
    1. HERO SECTION
@@ -698,11 +669,7 @@
   color: var(--color-on-primary) !important;
 }
 
-.services-overview__grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-  gap: 1.5rem;
-}
+/* services-overview__grid → defined in components.css */
 
 .service-card-premium {
   background: var(--color-surface);
@@ -766,11 +733,8 @@
   background: var(--color-bg-secondary);
 }
 
-.why-us__grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-}
+/* why-us__grid, why-us__card base → defined in components.css */
+/* Home-specific why-us extensions below: */
 
 .why-us__card {
   background: var(--color-surface);
@@ -878,46 +842,10 @@
 
 
 /* ==========================================
-   4. STATS SECTION (DARK BAND)
+   4. STATS SECTION
+   → .stats, .stats__grid, .stats__item, .stats__value, .stats__label
+   → ALL defined in components.css (global)
    ========================================== */
-.stats {
-  background: #020b12; /* Dark navy background */
-  position: relative;
-  overflow: hidden;
-  border-top: 1px solid rgba(255,255,255,0.05);
-  border-bottom: 1px solid rgba(255,255,255,0.05);
-}
-
-.stats__grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 2.5rem;
-  text-align: center;
-}
-
-.stats__item {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.stats__value {
-  font-family: var(--font-display);
-  font-size: clamp(2.5rem, 5vw, 3.5rem);
-  font-weight: 850;
-  color: #FFFFFF; /* Absolute white */
-  line-height: 1;
-  margin-bottom: 0.5rem;
-}
-
-.stats__label {
-  font-size: var(--text-xs);
-  font-weight: 600;
-  letter-spacing: 0.05em;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.6); /* Dull white text */
-}
-
 
 /* ==========================================
    5. PROCESS SECTION
@@ -1469,115 +1397,10 @@
 
 
 /* ==========================================
-   9. CTA SECTION (GRADIENT OVERLAY)
+   9. CTA SECTION
+   → .cta-section, .cta-section__inner, .cta-section__title, .cta-section__desc, .cta-section__buttons
+   → ALL defined in components.css (global)
    ========================================== */
-.cta-section {
-  background: var(--color-bg);
-}
-
-.cta-section__inner {
-  position: relative;
-  background: #020a13; /* Solid deep navy-black background */
-  border: 1px solid rgba(0, 255, 255, 0.1);
-  border-radius: var(--radius-2xl);
-  overflow: hidden;
-  padding: 6rem 4rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  text-align: center;
-  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3), 0 0 60px rgba(0, 255, 255, 0.05);
-}
-
-.cta-section__overlay {
-  position: absolute;
-  inset: 0;
-  background: radial-gradient(circle at top right, rgba(0, 255, 255, 0.1) 0%, transparent 60%),
-              radial-gradient(circle at bottom left, rgba(0, 128, 255, 0.08) 0%, transparent 60%);
-  z-index: 1;
-  pointer-events: none;
-}
-
-.cta-section__grid-bg {
-  position: absolute;
-  inset: 0;
-  background-image: 
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px);
-  background-size: 40px 40px;
-  z-index: 1;
-  pointer-events: none;
-}
-
-.cta-section__content {
-  position: relative;
-  z-index: 2;
-  max-width: 720px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-}
-
-.cta-section__icon-badge {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 56px;
-  height: 56px;
-  border-radius: var(--radius-lg);
-  background: rgba(0, 255, 255, 0.08);
-  border: 1px solid rgba(0, 255, 255, 0.2);
-  color: var(--color-primary);
-  margin-bottom: 1.75rem;
-  box-shadow: 0 0 20px rgba(0, 255, 255, 0.1);
-  animation: float-slow 4s ease-in-out infinite alternate;
-}
-
-@keyframes float-slow {
-  0% { transform: translateY(0); }
-  100% { transform: translateY(-6px); }
-}
-
-.cta-section__title {
-  color: #FFFFFF !important;
-  font-size: clamp(2rem, 4.5vw, 3.25rem);
-  font-weight: 850;
-  line-height: 1.15;
-  margin-bottom: 1.5rem;
-  letter-spacing: -0.02em;
-}
-
-.text-gradient {
-  background: linear-gradient(135deg, var(--color-primary) 30%, #00bcff 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-
-.cta-section__desc {
-  font-size: var(--text-lg);
-  color: rgba(255, 255, 255, 0.75);
-  line-height: 1.7;
-  margin-bottom: 2.5rem;
-}
-
-.cta-section__desc strong {
-  color: #ffffff;
-}
-
-.cta-section__buttons {
-  display: flex;
-  gap: 1.25rem;
-  justify-content: center;
-  margin-bottom: 1.5rem;
-}
-
-.cta-section__note {
-  font-size: var(--text-xs);
-  color: rgba(255, 255, 255, 0.45);
-  font-weight: 500;
-  letter-spacing: 0.02em;
-}
-
 
 /* ==========================================
    RESPONSIVE DESIGN (MEDIA QUERIES)
@@ -1658,14 +1481,8 @@
     justify-content: center;
   }
 
-  .why-us__grid {
-    grid-template-columns: 1fr;
-  }
 
-  .stats__grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 2rem;
-  }
+  /* why-us__grid and stats__grid responsive rules -> defined in components.css */
 
   /* Process Vertical Mode */
   .process__line-horizontal-container {
@@ -1703,26 +1520,11 @@
     grid-template-columns: 1fr;
   }
 
-  .cta-section__inner {
-    padding: 4rem 1.5rem;
-  }
-
-  .cta-section__buttons {
-    flex-direction: column;
-    width: 100%;
-  }
-
-  .cta-section__buttons .btn {
-    width: 100%;
-    justify-content: center;
-  }
+  /* cta-section responsive rules -> defined in components.css */
 }
 
 @media (max-width: 480px) {
-  .stats__grid {
-    grid-template-columns: 1fr;
-    gap: 2rem;
-  }
+  /* stats__grid responsive rules -> defined in components.css */
 
   .services-overview__tabs {
     flex-direction: column;

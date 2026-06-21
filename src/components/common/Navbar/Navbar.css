@@ -374,6 +374,10 @@
     display: none !important;
   }
 
+  .navbar__auth-desktop {
+    display: none !important;
+  }
+
   .navbar__hamburger {
     display: flex;
   }

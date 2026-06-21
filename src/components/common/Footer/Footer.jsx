@@ -29,24 +29,7 @@ export function Footer() {
 
   return (
     <footer className="footer">
-      {!isHomePage && (
-        <div className="footer__cta">
-          <div className="container">
-            <FadeInUp>
-              <div className="footer__cta-inner">
-                <div className="footer__cta-content">
-                  <h3 className="h3">Ready to Start Your Project?</h3>
-                  <p className="body-base" style={{ color: 'var(--color-text-muted)' }}>Let's discuss how we can help transform your business.</p>
-                </div>
-                <div className="footer__cta-actions">
-                  <Link to="/contact" className="btn btn-primary btn-lg">Get Started</Link>
-                  <a href={COMPANY.whatsapp} target="_blank" rel="noopener noreferrer" className="btn btn-secondary  btn-lg"><Phone size={18} /> WhatsApp Us</a>
-                </div>
-              </div>
-            </FadeInUp>
-          </div>
-        </div>
-      )}
+    
 
       <div className="footer__main">
         <div className="container">

@@ -8,6 +8,7 @@
 @import "./typography.css";
 @import "./animations.css";
 @import "./utilities.css";
+@import "./components.css";
 
 /* ─── CSS RESET ADDITIONS ─── */
 *,
