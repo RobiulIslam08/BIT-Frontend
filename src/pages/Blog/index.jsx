@@ -7,6 +7,7 @@ import { Calendar, Clock } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { FadeInUp } from '@/components/animations/FadeInUp';
 import { StaggerChildren, StaggerItem } from '@/components/animations/StaggerChildren';
+import { ScrollBlurReveal } from '@/components/animations/ScrollBlurReveal';
 
 const POSTS = [
   { slug: 'web-development-saudi-2025', title: 'Web Development Trends in Saudi Arabia 2025', excerpt: 'Discover the latest web development trends shaping the Saudi digital landscape and how businesses can leverage them.', date: 'Dec 15, 2025', readTime: '5 min', category: 'Web Development' },
@@ -22,7 +23,7 @@ export default function Blog() {
     <>
       <SEOHead title="Blog" description="Insights, guides, and news about IT solutions, web development, and digital marketing in Saudi Arabia." />
 
-      {/* Hero */}
+      {/* Hero (Above the fold, no scroll reveal for instant display) */}
       <section className="page-hero">
         <div className="container">
           <FadeInUp>
@@ -36,25 +37,27 @@ export default function Blog() {
       </section>
 
       {/* Blog Grid */}
-      <section className="section">
-        <div className="container">
-          <StaggerChildren className="services-overview__grid">
-            {POSTS.map((post) => (
-              <StaggerItem key={post.slug}>
-                <Link to={`/blog/${post.slug}`} className="blog-card">
-                  <div className="badge" style={{ marginBottom: '1.25rem' }}>{post.category}</div>
-                  <h3 className="blog-card__title">{post.title}</h3>
-                  <p className="blog-card__excerpt">{post.excerpt}</p>
-                  <div className="blog-card__meta">
-                    <span className="blog-card__meta-item"><Calendar size={13} /> {post.date}</span>
-                    <span className="blog-card__meta-item"><Clock size={13} /> {post.readTime}</span>
-                  </div>
-                </Link>
-              </StaggerItem>
-            ))}
-          </StaggerChildren>
-        </div>
-      </section>
+      <ScrollBlurReveal>
+        <section className="section">
+          <div className="container">
+            <StaggerChildren className="services-overview__grid">
+              {POSTS.map((post) => (
+                <StaggerItem key={post.slug}>
+                  <Link to={`/blog/${post.slug}`} className="blog-card">
+                    <div className="badge" style={{ marginBottom: '1.25rem' }}>{post.category}</div>
+                    <h3 className="blog-card__title">{post.title}</h3>
+                    <p className="blog-card__excerpt">{post.excerpt}</p>
+                    <div className="blog-card__meta">
+                      <span className="blog-card__meta-item"><Calendar size={13} /> {post.date}</span>
+                      <span className="blog-card__meta-item"><Clock size={13} /> {post.readTime}</span>
+                    </div>
+                  </Link>
+                </StaggerItem>
+              ))}
+            </StaggerChildren>
+          </div>
+        </section>
+      </ScrollBlurReveal>
     </>
   );
 }

@@ -8,6 +8,7 @@ import { SEOHead } from '@/components/common/SEOHead';
 import { FadeInUp } from '@/components/animations/FadeInUp';
 import { StaggerChildren, StaggerItem } from '@/components/animations/StaggerChildren';
 import { Counter } from '@/components/animations/CounterAnimation';
+import { ScrollBlurReveal } from '@/components/animations/ScrollBlurReveal';
 
 const VALUES = [
   { icon: Target, title: 'Mission-Driven', desc: 'Every line of code serves a business objective. We measure success by your growth and ROI.' },
@@ -29,7 +30,7 @@ export default function About() {
     <>
       <SEOHead title="About Us" description="Learn about BIT Software & IT Solution — Saudi Arabia's premier IT partner delivering world-class digital solutions." />
 
-      {/* Hero */}
+      {/* Hero (Above the fold, no scroll reveal for instant display) */}
       <section className="page-hero">
         <div className="container">
           <FadeInUp>
@@ -51,90 +52,98 @@ export default function About() {
       </section>
 
       {/* Stats */}
-      <section className="stats section-sm">
-        <div className="container">
-          <div className="stats__grid">
-            {[
-              { value: 250, suffix: '+', label: 'Projects Completed' },
-              { value: 120, suffix: '+', label: 'Happy Clients' },
-              { value: 15, suffix: '+', label: 'Team Members' },
-              { value: 99, suffix: '%', label: 'Client Satisfaction' },
-            ].map((stat, i) => (
-              <FadeInUp key={stat.label} delay={i * 0.1}>
-                <div className="stats__item">
-                  <div className="stats__value"><Counter to={stat.value} suffix={stat.suffix} /></div>
-                  <div className="stats__label">{stat.label}</div>
-                </div>
-              </FadeInUp>
-            ))}
+      <ScrollBlurReveal>
+        <section className="stats section-sm">
+          <div className="container">
+            <div className="stats__grid">
+              {[
+                { value: 250, suffix: '+', label: 'Projects Completed' },
+                { value: 120, suffix: '+', label: 'Happy Clients' },
+                { value: 15, suffix: '+', label: 'Team Members' },
+                { value: 99, suffix: '%', label: 'Client Satisfaction' },
+              ].map((stat, i) => (
+                <FadeInUp key={stat.label} delay={i * 0.1}>
+                  <div className="stats__item">
+                    <div className="stats__value"><Counter to={stat.value} suffix={stat.suffix} /></div>
+                    <div className="stats__label">{stat.label}</div>
+                  </div>
+                </FadeInUp>
+              ))}
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      </ScrollBlurReveal>
 
       {/* Values */}
-      <section className="section">
-        <div className="container">
-          <FadeInUp>
-            <div className="section-header">
-              <span className="section-subtitle">Our Values</span>
-              <h2 className="h2 section-header__title">What Drives Us Every Day</h2>
-              <p className="section-header__desc">These core values shape every decision we make and every solution we build for our clients.</p>
-            </div>
-          </FadeInUp>
-          <StaggerChildren className="services-overview__grid">
-            {VALUES.map((v) => (
-              <StaggerItem key={v.title}>
-                <div className="service-card">
-                  <div className="service-card__icon"><v.icon size={24} /></div>
-                  <h3 className="service-card__title">{v.title}</h3>
-                  <p className="service-card__desc">{v.desc}</p>
-                </div>
-              </StaggerItem>
-            ))}
-          </StaggerChildren>
-        </div>
-      </section>
+      <ScrollBlurReveal>
+        <section className="section">
+          <div className="container">
+            <FadeInUp>
+              <div className="section-header">
+                <span className="section-subtitle">Our Values</span>
+                <h2 className="h2 section-header__title">What Drives Us Every Day</h2>
+                <p className="section-header__desc">These core values shape every decision we make and every solution we build for our clients.</p>
+              </div>
+            </FadeInUp>
+            <StaggerChildren className="services-overview__grid">
+              {VALUES.map((v) => (
+                <StaggerItem key={v.title}>
+                  <div className="service-card">
+                    <div className="service-card__icon"><v.icon size={24} /></div>
+                    <h3 className="service-card__title">{v.title}</h3>
+                    <p className="service-card__desc">{v.desc}</p>
+                  </div>
+                </StaggerItem>
+              ))}
+            </StaggerChildren>
+          </div>
+        </section>
+      </ScrollBlurReveal>
 
       {/* Team Strengths */}
-      <section className="section" style={{ background: 'var(--color-bg-secondary)' }}>
-        <div className="container">
-          <FadeInUp>
-            <div className="section-header">
-              <span className="section-subtitle">Our Team</span>
-              <h2 className="h2 section-header__title">Why Our Team Stands Out</h2>
-              <p className="section-header__desc">Our diverse team brings together years of experience in software engineering, design, and digital strategy.</p>
-            </div>
-          </FadeInUp>
-          <StaggerChildren className="why-us__grid">
-            {TEAM_STRENGTHS.map((item, i) => (
-              <StaggerItem key={item.title}>
-                <div className="why-us__card">
-                  <div className="why-us__card-number">{String(i + 1).padStart(2, '0')}</div>
-                  <div className="service-card__icon"><item.icon size={24} /></div>
-                  <h3 className="why-us__card-title">{item.title}</h3>
-                  <p className="why-us__card-desc">{item.desc}</p>
-                </div>
-              </StaggerItem>
-            ))}
-          </StaggerChildren>
-        </div>
-      </section>
+      <ScrollBlurReveal>
+        <section className="section" style={{ background: 'var(--color-bg-secondary)' }}>
+          <div className="container">
+            <FadeInUp>
+              <div className="section-header">
+                <span className="section-subtitle">Our Team</span>
+                <h2 className="h2 section-header__title">Why Our Team Stands Out</h2>
+                <p className="section-header__desc">Our diverse team brings together years of experience in software engineering, design, and digital strategy.</p>
+              </div>
+            </FadeInUp>
+            <StaggerChildren className="why-us__grid">
+              {TEAM_STRENGTHS.map((item, i) => (
+                <StaggerItem key={item.title}>
+                  <div className="why-us__card">
+                    <div className="why-us__card-number">{String(i + 1).padStart(2, '0')}</div>
+                    <div className="service-card__icon"><item.icon size={24} /></div>
+                    <h3 className="why-us__card-title">{item.title}</h3>
+                    <p className="why-us__card-desc">{item.desc}</p>
+                  </div>
+                </StaggerItem>
+              ))}
+            </StaggerChildren>
+          </div>
+        </section>
+      </ScrollBlurReveal>
 
       {/* CTA */}
-      <section className="section">
-        <div className="container">
-          <FadeInUp>
-            <div className="cta-section__inner">
-              <h2 className="h2 cta-section__title">Let's Build Something Great Together</h2>
-              <p className="body-lg cta-section__desc">Ready to transform your business with technology? We'd love to hear about your project.</p>
-              <div className="cta-section__buttons">
-                <Link to="/contact" className="btn btn-primary btn-lg">Contact Us <ArrowRight size={18} /></Link>
-                <Link to="/services" className="btn btn-outline-white btn-lg">Our Services</Link>
+      <ScrollBlurReveal>
+        <section className="section">
+          <div className="container">
+            <FadeInUp>
+              <div className="cta-section__inner">
+                <h2 className="h2 cta-section__title">Let's Build Something Great Together</h2>
+                <p className="body-lg cta-section__desc">Ready to transform your business with technology? We'd love to hear about your project.</p>
+                <div className="cta-section__buttons">
+                  <Link to="/contact" className="btn btn-primary btn-lg">Contact Us <ArrowRight size={18} /></Link>
+                  <Link to="/services" className="btn btn-outline-white btn-lg">Our Services</Link>
+                </div>
               </div>
-            </div>
-          </FadeInUp>
-        </div>
-      </section>
+            </FadeInUp>
+          </div>
+        </section>
+      </ScrollBlurReveal>
     </>
   );
 }
