@@ -22,3 +22,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Environment variables — সংবেদনশীল তথ্য git-এ push হবে না
+.env
+.env.local
+.env.production
+.env.staging

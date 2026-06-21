@@ -8,6 +8,10 @@ import { MainLayout } from '@/layouts/MainLayout';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { PageLoader } from '@/components/common/LoadingSpinner';
+import {
+  ProtectedRoute,
+  AdminRoute,
+} from '@/components/common/ProtectedRoute/ProtectedRoute';
 
 // ─── LAZY PAGE IMPORTS ───
 const Home = lazy(() => import('@/pages/Home'));
@@ -50,44 +54,51 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <SuspenseWrap><Home /></SuspenseWrap> },
       { path: 'about', element: <SuspenseWrap><About /></SuspenseWrap> },
-      // { path: 'services', element: <SuspenseWrap><Services /></SuspenseWrap> },
-      // { path: 'services/it-services', element: <SuspenseWrap><ITServices /></SuspenseWrap> },
-      // { path: 'services/web-development', element: <SuspenseWrap><WebDevelopment /></SuspenseWrap> },
-      // { path: 'services/erp-software', element: <SuspenseWrap><ERPSoftware /></SuspenseWrap> },
-      // { path: 'services/mobile-apps', element: <SuspenseWrap><MobileApps /></SuspenseWrap> },
-      // { path: 'services/social-media', element: <SuspenseWrap><SocialMedia /></SuspenseWrap> },
-      // { path: 'services/logo-design', element: <SuspenseWrap><LogoDesign /></SuspenseWrap> },
-      // { path: 'services/graphics-design', element: <SuspenseWrap><GraphicsDesign /></SuspenseWrap> },
-      // { path: 'services/it-management', element: <SuspenseWrap><ITManagement /></SuspenseWrap> },
-      // { path: 'services/online-marketing', element: <SuspenseWrap><OnlineMarketing /></SuspenseWrap> },
+      { path: 'services', element: <SuspenseWrap><Services /></SuspenseWrap> },
+      { path: 'services/it-services', element: <SuspenseWrap><ITServices /></SuspenseWrap> },
+      { path: 'services/web-development', element: <SuspenseWrap><WebDevelopment /></SuspenseWrap> },
+      { path: 'services/erp-software', element: <SuspenseWrap><ERPSoftware /></SuspenseWrap> },
+      { path: 'services/mobile-apps', element: <SuspenseWrap><MobileApps /></SuspenseWrap> },
+      { path: 'services/social-media', element: <SuspenseWrap><SocialMedia /></SuspenseWrap> },
+      { path: 'services/logo-design', element: <SuspenseWrap><LogoDesign /></SuspenseWrap> },
+      { path: 'services/graphics-design', element: <SuspenseWrap><GraphicsDesign /></SuspenseWrap> },
+      { path: 'services/it-management', element: <SuspenseWrap><ITManagement /></SuspenseWrap> },
+      { path: 'services/online-marketing', element: <SuspenseWrap><OnlineMarketing /></SuspenseWrap> },
       { path: 'services/google-my-business', element: <SuspenseWrap><GoogleMyBusiness /></SuspenseWrap> },
-      // { path: 'services/domain-hosting', element: <SuspenseWrap><DomainHosting /></SuspenseWrap> },
-      // { path: 'portfolio', element: <SuspenseWrap><Portfolio /></SuspenseWrap> },
-      // { path: 'blog', element: <SuspenseWrap><Blog /></SuspenseWrap> },
+      { path: 'services/domain-hosting', element: <SuspenseWrap><DomainHosting /></SuspenseWrap> },
+      { path: 'portfolio', element: <SuspenseWrap><Portfolio /></SuspenseWrap> },
+      { path: 'blog', element: <SuspenseWrap><Blog /></SuspenseWrap> },
       { path: 'contact', element: <SuspenseWrap><Contact /></SuspenseWrap> },
       { path: '*', element: <SuspenseWrap><NotFound /></SuspenseWrap> },
     ],
   },
-  // {
-  //   path: '/auth',
-  //   element: <AuthLayout />,
-  //   children: [
-  //     { path: 'login', element: <SuspenseWrap><Login /></SuspenseWrap> },
-  //     { path: 'register', element: <SuspenseWrap><Register /></SuspenseWrap> },
-  //   ],
-  // },
-  // {
-  //   path: '/dashboard',
-  //   element: <DashboardLayout />,
-  //   children: [
-  //     { index: true, element: <SuspenseWrap><DashboardHome /></SuspenseWrap> },
-  //     { path: 'services', element: <SuspenseWrap><DashboardServices /></SuspenseWrap> },
-  //     { path: 'offers', element: <SuspenseWrap><DashboardOffers /></SuspenseWrap> },
-  //     { path: 'leads', element: <SuspenseWrap><DashboardLeads /></SuspenseWrap> },
-  //     { path: 'orders', element: <SuspenseWrap><DashboardOrders /></SuspenseWrap> },
-  //     { path: 'users', element: <SuspenseWrap><DashboardUsers /></SuspenseWrap> },
-  //     { path: 'analytics', element: <SuspenseWrap><DashboardAnalytics /></SuspenseWrap> },
-  //     { path: 'settings', element: <SuspenseWrap><DashboardSettings /></SuspenseWrap> },
-  //   ],
-  // },
+  {
+    // Auth routes — already logged in হলে dashboard-এ redirect করা উচিত
+    path: '/auth',
+    element: <AuthLayout />,
+    children: [
+      { path: 'login', element: <SuspenseWrap><Login /></SuspenseWrap> },
+      { path: 'register', element: <SuspenseWrap><Register /></SuspenseWrap> },
+    ],
+  },
+  {
+    // Dashboard — JWT authentication required (admin only)
+    path: '/dashboard',
+    element: <AdminRoute />,
+    children: [
+      {
+        element: <DashboardLayout />,
+        children: [
+          { index: true, element: <SuspenseWrap><DashboardHome /></SuspenseWrap> },
+          { path: 'services', element: <SuspenseWrap><DashboardServices /></SuspenseWrap> },
+          { path: 'offers', element: <SuspenseWrap><DashboardOffers /></SuspenseWrap> },
+          { path: 'leads', element: <SuspenseWrap><DashboardLeads /></SuspenseWrap> },
+          { path: 'orders', element: <SuspenseWrap><DashboardOrders /></SuspenseWrap> },
+          { path: 'users', element: <SuspenseWrap><DashboardUsers /></SuspenseWrap> },
+          { path: 'analytics', element: <SuspenseWrap><DashboardAnalytics /></SuspenseWrap> },
+          { path: 'settings', element: <SuspenseWrap><DashboardSettings /></SuspenseWrap> },
+        ],
+      },
+    ],
+  },
 ]);

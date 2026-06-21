@@ -15,9 +15,17 @@ import './Navbar.css';
 export function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
+  const [mobileExpandedItems, setMobileExpandedItems] = useState({});
   const location = useLocation();
   const dispatch = useAppDispatch();
   const isMobileMenuOpen = useAppSelector((state) => state.ui.isMobileMenuOpen);
+
+  const toggleMobileItem = (key) => {
+    setMobileExpandedItems((prev) => ({
+      ...prev,
+      [key]: !prev[key],
+    }));
+  };
 
   useEffect(() => {
     const handleScroll = () => {
@@ -30,6 +38,7 @@ export function Navbar() {
   useEffect(() => {
     dispatch(closeMobileMenu());
     setActiveDropdown(null);
+    setMobileExpandedItems({});
   }, [location.pathname, dispatch]);
 
   // Prevent body scroll when mobile menu is open
@@ -153,15 +162,7 @@ export function Navbar() {
             {/* Right Section */}
             <div className="navbar__actions">
               <ThemeToggle />
-              <a
-                href={COMPANY.whatsapp}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="btn btn-primary btn-sm navbar__cta"
-              >
-                <Phone size={14} />
-                Get a Quote
-              </a>
+           
               <button
                 className="navbar__hamburger"
                 onClick={() => dispatch(toggleMobileMenu())}
@@ -215,34 +216,76 @@ export function Navbar() {
               </div>
 
               <nav className="navbar__mobile-nav">
-                {NAV_ITEMS.map((item, index) => (
-                  <motion.div
-                    key={item.key || item.path}
-                    initial={{ opacity: 0, x: 30 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: index * 0.05 }}
-                  >
-                    <Link
-                      to={item.path}
-                      className={`navbar__mobile-link ${location.pathname === item.path ? 'navbar__mobile-link--active' : ''}`}
+                {NAV_ITEMS.map((item, index) => {
+                  const hasChildren = !!item.children;
+                  const isExpanded = !!mobileExpandedItems[item.key];
+                  return (
+                    <motion.div
+                      key={item.key || item.path}
+                      initial={{ opacity: 0, x: 30 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ delay: index * 0.05 }}
                     >
-                      {item.label}
-                    </Link>
-                    {item.children && (
-                      <div className="navbar__mobile-sub">
-                        {item.children.map((child) => (
-                          <Link
-                            key={child.path}
-                            to={child.path}
-                            className="navbar__mobile-sublink"
+                      {hasChildren ? (
+                        <button
+                          onClick={() => toggleMobileItem(item.key)}
+                          className={`navbar__mobile-link ${
+                            location.pathname.startsWith(item.path) ? 'navbar__mobile-link--active' : ''
+                          }`}
+                          style={{
+                            width: '100%',
+                            textAlign: 'left',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            background: 'none',
+                            border: 'none',
+                            cursor: 'pointer',
+                          }}
+                        >
+                          <span>{item.label}</span>
+                          <ChevronDown
+                            size={16}
+                            style={{
+                              transform: isExpanded ? 'rotate(180deg)' : 'rotate(0deg)',
+                              transition: 'transform var(--transition-fast)',
+                            }}
+                          />
+                        </button>
+                      ) : (
+                        <Link
+                          to={item.path}
+                          className={`navbar__mobile-link ${location.pathname === item.path ? 'navbar__mobile-link--active' : ''}`}
+                        >
+                          {item.label}
+                        </Link>
+                      )}
+
+                      <AnimatePresence initial={false}>
+                        {hasChildren && isExpanded && (
+                          <motion.div
+                            className="navbar__mobile-sub"
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: 'auto' }}
+                            exit={{ opacity: 0, height: 0 }}
+                            transition={{ duration: 0.2, ease: 'easeInOut' }}
+                            style={{ overflow: 'hidden' }}
                           >
-                            {child.label}
-                          </Link>
-                        ))}
-                      </div>
-                    )}
-                  </motion.div>
-                ))}
+                            {item.children.map((child) => (
+                              <Link
+                                key={child.path}
+                                to={child.path}
+                                className={`navbar__mobile-sublink ${location.pathname === child.path ? 'navbar__mobile-sublink--active' : ''}`}
+                              >
+                                {child.label}
+                              </Link>
+                            ))}
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+                    </motion.div>
+                  );
+                })}
               </nav>
 
               <div className="navbar__mobile-footer">
