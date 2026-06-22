@@ -4,6 +4,7 @@
 
 import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
+import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import {
   CreditCard, Upload, CheckCircle2, AlertCircle, Tag, Shield,
   FileText, ArrowLeft, Send, Loader2, X, Image as ImageIcon,
@@ -44,6 +45,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
 
   // Validation error
   const [validationError, setValidationError] = useState('');
+  const [isSubmittingLocal, setIsSubmittingLocal] = useState(false);
 
   // ─── COMPUTED VALUES ───
   const getServiceType = () => {
@@ -635,29 +637,146 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
       )}
 
       {/* ─── ACTION BUTTONS ─── */}
-      <div className="form-actions row-gap">
-        <button type="button" onClick={onBack} className="btn btn-secondary btn-lg">
-          <ArrowLeft size={18} /> Back
-        </button>
+      <div className="form-actions row-gap" style={{ flexDirection: paymentMethod === 'paypal' ? 'column' : 'row', gap: '1rem' }}>
+        {paymentMethod !== 'paypal' ? (
+          <>
+            <button type="button" onClick={onBack} className="btn btn-secondary btn-lg">
+              <ArrowLeft size={18} /> Back
+            </button>
 
-        <button
-          type="button"
-          className={`gmb-submit-btn ${isSubmitting ? 'loading' : isFormValid ? 'enabled' : 'disabled'}`}
-          onClick={validateAndSubmit}
-          disabled={isSubmitting || !isFormValid}
-        >
-          {isSubmitting ? (
-            <>
-              <span className="gmb-btn-spinner" />
-              Processing Order...
-            </>
-          ) : (
-            <>
-              <Send size={18} />
-              Submit Order — {finalPrice} SAR
-            </>
-          )}
-        </button>
+            <button
+              type="button"
+              className={`gmb-submit-btn ${isSubmitting ? 'loading' : isFormValid ? 'enabled' : 'disabled'}`}
+              onClick={validateAndSubmit}
+              disabled={isSubmitting || !isFormValid}
+            >
+              {isSubmitting ? (
+                <>
+                  <span className="gmb-btn-spinner" />
+                  Processing Order...
+                </>
+              ) : (
+                <>
+                  <Send size={18} />
+                  Submit Order — {finalPrice} SAR
+                </>
+              )}
+            </button>
+          </>
+        ) : (
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+            <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
+              <button type="button" onClick={onBack} className="btn btn-secondary btn-lg" style={{ flex: 1 }}>
+                <ArrowLeft size={18} /> Back
+              </button>
+            </div>
+            
+            {/* PayPal Integration */}
+            <div className="paypal-btn-container" style={{ width: '100%', marginTop: '0.5rem' }}>
+              {!termsAccepted ? (
+                <div className="paypal-disabled-note" style={{
+                  padding: '1rem',
+                  background: 'var(--color-bg-secondary)',
+                  border: '1px solid var(--color-border)',
+                  borderRadius: 'var(--radius-md)',
+                  fontSize: 'var(--text-xs)',
+                  color: 'var(--color-text-muted)',
+                  textAlign: 'center'
+                }}>
+                  Please accept the Terms & Conditions above to enable PayPal checkout.
+                </div>
+              ) : (
+                <PayPalScriptProvider options={{
+                  "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID || "sb",
+                  currency: "USD", // Universal USD fallback to bypass SAR limitations
+                }}>
+                  <div style={{ textAlign: 'center', marginBottom: '0.75rem', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                    {isSubmitting || isSubmittingLocal ? (
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--color-primary)' }}>
+                        <span className="gmb-btn-spinner" /> Capturing transaction and placing order...
+                      </div>
+                    ) : (
+                      <>Amount converted for PayPal checkout: <strong>${(finalPrice / 3.75).toFixed(2)} USD</strong> (equivalent to {finalPrice} SAR)</>
+                    )}
+                  </div>
+                  {!isSubmittingLocal && !isSubmitting && (
+                    <PayPalButtons
+                      style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay" }}
+                      createOrder={(data, actions) => {
+                        return actions.order.create({
+                          purchase_units: [
+                            {
+                              amount: {
+                                currency_code: "USD",
+                                value: (finalPrice / 3.75).toFixed(2),
+                              },
+                              description: `GMB Service: ${serviceType === 'new' ? 'New Profile Setup' : 'Profile Recovery'}`,
+                            },
+                          ],
+                        });
+                      }}
+                      onApprove={async (data, actions) => {
+                        setIsSubmittingLocal(true);
+                        try {
+                          const details = await actions.order.capture();
+                          const orderPayload = {
+                            businessName: form.businessName,
+                            category: form.category,
+                            hasPhysicalLocation: form.hasPhysicalLocation,
+                            streetAddress: form.streetAddress,
+                            city: form.city,
+                            state: form.state,
+                            postalCode: form.postalCode,
+                            country: form.country,
+                            latitude: form.latitude,
+                            longitude: form.longitude,
+                            serviceAreas: form.serviceAreas,
+                            phone: `${form.phoneCode} ${form.phone}`,
+                            whatsapp: form.whatsapp,
+                            email: form.email,
+                            website: form.website,
+                            description: form.description,
+                            servicesList: form.servicesList,
+
+                            serviceType,
+                            hasExistingProfile,
+                            profileHasIssues: profileHasIssues === 'yes',
+                            recoveryEmail: serviceType === 'recovery' ? recoveryEmail : undefined,
+                            recoveryPhone: serviceType === 'recovery' ? recoveryPhone : undefined,
+                            originalPrice: basePrice,
+                            couponCode: couponApplied ? couponCode : undefined,
+                            discountAmount: couponDiscount,
+                            finalAmount: finalPrice,
+                            paymentMethod: 'paypal',
+                            termsAccepted: true,
+
+                            paypalOrderId: data.orderID,
+                            transactionDetails: {
+                              transactionId: details.id,
+                              senderName: `${details.payer.name.given_name} ${details.payer.name.surname}`,
+                              paymentDate: details.create_time,
+                            },
+                            paymentStatus: 'paid',
+                            orderStatus: 'pending_review',
+                          };
+                          onSubmit(orderPayload);
+                        } catch (error) {
+                          setValidationError('Failed to capture PayPal transaction. Please contact support.');
+                        } finally {
+                          setIsSubmittingLocal(false);
+                        }
+                      }}
+                      onError={(err) => {
+                        setValidationError('PayPal payment authorization failed. Please try again.');
+                        console.error("PayPal SDK Error:", err);
+                      }}
+                    />
+                  )}
+                </PayPalScriptProvider>
+              )}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
