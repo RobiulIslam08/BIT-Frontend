@@ -2,7 +2,7 @@
 // BIT SOFTWARE — Google My Business Optimization
 // ============================================
 
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import { motion } from 'motion/react';
 import { Link } from 'react-router-dom';
 import {
@@ -14,6 +14,7 @@ import { SEOHead } from '@/components/common/SEOHead';
 import { FadeInUp } from '@/components/animations/FadeInUp';
 import { COMPANY } from '@/utils/constants';
 import MapPicker from './MapPicker';
+import Step5Payment from './Step5Payment';
 import './GoogleMyBusiness.css';
 
 const COUNTRIES = [
@@ -45,6 +46,9 @@ const CATEGORIES = [
 export default function GoogleMyBusiness() {
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [orderData, setOrderData] = useState(null);
+  const formTopRef = useRef(null);
   const [openFaq, setOpenFaq] = useState(null);
   const [form, setForm] = useState({
     businessName: '',
@@ -151,16 +155,35 @@ export default function GoogleMyBusiness() {
       }
     }
     setStep((prev) => prev + 1);
+    setTimeout(() => {
+      formTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
   };
 
-  const handleBack = () => setStep((prev) => prev - 1);
-
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    setSubmitted(true);
+  const handleBack = () => {
+    setStep((prev) => prev - 1);
+    setTimeout(() => {
+      formTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 50);
   };
 
-  const progressPercentage = (step / 4) * 100;
+  const handleSubmit = async (orderPayload) => {
+    setIsSubmitting(true);
+    try {
+      // TODO: Replace with actual API call when backend is ready
+      // const result = await submitGMBOrder(orderPayload);
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      setOrderData(orderPayload);
+      setSubmitted(true);
+    } catch (error) {
+      alert('Failed to submit order. Please try again.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const totalSteps = 5;
+  const progressPercentage = (step / totalSteps) * 100;
 
   if (submitted) {
     return (
@@ -180,21 +203,30 @@ export default function GoogleMyBusiness() {
               <div className="gmb-success-icon-wrap">
                 <CheckCircle2 size={48} className="success-icon" />
               </div>
-              <h2 className="h2 success-title">Google Profile Configured!</h2>
+              <h2 className="h2 success-title">Order Submitted Successfully!</h2>
               <p className="body-base success-desc">
-                Thank you! Our local SEO experts will contact you at <strong>{form.email}</strong> within 24 hours to initiate your official Google Maps validation and start your Local SEO ranking campaign.
+                Thank you! Your order has been received. Our team will review your submission and contact you at <strong>{form.email}</strong> within 24 hours.
               </p>
               <div className="success-summary">
-                <h4>Submission Summary</h4>
+                <h4>Order Summary</h4>
                 <ul>
                   <li><strong>Business:</strong> {form.businessName}</li>
                   <li><strong>Category:</strong> {form.category}</li>
                   <li><strong>Location:</strong> {form.hasPhysicalLocation === 'yes' ? `${form.city}, ${form.country}` : `Service Area: ${form.serviceAreas}`}</li>
                   <li><strong>Verification Contact:</strong> {form.phoneCode} {form.phone}</li>
+                  {orderData && (
+                    <>
+                      <li><strong>Service:</strong> {orderData.serviceType === 'new' ? 'New Profile Creation' : orderData.serviceType === 'recovery' ? 'GMB Recovery' : 'Profile Management'}</li>
+                      <li><strong>Amount Paid:</strong> {orderData.finalAmount} SAR</li>
+                      <li><strong>Payment Method:</strong> {orderData.paymentMethod === 'paypal' ? 'PayPal' : 'Manual Payment'}</li>
+                      <li><strong>Payment Status:</strong> {orderData.paymentStatus === 'paid' ? '✅ Paid' : '⏳ Pending Verification'}</li>
+                      <li><strong>Order Status:</strong> 📋 Pending Review</li>
+                    </>
+                  )}
                 </ul>
               </div>
-              <button onClick={() => { setStep(1); setSubmitted(false); }} className="btn btn-primary">
-                Configure Another Business
+              <button onClick={() => { setStep(1); setSubmitted(false); setOrderData(null); }} className="btn btn-primary">
+                Submit Another Order
               </button>
             </motion.div>
           </div>
@@ -248,14 +280,15 @@ export default function GoogleMyBusiness() {
           {/* Left Column: Multi-Step Setup Form */}
           <div className="gmb-form-container">
             {/* Steps Progress Header */}
-            <div className="gmb-progress-card">
+            <div className="gmb-progress-card" ref={formTopRef} style={{ scrollMarginTop: '90px' }}>
               <div className="progress-text">
-                <span className="step-label">STEP {step} OF 4</span>
+                <span className="step-label">STEP {step} OF {totalSteps}</span>
                 <span className="step-desc">
                   {step === 1 && 'Business Core Identity'}
                   {step === 2 && 'Location Details'}
                   {step === 3 && 'Contact & Channels'}
                   {step === 4 && 'Operational Details'}
+                  {step === 5 && 'Service & Payment'}
                 </span>
               </div>
               <div className="progress-bar-bg">
@@ -609,11 +642,21 @@ export default function GoogleMyBusiness() {
                     <button type="button" onClick={handleBack} className="btn btn-secondary btn-lg">
                       <ArrowLeft size={18} /> Back
                     </button>
-                    <button type="submit" className="btn btn-primary btn-lg">
-                      <Send size={18} /> Submit Application
+                    <button type="button" onClick={handleNext} className="btn btn-primary btn-lg">
+                      Next Step <ArrowRight size={18} />
                     </button>
                   </div>
                 </div>
+              )}
+
+              {/* STEP 5: Service Selection & Payment */}
+              {step === 5 && (
+                <Step5Payment
+                  form={form}
+                  onBack={handleBack}
+                  onSubmit={handleSubmit}
+                  isSubmitting={isSubmitting}
+                />
               )}
             </form>
           </div>

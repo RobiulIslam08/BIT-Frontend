@@ -28,6 +28,7 @@ const ITManagement = lazy(() => import('@/pages/Services/ITManagement'));
 const OnlineMarketing = lazy(() => import('@/pages/Services/OnlineMarketing'));
 const GoogleMyBusiness = lazy(() => import('@/pages/Services/GoogleMyBusiness'));
 const DomainHosting = lazy(() => import('@/pages/Services/DomainHosting'));
+const TermsAndConditions = lazy(() => import('@/pages/TermsAndConditions'));
 const Portfolio = lazy(() => import('@/pages/Portfolio'));
 const Blog = lazy(() => import('@/pages/Blog'));
 const Contact = lazy(() => import('@/pages/Contact'));
@@ -66,6 +67,7 @@ export const router = createBrowserRouter([
       { path: 'services/online-marketing', element: <SuspenseWrap><OnlineMarketing /></SuspenseWrap> },
       { path: 'services/google-my-business', element: <SuspenseWrap><GoogleMyBusiness /></SuspenseWrap> },
       { path: 'services/domain-hosting', element: <SuspenseWrap><DomainHosting /></SuspenseWrap> },
+      { path: 'terms-and-conditions', element: <SuspenseWrap><TermsAndConditions /></SuspenseWrap> },
       { path: 'portfolio', element: <SuspenseWrap><Portfolio /></SuspenseWrap> },
       { path: 'blog', element: <SuspenseWrap><Blog /></SuspenseWrap> },
       { path: 'contact', element: <SuspenseWrap><Contact /></SuspenseWrap> },

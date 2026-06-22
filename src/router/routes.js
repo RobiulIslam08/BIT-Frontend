@@ -25,6 +25,7 @@ export const ROUTES = {
   SERVICES_MARKETING: '/services/online-marketing',
   SERVICES_GMB: '/services/google-my-business',
   SERVICES_HOSTING: '/services/domain-hosting',
+  TERMS: '/terms-and-conditions',
   PORTFOLIO: '/portfolio',
   BLOG: '/blog',
   BLOG_POST: '/blog/:slug',

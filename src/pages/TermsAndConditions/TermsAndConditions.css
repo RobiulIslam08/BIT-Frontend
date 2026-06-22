@@ -1,0 +1,501 @@
+/* ========================================================
+   BIT SOFTWARE — TERMS & CONDITIONS PAGE STYLES
+   ======================================================== */
+
+/* ─── HERO ─── */
+.terms-hero {
+  position: relative;
+  padding: 5rem 0 3rem;
+  background: var(--color-bg-secondary);
+  border-bottom: 1px solid var(--color-border);
+  overflow: hidden;
+}
+
+.terms-hero__bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.terms-orb {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(120px);
+  opacity: 0.06;
+}
+
+.terms-orb-1 {
+  width: 350px;
+  height: 350px;
+  top: -100px;
+  left: 15%;
+  background: var(--color-primary);
+}
+
+.terms-orb-2 {
+  width: 250px;
+  height: 250px;
+  bottom: -50px;
+  right: 20%;
+  background: #a855f7;
+}
+
+.terms-hero__content {
+  position: relative;
+  z-index: 2;
+  max-width: 700px;
+  margin: 0 auto;
+  text-align: center;
+}
+
+.terms-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 1rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-primary);
+  margin-bottom: 1.5rem;
+}
+
+.terms-hero__title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 900;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+}
+
+.terms-hero__desc {
+  font-size: var(--text-base);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.terms-meta {
+  display: flex;
+  justify-content: center;
+  gap: 2rem;
+  margin-top: 1.5rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+.terms-meta span {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+/* ─── MAIN CONTENT LAYOUT ─── */
+.terms-content-section {
+  padding: 4rem 0 6rem;
+  background: var(--color-bg);
+}
+
+.terms-layout {
+  display: grid;
+  grid-template-columns: 260px 1fr;
+  gap: 3.5rem;
+  align-items: start;
+  max-width: 1100px;
+  margin: 0 auto;
+}
+
+/* ─── SIDEBAR NAVIGATION ─── */
+.terms-sidebar {
+  position: sticky;
+  top: 100px;
+}
+
+.terms-nav {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+}
+
+.terms-nav-title {
+  font-size: var(--text-xs);
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  margin-bottom: 1rem;
+  padding-bottom: 0.75rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.terms-nav-links {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.terms-nav-link {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.6rem 0.75rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--color-text-secondary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.terms-nav-link:hover {
+  color: var(--color-text-primary);
+  background: var(--color-bg-secondary);
+}
+
+.terms-nav-link svg {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+}
+
+/* ─── CONTENT SECTIONS ─── */
+.terms-body {
+  display: flex;
+  flex-direction: column;
+  gap: 3rem;
+}
+
+.terms-section {
+  scroll-margin-top: 100px;
+}
+
+.terms-section-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.terms-section-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: var(--radius-md);
+  flex-shrink: 0;
+}
+
+.terms-section-icon.blue { background: rgba(66, 133, 244, 0.1); color: #4285F4; }
+.terms-section-icon.green { background: rgba(52, 168, 83, 0.1); color: #34A853; }
+.terms-section-icon.red { background: rgba(234, 67, 53, 0.1); color: #EA4335; }
+.terms-section-icon.yellow { background: rgba(251, 188, 5, 0.1); color: #FBBC05; }
+.terms-section-icon.purple { background: rgba(168, 85, 247, 0.1); color: #a855f7; }
+.terms-section-icon.cyan { background: rgba(0, 255, 200, 0.1); color: var(--color-primary); }
+
+.terms-section-title {
+  font-size: var(--text-xl);
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.terms-text {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.8;
+  margin-bottom: 1rem;
+}
+
+.terms-list {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.terms-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.6;
+}
+
+.terms-list li svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+/* ─── REFUND POLICY CARDS ─── */
+.refund-cards {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.refund-card {
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  border: 1px solid;
+}
+
+.refund-card.eligible {
+  background: rgba(16, 185, 129, 0.04);
+  border-color: rgba(16, 185, 129, 0.2);
+}
+
+.refund-card.ineligible {
+  background: rgba(239, 68, 68, 0.04);
+  border-color: rgba(239, 68, 68, 0.2);
+}
+
+.refund-card-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.refund-card-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: 700;
+}
+
+.refund-card.eligible .refund-card-badge {
+  background: rgba(16, 185, 129, 0.12);
+  color: #10B981;
+}
+
+.refund-card.ineligible .refund-card-badge {
+  background: rgba(239, 68, 68, 0.12);
+  color: #EF4444;
+}
+
+.refund-card-title {
+  font-size: var(--text-base);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.75rem;
+}
+
+.refund-card-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.refund-card-list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.5;
+}
+
+.refund-card-list li svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.refund-card.eligible .refund-card-list li svg {
+  color: #10B981;
+}
+
+.refund-card.ineligible .refund-card-list li svg {
+  color: #EF4444;
+}
+
+.refund-amount-badge {
+  margin-top: 1rem;
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 800;
+  text-align: center;
+}
+
+.refund-card.eligible .refund-amount-badge {
+  background: rgba(16, 185, 129, 0.08);
+  color: #10B981;
+}
+
+.refund-card.ineligible .refund-amount-badge {
+  background: rgba(239, 68, 68, 0.08);
+  color: #EF4444;
+}
+
+/* ─── HIGHLIGHT BOX ─── */
+.terms-highlight {
+  padding: 1.25rem 1.5rem;
+  border-radius: var(--radius-lg);
+  margin: 1rem 0;
+  font-size: var(--text-sm);
+  line-height: 1.7;
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.terms-highlight svg {
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.terms-highlight.info {
+  background: rgba(66, 133, 244, 0.06);
+  border: 1px solid rgba(66, 133, 244, 0.15);
+  color: var(--color-text-secondary);
+}
+
+.terms-highlight.info svg {
+  color: #4285F4;
+}
+
+.terms-highlight.warning {
+  background: rgba(251, 188, 5, 0.06);
+  border: 1px solid rgba(251, 188, 5, 0.15);
+  color: var(--color-text-secondary);
+}
+
+.terms-highlight.warning svg {
+  color: #FBBC05;
+}
+
+.terms-highlight.success {
+  background: rgba(16, 185, 129, 0.06);
+  border: 1px solid rgba(16, 185, 129, 0.15);
+  color: var(--color-text-secondary);
+}
+
+.terms-highlight.success svg {
+  color: #10B981;
+}
+
+/* ─── FAQ SECTION ON TERMS PAGE ─── */
+.terms-faq-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.terms-faq-item {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.terms-faq-item:hover {
+  border-color: var(--color-primary-border);
+}
+
+.terms-faq-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 1rem 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+}
+
+.terms-faq-btn span {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-primary);
+}
+
+.terms-faq-btn svg {
+  color: var(--color-text-muted);
+  flex-shrink: 0;
+  transition: transform 0.25s ease;
+}
+
+.terms-faq-answer {
+  padding: 0 1.25rem 1rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+/* ─── BACK TO GMB LINK ─── */
+.terms-back-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 2rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  color: var(--color-text-primary);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  text-decoration: none;
+  transition: all 0.2s ease;
+}
+
+.terms-back-link:hover {
+  border-color: var(--color-primary-border);
+  color: var(--color-primary);
+}
+
+/* ─── RESPONSIVE ─── */
+@media (max-width: 992px) {
+  .terms-layout {
+    grid-template-columns: 1fr;
+    gap: 2rem;
+  }
+
+  .terms-sidebar {
+    position: static;
+  }
+
+  .terms-nav {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
+  .refund-cards {
+    grid-template-columns: 1fr;
+  }
+
+  .terms-meta {
+    flex-direction: column;
+    gap: 0.5rem;
+    align-items: center;
+  }
+}
+
+@media (max-width: 480px) {
+  .terms-section-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

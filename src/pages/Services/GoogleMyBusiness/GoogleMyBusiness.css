@@ -154,28 +154,28 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   border-radius: var(--radius-xl);
-  padding: 2.5rem;
+  padding: 2rem;
   box-shadow: var(--shadow-md);
 }
 
 .form-step-title {
-  font-size: var(--text-xl);
+  font-size: var(--text-lg);
   font-weight: 800;
   color: var(--color-text-primary);
-  margin-bottom: 0.5rem;
+  margin-bottom: 0.35rem;
 }
 
 .form-step-subtitle {
   font-size: var(--text-sm);
   color: var(--color-text-secondary);
-  margin-bottom: 2rem;
+  margin-bottom: 1.5rem;
 }
 
 .form-group {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
+  gap: 0.4rem;
+  margin-bottom: 1.25rem;
 }
 
 .form-label {
@@ -192,8 +192,8 @@
 
 .form-actions {
   display: flex;
-  gap: 1rem;
-  margin-top: 2rem;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
 }
 
 .form-actions.row-gap {
@@ -208,6 +208,12 @@
 .form-actions .full-width {
   flex: 1;
   width: 100%;
+}
+
+/* Slightly smaller buttons within the GMB form context */
+.gmb-interactive-form .btn.btn-lg {
+  padding: 0.8rem 1.75rem;
+  font-size: var(--text-sm);
 }
 
 /* Toggle location cards */
@@ -701,40 +707,286 @@
   color: var(--color-text-primary);
 }
 
-
 /* ─── RESPONSIVE MEDIA QUERIES ─── */
+
+/* ── TABLET (≤992px) ── */
 @media (max-width: 992px) {
   .gmb-workspace-grid {
     grid-template-columns: 1fr;
-    gap: 3rem;
+    gap: 2rem;
   }
   
   .gmb-preview-sticky {
     position: static;
-    order: -1; /* Place preview above form on smaller viewports */
+    order: -1;
+  }
+
+  .gmb-workspace {
+    padding: 2.5rem 0 4rem;
+  }
+
+  .form-step-title {
+    font-size: var(--text-lg);
+  }
+
+  .form-step-subtitle {
+    margin-bottom: 1.5rem;
   }
 }
 
+/* ── MOBILE (≤768px) ── */
 @media (max-width: 768px) {
-  .location-toggle-group {
-    grid-template-columns: 1fr;
+  /* Hero compact */
+  .gmb-hero {
+    padding: 3rem 0 2rem;
   }
-  
-  .grid-3col {
-    grid-template-columns: 1fr;
+
+  .gmb-hero__title {
+    font-size: clamp(1.5rem, 6vw, 2rem);
+    margin-bottom: 0.75rem;
+  }
+
+  .gmb-hero__desc {
+    font-size: var(--text-sm);
+    line-height: 1.5;
+  }
+
+  .gmb-google-badge {
+    font-size: 0.65rem;
+    padding: 0.35rem 0.75rem;
+    margin-bottom: 1rem;
+  }
+
+  /* Hide preview card on mobile — too much space */
+  .gmb-preview-sticky {
+    display: none;
+  }
+
+  /* Workspace tighter */
+  .gmb-workspace {
+    padding: 1.5rem 0 3rem;
+  }
+
+  .gmb-workspace-grid {
+    gap: 1.25rem;
+  }
+
+  .gmb-form-container {
     gap: 1rem;
   }
-  
-  .gmb-interactive-form {
-    padding: 1.5rem;
+
+  /* Progress card compact */
+  .gmb-progress-card {
+    padding: 0.85rem 1rem;
   }
-  
+
+  .step-label {
+    font-size: 0.65rem;
+  }
+
+  .step-desc {
+    font-size: var(--text-xs);
+  }
+
+  .progress-bar-bg {
+    height: 4px;
+  }
+
+  /* Form card compact */
+  .gmb-interactive-form {
+    padding: 1.25rem;
+    border-radius: var(--radius-lg);
+  }
+
+  /* Step title & subtitle smaller */
+  .form-step-title {
+    font-size: var(--text-base);
+    font-weight: 700;
+    margin-bottom: 0.35rem;
+  }
+
+  .form-step-subtitle {
+    font-size: var(--text-xs);
+    margin-bottom: 1.25rem;
+  }
+
+  /* Form fields tighter */
+  .form-group {
+    gap: 0.35rem;
+    margin-bottom: 1rem;
+  }
+
+  .form-label {
+    font-size: var(--text-xs);
+  }
+
+  .form-tip {
+    font-size: 0.65rem;
+  }
+
+  /* Buttons compact */
+  .form-actions {
+    gap: 0.75rem;
+    margin-top: 1.25rem;
+  }
+
+  .form-actions .btn.btn-lg {
+    padding: 0.7rem 1.25rem;
+    font-size: var(--text-sm);
+    border-radius: var(--radius-md);
+  }
+
+  /* Location toggle cards stack */
+  .location-toggle-group {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .location-toggle-card {
+    padding: 1rem;
+    gap: 0.5rem;
+  }
+
+  .location-toggle-card svg {
+    width: 20px;
+    height: 20px;
+  }
+
+  .toggle-text strong {
+    font-size: var(--text-xs);
+  }
+
+  .toggle-text span {
+    font-size: 0.65rem;
+  }
+
+  /* Grid columns stack */
+  .grid-3col {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  /* Phone input */
+  .phone-input-wrap {
+    flex-direction: column;
+    border: none;
+    gap: 0.5rem;
+  }
+
+  .phone-code-select {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: 0.6rem 0.75rem;
+  }
+
+  .phone-number-field {
+    border: 1px solid var(--color-border) !important;
+    border-radius: var(--radius-md) !important;
+  }
+
+  /* Hours picker compact */
+  .hours-picker-list {
+    padding: 0.85rem;
+    gap: 0.5rem;
+  }
+
   .hours-day-row {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.75rem;
+    gap: 0.5rem;
+    padding-bottom: 0.5rem;
+  }
+
+  .checkbox-wrap {
+    font-size: var(--text-xs);
+    gap: 0.5rem;
+  }
+
+  .time-selects {
+    gap: 0.35rem;
+  }
+
+  .time-picker {
+    font-size: 0.65rem;
+    padding: 0.2rem 0.35rem;
+  }
+
+  /* Success card compact */
+  .gmb-success-card {
+    padding: 2rem 1.25rem;
+  }
+
+  .gmb-success-icon-wrap {
+    width: 60px;
+    height: 60px;
+    margin-bottom: 1.25rem;
+  }
+
+  .success-title {
+    font-size: var(--text-lg) !important;
+  }
+
+  .success-desc {
+    font-size: var(--text-sm);
+    margin-bottom: 1.25rem;
+  }
+
+  .success-summary {
+    padding: 1rem;
+    margin-bottom: 1.25rem;
+  }
+
+  .success-summary h4 {
+    font-size: var(--text-xs);
+  }
+
+  .success-summary li {
+    font-size: var(--text-xs);
+  }
+
+  /* Guidelines box compact */
+  .gmb-guidelines-box {
+    padding: 1rem;
+  }
+
+  .gmb-guidelines-box h5 {
+    font-size: var(--text-xs);
   }
 }
+
+/* ── SMALL MOBILE (≤480px) ── */
+@media (max-width: 480px) {
+  .gmb-hero {
+    padding: 2.5rem 0 1.5rem;
+  }
+
+  .gmb-hero__title {
+    font-size: 1.35rem;
+  }
+
+  .gmb-interactive-form {
+    padding: 1rem;
+  }
+
+  .form-step-title {
+    font-size: var(--text-sm);
+  }
+
+  .form-actions .btn.btn-lg {
+    padding: 0.6rem 1rem;
+    font-size: var(--text-xs);
+  }
+
+  .location-toggle-card {
+    padding: 0.85rem;
+  }
+
+  .gmb-success-section {
+    padding: 4rem 0;
+  }
+}
+
 
 /* ========================================================
    ADDITIONAL SECTIONS STYLES
