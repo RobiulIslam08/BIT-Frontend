@@ -673,35 +673,32 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
             
             {/* PayPal Integration */}
             <div className="paypal-btn-container" style={{ width: '100%', marginTop: '0.5rem' }}>
-              {!termsAccepted ? (
-                <div className="paypal-disabled-note" style={{
-                  padding: '1rem',
-                  background: 'var(--color-bg-secondary)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-md)',
-                  fontSize: 'var(--text-xs)',
-                  color: 'var(--color-text-muted)',
-                  textAlign: 'center'
-                }}>
-                  Please accept the Terms & Conditions above to enable PayPal checkout.
+              <PayPalScriptProvider options={{
+                "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID || "sb",
+                currency: "USD", // Universal USD fallback to bypass SAR limitations
+              }}>
+                <div style={{ textAlign: 'center', marginBottom: '0.75rem', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                  {isSubmitting || isSubmittingLocal ? (
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--color-primary)' }}>
+                      <span className="gmb-btn-spinner" /> Capturing transaction and placing order...
+                    </div>
+                  ) : (
+                    <>Amount converted for PayPal checkout: <strong>${(finalPrice / 3.75).toFixed(2)} USD</strong> (equivalent to {finalPrice} SAR)</>
+                  )}
                 </div>
-              ) : (
-                <PayPalScriptProvider options={{
-                  "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID || "sb",
-                  currency: "USD", // Universal USD fallback to bypass SAR limitations
-                }}>
-                  <div style={{ textAlign: 'center', marginBottom: '0.75rem', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                    {isSubmitting || isSubmittingLocal ? (
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--color-primary)' }}>
-                        <span className="gmb-btn-spinner" /> Capturing transaction and placing order...
-                      </div>
-                    ) : (
-                      <>Amount converted for PayPal checkout: <strong>${(finalPrice / 3.75).toFixed(2)} USD</strong> (equivalent to {finalPrice} SAR)</>
-                    )}
-                  </div>
-                  {!isSubmittingLocal && !isSubmitting && (
-                    <PayPalButtons
-                      style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay" }}
+                {!isSubmittingLocal && !isSubmitting && (
+                  <PayPalButtons
+                    style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay" }}
+                    onClick={(data, actions) => {
+                      if (!termsAccepted) {
+                        setValidationError('You must accept the Terms of Service and Refund Policy to proceed with PayPal payment.');
+                        // Scroll to validation error area
+                        return actions.reject();
+                      } else {
+                        setValidationError('');
+                        return actions.resolve();
+                      }
+                    }}
                       createOrder={(data, actions) => {
                         return actions.order.create({
                           purchase_units: [
@@ -773,8 +770,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
                     />
                   )}
                 </PayPalScriptProvider>
-              )}
-            </div>
+              </div>
           </div>
         )}
       </div>
