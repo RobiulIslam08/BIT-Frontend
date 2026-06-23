@@ -1,35 +1,30 @@
 // ============================================
 // BIT SOFTWARE — AUTH API
 // ============================================
-// Express.js → /api/auth/* endpoints
+// Backend: /api/v1/auth/* endpoints
 
 import axiosInstance from './axiosInstance';
 
 export const authApi = {
-  // POST /api/auth/register
+  // POST /api/v1/auth/register
   register: (data) => axiosInstance.post('/auth/register', data),
 
-  // POST /api/auth/login
+  // POST /api/v1/auth/login
   login: (data) => axiosInstance.post('/auth/login', data),
 
-  // POST /api/auth/logout
-  logout: () => axiosInstance.post('/auth/logout'),
+  // POST /api/v1/auth/refresh-token (cookie থেকে refreshToken পাঠানো হয়)
+  refreshToken: () => axiosInstance.post('/auth/refresh-token'),
 
-  // POST /api/auth/refresh-token
-  refreshToken: (refreshToken) =>
-    axiosInstance.post('/auth/refresh-token', { refreshToken }),
+  // POST /api/v1/auth/change-password
+  changePassword: (data) => axiosInstance.post('/auth/change-password', data),
 
-  // GET /api/auth/me (current logged-in user)
-  getMe: () => axiosInstance.get('/auth/me'),
-
-  // POST /api/auth/forgot-password
+  // POST /api/v1/auth/forget-password
   forgotPassword: (email) =>
-    axiosInstance.post('/auth/forgot-password', { email }),
+    axiosInstance.post('/auth/forget-password', { email }),
 
-  // POST /api/auth/reset-password/:token
-  resetPassword: (token, password) =>
-    axiosInstance.post(`/auth/reset-password/${token}`, { password }),
-
-  // PATCH /api/auth/change-password
-  changePassword: (data) => axiosInstance.patch('/auth/change-password', data),
+  // POST /api/v1/auth/reset-password (token Authorization header এ যাবে)
+  resetPassword: (token, data) =>
+    axiosInstance.post('/auth/reset-password', data, {
+      headers: { Authorization: `Bearer ${token}` },
+    }),
 };

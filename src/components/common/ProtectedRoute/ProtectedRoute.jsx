@@ -4,12 +4,14 @@
 // JWT token check করে route guard।
 // isAuthenticated false হলে login-এ redirect।
 // isAdmin required হলে admin check করে।
+// GuestRoute — logged in থাকলে dashboard/home-এ redirect।
 
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   selectIsAuthenticated,
   selectIsAdmin,
+  selectCurrentUser,
 } from '@/features/auth/authSlice';
 
 /**
@@ -44,6 +46,23 @@ export function AdminRoute() {
   if (!isAdmin) {
     // Authenticated কিন্তু admin নয় → home-এ পাঠাও
     return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+}
+
+/**
+ * GuestRoute — logged-out users only (login/register pages)
+ * Logged in থাকলে → role অনুযায়ী redirect
+ */
+export function GuestRoute() {
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const user = useSelector(selectCurrentUser);
+
+  if (isAuthenticated) {
+    // Admin হলে dashboard, user হলে home
+    const redirectTo = user?.role === 'admin' ? '/dashboard' : '/';
+    return <Navigate to={redirectTo} replace />;
   }
 
   return <Outlet />;

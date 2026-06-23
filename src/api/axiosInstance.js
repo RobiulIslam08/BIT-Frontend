@@ -3,12 +3,12 @@
 // ============================================
 // Express.js backend-এর সাথে সব HTTP request
 // এই instance-এর মাধ্যমে যাবে।
-// JWT token auto-attach + 401 auto-logout।
+// JWT token auto-attach + 401 auto-refresh → logout।
 
 import axios from 'axios';
 import { tokenStorage } from '@/utils/tokenStorage';
 
-const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api';
+const BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1';
 
 const axiosInstance = axios.create({
   baseURL: BASE_URL,
@@ -16,11 +16,11 @@ const axiosInstance = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
-  withCredentials: true, // cookie-based auth-এর জন্য
+  withCredentials: true, // cookie-based refresh token-এর জন্য
 });
 
 // ─── REQUEST INTERCEPTOR ───
-// প্রতিটি request-এ JWT token header-এ যোগ করে
+// প্রতিটি request-এ JWT access token Authorization header-এ যোগ করে
 axiosInstance.interceptors.request.use(
   (config) => {
     const token = tokenStorage.getToken();
@@ -33,8 +33,8 @@ axiosInstance.interceptors.request.use(
 );
 
 // ─── RESPONSE INTERCEPTOR ───
-// 401: token expire → logout + redirect
-// 403: permission নেই → handle
+// 401 হলে → cookie থেকে refresh token দিয়ে নতুন access token নেওয়ার চেষ্টা
+// তাও fail করলে → সব clear করে login-এ redirect
 axiosInstance.interceptors.response.use(
   (response) => response,
   async (error) => {
@@ -43,26 +43,25 @@ axiosInstance.interceptors.response.use(
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      // Refresh token দিয়ে নতুন access token নেওয়ার চেষ্টা
-      const refreshToken = tokenStorage.getRefreshToken();
-      if (refreshToken) {
-        try {
-          const res = await axios.post(`${BASE_URL}/auth/refresh-token`, {
-            refreshToken,
-          });
-          const { accessToken } = res.data;
-          tokenStorage.setToken(accessToken);
-          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+      try {
+        // Refresh token httpOnly cookie থেকে automatically যাবে
+        const res = await axios.post(
+          `${BASE_URL}/auth/refresh-token`,
+          {},
+          { withCredentials: true }
+        );
+        const newAccessToken = res.data?.data?.accessToken;
+        if (newAccessToken) {
+          tokenStorage.setToken(newAccessToken);
+          originalRequest.headers.Authorization = `Bearer ${newAccessToken}`;
           return axiosInstance(originalRequest);
-        } catch {
-          // Refresh ব্যর্থ হলে সব clear করে login-এ পাঠাও
-          tokenStorage.clearAll();
-          window.location.href = '/auth/login';
-          return Promise.reject(error);
         }
-      } else {
+        throw new Error('No access token received');
+      } catch {
+        // Refresh ব্যর্থ হলে সব clear করে login-এ পাঠাও
         tokenStorage.clearAll();
         window.location.href = '/auth/login';
+        return Promise.reject(error);
       }
     }
 

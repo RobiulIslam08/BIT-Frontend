@@ -1,12 +1,16 @@
 // ============================================
-// BIT SOFTWARE — Register Page (Ultra-Premium Redesign)
+// BIT SOFTWARE — Register Page
+// Real API integration with backend
 // ============================================
 
 import { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { User, Mail, Lock, Eye, EyeOff, UserPlus, ArrowRight } from 'lucide-react';
+import { User, Mail, Lock, Eye, EyeOff, UserPlus, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
+import { useAppDispatch } from '@/app/hooks';
+import { setCredentials } from '@/features/auth/authSlice';
+import { authApi } from '@/api/authApi';
 
 // SVG Official Icons
 const GoogleIcon = () => (
@@ -25,20 +29,88 @@ const FacebookIcon = () => (
 );
 
 export default function Register() {
-  const [form, setForm] = useState({ name: '', email: '', password: '', confirmPassword: '' });
+  const [form, setForm] = useState({
+    name: '',
+    email: '',
+    password: '',
+    confirmPassword: '',
+  });
   const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+  const [success, setSuccess] = useState('');
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
-  const handleSubmit = (e) => {
+  const dispatch = useAppDispatch();
+  const navigate = useNavigate();
+
+  const handleChange = (e) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+    if (error) setError(''); // typing শুরু করলে error clear হবে
+  };
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
+    setError('');
+    setSuccess('');
+
+    // Client-side validation
+    if (form.password !== form.confirmPassword) {
+      setError('Passwords do not match. Please try again.');
+      return;
+    }
+
+    if (form.password.length < 6) {
+      setError('Password must be at least 6 characters.');
+      return;
+    }
+
+    setIsLoading(true);
+
+    try {
+      const payload = {
+        name: form.name,
+        email: form.email,
+        password: form.password,
+        // role default 'user' হবে backend এ
+      };
+
+      const res = await authApi.register(payload);
+      const { data } = res.data; // { accessToken, user }
+
+      setSuccess('Account created successfully! Redirecting...');
+
+      // Redux store এবং localStorage এ credentials সেট করা
+      dispatch(
+        setCredentials({
+          user: data.user,
+          token: data.accessToken,
+          // refreshToken cookie-তে set হয়ে যাবে backend থেকে
+        })
+      );
+
+      // Registration এর পর role অনুযায়ী redirect
+      setTimeout(() => {
+        const redirectTo = data.user.role === 'admin' ? '/dashboard' : '/';
+        navigate(redirectTo, { replace: true });
+      }, 1000);
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.errorSources?.[0]?.message ||
+        'Registration failed. Please try again.';
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <>
       <SEOHead title="Register" description="Create your BIT Software account and start building." />
-      <motion.div 
-        initial={{ opacity: 0, y: 15 }} 
-        animate={{ opacity: 1, y: 0 }} 
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
       >
         <div className="card-elevated" style={{ padding: '2.5rem 2rem', width: '100%' }}>
@@ -60,22 +132,22 @@ export default function Register() {
             </div>
             <h1 className="h3" style={{ fontWeight: 800 }}>Create Account</h1>
             <p className="body-sm" style={{ marginTop: '0.375rem', color: 'var(--color-text-secondary)' }}>
-              Join BIT Software and start managing your products
+              Join BIT Software and start managing your projects
             </p>
           </div>
 
           {/* Social Auth Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.75rem' }}>
-            <button 
-              type="button" 
-              className="btn btn-secondary btn-md" 
+            <button
+              type="button"
+              className="btn btn-secondary btn-md"
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 'var(--text-xs)' }}
             >
               <GoogleIcon /> Google
             </button>
-            <button 
-              type="button" 
-              className="btn btn-secondary btn-md" 
+            <button
+              type="button"
+              className="btn btn-secondary btn-md"
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 'var(--text-xs)' }}
             >
               <FacebookIcon /> Facebook
@@ -89,68 +161,123 @@ export default function Register() {
             <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.75rem 1rem',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(239, 68, 68, 0.08)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                color: '#ef4444',
+                fontSize: 'var(--text-sm)',
+                marginBottom: '1rem',
+              }}
+            >
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+              {error}
+            </motion.div>
+          )}
+
+          {/* Success Message */}
+          {success && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.75rem 1rem',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(34, 197, 94, 0.08)',
+                border: '1px solid rgba(34, 197, 94, 0.25)',
+                color: '#22c55e',
+                fontSize: 'var(--text-sm)',
+                marginBottom: '1rem',
+              }}
+            >
+              <CheckCircle size={16} style={{ flexShrink: 0 }} />
+              {success}
+            </motion.div>
+          )}
+
           {/* Registration Form */}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+            {/* Full Name */}
             <div className="form-group">
               <label className="form-label">Full Name</label>
               <div style={{ position: 'relative' }}>
                 <User size={16} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-                <input 
-                  className="input" 
-                  name="name" 
-                  value={form.name} 
-                  onChange={handleChange} 
-                  placeholder="Your full name" 
-                  required 
-                  style={{ paddingLeft: '2.5rem' }} 
+                <input
+                  className="input"
+                  name="name"
+                  value={form.name}
+                  onChange={handleChange}
+                  placeholder="Your full name"
+                  required
+                  disabled={isLoading}
+                  minLength={2}
+                  maxLength={100}
+                  style={{ paddingLeft: '2.5rem' }}
                 />
               </div>
             </div>
 
+            {/* Email */}
             <div className="form-group">
               <label className="form-label">Email Address</label>
               <div style={{ position: 'relative' }}>
                 <Mail size={16} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-                <input 
-                  className="input" 
-                  name="email" 
-                  type="email" 
-                  value={form.email} 
-                  onChange={handleChange} 
-                  placeholder="name@example.com" 
-                  required 
-                  style={{ paddingLeft: '2.5rem' }} 
+                <input
+                  className="input"
+                  name="email"
+                  type="email"
+                  value={form.email}
+                  onChange={handleChange}
+                  placeholder="name@example.com"
+                  required
+                  disabled={isLoading}
+                  style={{ paddingLeft: '2.5rem' }}
                 />
               </div>
             </div>
 
+            {/* Password */}
             <div className="form-group">
               <label className="form-label">Password</label>
               <div style={{ position: 'relative' }}>
                 <Lock size={16} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-                <input 
-                  className="input" 
-                  name="password" 
-                  type={showPassword ? 'text' : 'password'} 
-                  value={form.password} 
-                  onChange={handleChange} 
-                  placeholder="••••••••" 
-                  required 
-                  style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }} 
+                <input
+                  className="input"
+                  name="password"
+                  type={showPassword ? 'text' : 'password'}
+                  value={form.password}
+                  onChange={handleChange}
+                  placeholder="Min. 6 characters"
+                  required
+                  disabled={isLoading}
+                  minLength={6}
+                  style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
                 />
-                <button 
-                  type="button" 
-                  onClick={() => setShowPassword(!showPassword)} 
-                  style={{ 
-                    position: 'absolute', 
-                    right: '0.875rem', 
-                    top: '50%', 
-                    transform: 'translateY(-50%)', 
-                    background: 'none', 
-                    border: 'none', 
-                    color: 'var(--color-text-muted)', 
-                    cursor: 'pointer', 
-                    padding: 0 
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '0.875rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--color-text-muted)',
+                    cursor: 'pointer',
+                    padding: 0,
                   }}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -158,25 +285,85 @@ export default function Register() {
               </div>
             </div>
 
+            {/* Confirm Password */}
             <div className="form-group">
               <label className="form-label">Confirm Password</label>
               <div style={{ position: 'relative' }}>
                 <Lock size={16} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-                <input 
-                  className="input" 
-                  name="confirmPassword" 
-                  type="password" 
-                  value={form.confirmPassword} 
-                  onChange={handleChange} 
-                  placeholder="••••••••" 
-                  required 
-                  style={{ paddingLeft: '2.5rem' }} 
+                <input
+                  className="input"
+                  name="confirmPassword"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={form.confirmPassword}
+                  onChange={handleChange}
+                  placeholder="••••••••"
+                  required
+                  disabled={isLoading}
+                  style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '0.875rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--color-text-muted)',
+                    cursor: 'pointer',
+                    padding: 0,
+                  }}
+                >
+                  {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                </button>
               </div>
+
+              {/* Password match indicator */}
+              {form.confirmPassword && (
+                <p style={{
+                  marginTop: '0.375rem',
+                  fontSize: 'var(--text-xs)',
+                  color: form.password === form.confirmPassword ? '#22c55e' : '#ef4444',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.25rem',
+                }}>
+                  {form.password === form.confirmPassword ? (
+                    <><CheckCircle size={12} /> Passwords match</>
+                  ) : (
+                    <><AlertCircle size={12} /> Passwords do not match</>
+                  )}
+                </p>
+              )}
             </div>
 
-            <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}>
-              Create Account <ArrowRight size={16} style={{ marginLeft: '6px' }} />
+            <button
+              type="submit"
+              className="btn btn-primary btn-lg"
+              style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem', opacity: isLoading ? 0.7 : 1 }}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <span style={{
+                    display: 'inline-block',
+                    width: '14px',
+                    height: '14px',
+                    borderRadius: '50%',
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    animation: 'spin 0.6s linear infinite',
+                    marginRight: '8px',
+                  }} />
+                  Creating Account...
+                </>
+              ) : (
+                <>
+                  Create Account <ArrowRight size={16} style={{ marginLeft: '6px' }} />
+                </>
+              )}
             </button>
           </form>
 
@@ -189,6 +376,12 @@ export default function Register() {
           </p>
         </div>
       </motion.div>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </>
   );
 }

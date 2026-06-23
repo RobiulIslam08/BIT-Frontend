@@ -11,6 +11,7 @@ import { PageLoader } from '@/components/common/LoadingSpinner';
 import {
   ProtectedRoute,
   AdminRoute,
+  GuestRoute,
 } from '@/components/common/ProtectedRoute/ProtectedRoute';
 
 // ─── LAZY PAGE IMPORTS ───
@@ -75,12 +76,17 @@ export const router = createBrowserRouter([
     ],
   },
   {
-    // Auth routes — already logged in হলে dashboard-এ redirect করা উচিত
+    // Auth routes — logged in থাকলে dashboard-এ redirect করবে
     path: '/auth',
-    element: <AuthLayout />,
+    element: <GuestRoute />,
     children: [
-      { path: 'login', element: <SuspenseWrap><Login /></SuspenseWrap> },
-      { path: 'register', element: <SuspenseWrap><Register /></SuspenseWrap> },
+      {
+        element: <AuthLayout />,
+        children: [
+          { path: 'login', element: <SuspenseWrap><Login /></SuspenseWrap> },
+          { path: 'register', element: <SuspenseWrap><Register /></SuspenseWrap> },
+        ],
+      },
     ],
   },
   {

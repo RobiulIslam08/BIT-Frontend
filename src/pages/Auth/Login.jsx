@@ -1,14 +1,16 @@
 // ============================================
-// BIT SOFTWARE — Login Page (Ultra-Premium Redesign)
+// BIT SOFTWARE — Login Page
+// Real API integration with backend
 // ============================================
 
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight } from 'lucide-react';
+import { Mail, Lock, Eye, EyeOff, LogIn, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { useAppDispatch } from '@/app/hooks';
 import { setCredentials } from '@/features/auth/authSlice';
+import { authApi } from '@/api/authApi';
 
 // SVG Official Icons
 const GoogleIcon = () => (
@@ -30,21 +32,54 @@ export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState('');
+
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const handleSubmit = (e) => {
+  // Login এর আগে যে পেইজে ছিল সেখানে রিডাইরেক্ট করবে, না হলে role অনুযায়ী
+  const from = location.state?.from?.pathname;
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    dispatch(setCredentials({ user: { name: 'Admin', email, role: 'admin' }, token: 'demo-token' }));
-    navigate('/dashboard');
+    setError('');
+    setIsLoading(true);
+
+    try {
+      const res = await authApi.login({ email, password });
+      const { data } = res.data; // { accessToken, user }
+
+      // Redux store এবং localStorage এ credentials সেট করা
+      dispatch(
+        setCredentials({
+          user: data.user,
+          token: data.accessToken,
+          // refreshToken cookie-তে set হয়ে যাবে backend থেকে
+        })
+      );
+
+      // Role-based redirect
+      const redirectTo = from || (data.user.role === 'admin' ? '/dashboard' : '/');
+      navigate(redirectTo, { replace: true });
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        err?.response?.data?.errorSources?.[0]?.message ||
+        'Login failed. Please check your email and password.';
+      setError(message);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
     <>
       <SEOHead title="Login" description="Sign in to your BIT Software account." />
-      <motion.div 
-        initial={{ opacity: 0, y: 15 }} 
-        animate={{ opacity: 1, y: 0 }} 
+      <motion.div
+        initial={{ opacity: 0, y: 15 }}
+        animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.4, ease: 'easeOut' }}
       >
         <div className="card-elevated" style={{ padding: '2.5rem 2rem', width: '100%' }}>
@@ -72,16 +107,16 @@ export default function Login() {
 
           {/* Social Auth Grid */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.75rem' }}>
-            <button 
-              type="button" 
-              className="btn btn-secondary btn-md" 
+            <button
+              type="button"
+              className="btn btn-secondary btn-md"
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 'var(--text-xs)' }}
             >
               <GoogleIcon /> Google
             </button>
-            <button 
-              type="button" 
-              className="btn btn-secondary btn-md" 
+            <button
+              type="button"
+              className="btn btn-secondary btn-md"
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 'var(--text-xs)' }}
             >
               <FacebookIcon /> Facebook
@@ -95,20 +130,44 @@ export default function Login() {
             <div style={{ flex: 1, height: '1px', background: 'var(--color-border)' }} />
           </div>
 
+          {/* Error Message */}
+          {error && (
+            <motion.div
+              initial={{ opacity: 0, y: -8 }}
+              animate={{ opacity: 1, y: 0 }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.5rem',
+                padding: '0.75rem 1rem',
+                borderRadius: 'var(--radius-md)',
+                background: 'rgba(239, 68, 68, 0.08)',
+                border: '1px solid rgba(239, 68, 68, 0.25)',
+                color: '#ef4444',
+                fontSize: 'var(--text-sm)',
+                marginBottom: '1rem',
+              }}
+            >
+              <AlertCircle size={16} style={{ flexShrink: 0 }} />
+              {error}
+            </motion.div>
+          )}
+
           {/* Login Form */}
           <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             <div className="form-group">
               <label className="form-label">Email Address</label>
               <div style={{ position: 'relative' }}>
                 <Mail size={16} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-                <input 
-                  className="input" 
-                  type="email" 
-                  value={email} 
-                  onChange={(e) => setEmail(e.target.value)} 
-                  placeholder="name@example.com" 
-                  required 
-                  style={{ paddingLeft: '2.5rem' }} 
+                <input
+                  className="input"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@example.com"
+                  required
+                  disabled={isLoading}
+                  style={{ paddingLeft: '2.5rem' }}
                 />
               </div>
             </div>
@@ -116,34 +175,38 @@ export default function Login() {
             <div className="form-group">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <label className="form-label">Password</label>
-                <Link to="/auth/forgot-password" style={{ fontSize: 'var(--text-xs)', color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>
+                <Link
+                  to="/auth/forgot-password"
+                  style={{ fontSize: 'var(--text-xs)', color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}
+                >
                   Forgot?
                 </Link>
               </div>
               <div style={{ position: 'relative' }}>
                 <Lock size={16} style={{ position: 'absolute', left: '0.875rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)' }} />
-                <input 
-                  className="input" 
-                  type={showPassword ? 'text' : 'password'} 
-                  value={password} 
-                  onChange={(e) => setPassword(e.target.value)} 
-                  placeholder="••••••••" 
-                  required 
-                  style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }} 
+                <input
+                  className="input"
+                  type={showPassword ? 'text' : 'password'}
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  required
+                  disabled={isLoading}
+                  style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
                 />
-                <button 
-                  type="button" 
-                  onClick={() => setShowPassword(!showPassword)} 
-                  style={{ 
-                    position: 'absolute', 
-                    right: '0.875rem', 
-                    top: '50%', 
-                    transform: 'translateY(-50%)', 
-                    background: 'none', 
-                    border: 'none', 
-                    color: 'var(--color-text-muted)', 
-                    cursor: 'pointer', 
-                    padding: 0 
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '0.875rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    color: 'var(--color-text-muted)',
+                    cursor: 'pointer',
+                    padding: 0,
                   }}
                 >
                   {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
@@ -151,8 +214,31 @@ export default function Login() {
               </div>
             </div>
 
-            <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem' }}>
-              Sign In <ArrowRight size={16} style={{ marginLeft: '6px' }} />
+            <button
+              type="submit"
+              className="btn btn-primary btn-lg"
+              style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem', opacity: isLoading ? 0.7 : 1 }}
+              disabled={isLoading}
+            >
+              {isLoading ? (
+                <>
+                  <span style={{
+                    display: 'inline-block',
+                    width: '14px',
+                    height: '14px',
+                    borderRadius: '50%',
+                    border: '2px solid currentColor',
+                    borderTopColor: 'transparent',
+                    animation: 'spin 0.6s linear infinite',
+                    marginRight: '8px',
+                  }} />
+                  Signing In...
+                </>
+              ) : (
+                <>
+                  Sign In <ArrowRight size={16} style={{ marginLeft: '6px' }} />
+                </>
+              )}
             </button>
           </form>
 
@@ -165,6 +251,12 @@ export default function Login() {
           </p>
         </div>
       </motion.div>
+
+      <style>{`
+        @keyframes spin {
+          to { transform: rotate(360deg); }
+        }
+      `}</style>
     </>
   );
 }
