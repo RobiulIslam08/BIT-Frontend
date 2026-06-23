@@ -781,7 +781,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
                             orderStatus: 'pending_review',
                           };
                           onSubmit(orderPayload);
-                        } catch (error) {
+                        } catch {
                           const msg = 'Failed to capture PayPal transaction. Please contact support.';
                           setValidationError(msg);
                           toast.error(msg);

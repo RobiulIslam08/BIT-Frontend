@@ -4,15 +4,13 @@
 
 import { useState, useRef } from 'react';
 import { motion } from 'motion/react';
-import { Link } from 'react-router-dom';
 import {
-  MapPin, Star, Search, CheckCircle2, Send, Globe, Phone, Clock,
+  MapPin, Star, Search, CheckCircle2, Globe, Phone, Clock,
   ArrowLeft, ArrowRight, Sparkles, Building2, Navigation, Heart, ShieldCheck,
   ChevronDown, Award, ThumbsUp, ShieldAlert, BarChart3
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { FadeInUp } from '@/components/animations/FadeInUp';
-import { COMPANY } from '@/utils/constants';
 import { toast } from '@/components/common/Toast/Toast';
 import MapPicker from './MapPicker';
 import Step5Payment from './Step5Payment';
@@ -177,7 +175,7 @@ export default function GoogleMyBusiness() {
       setOrderData(orderPayload);
       setSubmitted(true);
       toast.success('Order submitted successfully!');
-    } catch (error) {
+    } catch {
       toast.error('Failed to submit order. Please try again.');
     } finally {
       setIsSubmitting(false);

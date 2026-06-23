@@ -1,6 +1,7 @@
 // ============================================
 // BIT SOFTWARE — MAIN ROUTER
 // ============================================
+/* eslint-disable react-refresh/only-export-components */
 
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter } from 'react-router-dom';
@@ -9,7 +10,6 @@ import { AuthLayout } from '@/layouts/AuthLayout';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
 import { PageLoader } from '@/components/common/LoadingSpinner';
 import {
-  ProtectedRoute,
   AdminRoute,
   GuestRoute,
 } from '@/components/common/ProtectedRoute/ProtectedRoute';

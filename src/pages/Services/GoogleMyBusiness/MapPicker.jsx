@@ -115,6 +115,7 @@ export default function MapPicker({
       mapInstanceRef.current.setView([target.lat, target.lng], countryName === 'Saudi Arabia' ? 12 : 5);
       updateMarker(target.lat, target.lng);
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [countryName, leafletLoaded]);
 
   // Handle initialization of the Leaflet Map
@@ -197,16 +198,18 @@ export default function MapPicker({
         mapInstanceRef.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [leafletLoaded]);
 
   // Sync theme or MapStyle change
   useEffect(() => {
     if (!leafletLoaded || !mapInstanceRef.current) return;
     updateTileLayer(mapStyle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [mapStyle, themeMode, leafletLoaded]);
 
   // Function to change Tile Layer
-  const updateTileLayer = (style) => {
+  function updateTileLayer(style) {
     if (!leafletLoaded || !mapInstanceRef.current) return;
     
     const L = window.L;
@@ -219,8 +222,8 @@ export default function MapPicker({
       }
     });
 
-    let tileUrl = '';
-    let attribution = '';
+    let tileUrl;
+    let attribution;
 
     if (style === 'satellite') {
       tileUrl = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
@@ -238,10 +241,10 @@ export default function MapPicker({
       attribution: attribution,
       maxZoom: 20
     }).addTo(map);
-  };
+  }
 
   // Helper to update marker position and center map
-  const updateMarker = (lat, lng) => {
+  function updateMarker(lat, lng) {
     if (markerRef.current) {
       markerRef.current.setLatLng([lat, lng]);
     }
@@ -251,10 +254,10 @@ export default function MapPicker({
     if (onLocationSelect) {
       onLocationSelect({ lat, lng });
     }
-  };
+  }
 
   // Fetch address details from coordinates (Reverse Geocoding)
-  const reverseGeocode = async (lat, lng) => {
+  async function reverseGeocode(lat, lng) {
     setStatus('reverse-geocoding');
     try {
       const response = await fetch(
@@ -299,7 +302,7 @@ export default function MapPicker({
       console.error('Reverse geocoding error:', err);
       setStatus('error');
     }
-  };
+  }
 
   // Handle live query searching
   const handleSearchChange = async (e) => {
