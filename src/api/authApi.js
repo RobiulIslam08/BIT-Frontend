@@ -22,9 +22,7 @@ export const authApi = {
   forgotPassword: (email) =>
     axiosInstance.post('/auth/forget-password', { email }),
 
-  // POST /api/v1/auth/reset-password (token Authorization header এ যাবে)
-  resetPassword: (token, data) =>
-    axiosInstance.post('/auth/reset-password', data, {
-      headers: { Authorization: `Bearer ${token}` },
-    }),
+  // POST /api/v1/auth/reset-password
+  resetPassword: (email, otp, newPassword) =>
+    axiosInstance.post('/auth/reset-password', { email, otp, newPassword }),
 };
