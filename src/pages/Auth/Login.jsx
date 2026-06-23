@@ -12,6 +12,7 @@ import { useAppDispatch } from '@/app/hooks';
 import { setCredentials } from '@/features/auth/authSlice';
 import { authApi } from '@/api/authApi';
 import { toast } from '@/components/common/Toast/Toast';
+import { useGoogleLogin } from '@react-oauth/google';
 
 // SVG Official Icons
 const GoogleIcon = () => (
@@ -42,6 +43,43 @@ export default function Login() {
 
   // Login এর আগে যে পেইজে ছিল সেখানে রিডাইরেক্ট করবে, না হলে role অনুযায়ী
   const from = location.state?.from?.pathname;
+
+  const handleGoogleSuccess = async (tokenResponse) => {
+    setError('');
+    setIsLoading(true);
+    try {
+      const token = tokenResponse.access_token;
+      const res = await authApi.googleVerify(token);
+      const { data } = res.data; // { accessToken, user }
+
+      dispatch(
+        setCredentials({
+          user: data.user,
+          token: data.accessToken,
+        })
+      );
+
+      toast.success('Logged in with Google successfully!');
+
+      const redirectTo = from || (data.user.role === 'admin' ? '/dashboard' : '/');
+      navigate(redirectTo, { replace: true });
+    } catch (err) {
+      const message =
+        err?.response?.data?.message ||
+        'Google login failed. Please try again.';
+      setError(message);
+      toast.error(message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const loginWithGoogle = useGoogleLogin({
+    onSuccess: handleGoogleSuccess,
+    onError: () => {
+      toast.error('Google Sign-In was cancelled or failed.');
+    },
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -113,8 +151,10 @@ export default function Login() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.75rem' }}>
             <button
               type="button"
+              onClick={() => loginWithGoogle()}
+              disabled={isLoading}
               className="btn btn-secondary btn-md"
-              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 'var(--text-xs)' }}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 'var(--text-xs)', opacity: isLoading ? 0.7 : 1 }}
             >
               <GoogleIcon /> Google
             </button>

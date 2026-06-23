@@ -14,7 +14,7 @@ import { useAuth } from '@/hooks/useAuth';
 import './Navbar.css';
 
 export function Navbar() {
-  const { isAuthenticated, logout } = useAuth();
+  const { isAuthenticated, logout, user } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [mobileExpandedItems, setMobileExpandedItems] = useState({});
@@ -168,14 +168,48 @@ export function Navbar() {
               {/* Authentication Buttons (Desktop) */}
               <div className="navbar__auth-desktop" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 {isAuthenticated ? (
-                  <>
-                    <Link to="/dashboard" className="btn btn-ghost btn-sm">
-                      Dashboard
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
+                    <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none', color: 'inherit' }}>
+                      {user?.profileImage ? (
+                        <img 
+                          src={user.profileImage} 
+                          alt={user.name} 
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            objectFit: 'cover',
+                            border: '1px solid var(--color-primary-border)',
+                            boxShadow: '0 2px 8px rgba(0, 0, 0, 0.08)'
+                          }} 
+                        />
+                      ) : (
+                        <div 
+                          style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '50%',
+                            background: 'var(--color-primary-muted)',
+                            border: '1px solid var(--color-primary-border)',
+                            color: 'var(--color-primary)',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: 'var(--text-xs)',
+                            fontWeight: 700
+                          }}
+                        >
+                          {user?.name?.charAt(0).toUpperCase() || 'U'}
+                        </div>
+                      )}
+                      <span className="body-xs" style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                        {user?.name || 'User'}
+                      </span>
                     </Link>
                     <button onClick={logout} className="btn btn-secondary btn-sm">
                       Logout
                     </button>
-                  </>
+                  </div>
                 ) : (
                   <>
                     <Link to="/auth/login" className="btn btn-ghost btn-sm">
@@ -317,6 +351,46 @@ export function Navbar() {
                 <div className="navbar__mobile-auth" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', marginBottom: '1.25rem' }}>
                   {isAuthenticated ? (
                     <>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0', marginBottom: '0.5rem' }}>
+                        {user?.profileImage ? (
+                          <img 
+                            src={user.profileImage} 
+                            alt={user.name} 
+                            style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              objectFit: 'cover',
+                              border: '1px solid var(--color-primary-border)',
+                            }} 
+                          />
+                        ) : (
+                          <div 
+                            style={{
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '50%',
+                              background: 'var(--color-primary-muted)',
+                              border: '1px solid var(--color-primary-border)',
+                              color: 'var(--color-primary)',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontWeight: 700
+                            }}
+                          >
+                            {user?.name?.charAt(0).toUpperCase() || 'U'}
+                          </div>
+                        )}
+                        <div style={{ display: 'flex', flexDirection: 'column' }}>
+                          <span style={{ fontSize: 'var(--text-sm)', fontWeight: 600, color: 'var(--color-text-primary)' }}>
+                            {user?.name || 'User'}
+                          </span>
+                          <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                            {user?.email}
+                          </span>
+                        </div>
+                      </div>
                       <Link to="/dashboard" className="btn btn-secondary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
                         Dashboard
                       </Link>

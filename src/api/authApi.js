@@ -25,4 +25,8 @@ export const authApi = {
   // POST /api/v1/auth/reset-password
   resetPassword: (email, otp, newPassword) =>
     axiosInstance.post('/auth/reset-password', { email, otp, newPassword }),
+
+  // POST /api/v1/auth/google-verify
+  googleVerify: (idToken) =>
+    axiosInstance.post('/auth/google-verify', { idToken }),
 };
