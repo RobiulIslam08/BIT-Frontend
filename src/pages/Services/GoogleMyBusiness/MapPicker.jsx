@@ -9,6 +9,7 @@ import {
   CheckCircle, Globe, ShieldCheck, Map, Image
 } from 'lucide-react';
 import { useAppSelector } from '@/app/hooks';
+import { toast } from '@/components/common/Toast/Toast';
 
 // Custom Hook to load Leaflet dynamically from CDN
 function useLeaflet() {
@@ -343,7 +344,7 @@ export default function MapPicker({
   // Browser Geolocation (Detect My Location)
   const handleLocateMe = () => {
     if (!navigator.geolocation) {
-      alert('Geolocation is not supported by your browser.');
+      toast.warning('Geolocation is not supported by your browser.');
       return;
     }
 
@@ -363,7 +364,7 @@ export default function MapPicker({
         setGpsLoading(false);
         setStatus('ready');
         console.error('GPS error:', err);
-        alert('Could not retrieve your precise location. Please search manually.');
+        toast.error('Could not retrieve your precise location. Please search manually.');
       },
       { enableHighAccuracy: true, timeout: 8000 }
     );

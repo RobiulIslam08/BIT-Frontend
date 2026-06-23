@@ -9,6 +9,7 @@ import { motion } from 'motion/react';
 import { Mail, Lock, Eye, EyeOff, Key, ArrowRight, ArrowLeft, AlertCircle, CheckCircle } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { authApi } from '@/api/authApi';
+import { toast } from '@/components/common/Toast/Toast';
 
 export default function ForgotPassword() {
   const [step, setStep] = useState(1); // 1: Send OTP, 2: Reset Password
@@ -31,7 +32,9 @@ export default function ForgotPassword() {
 
     try {
       const res = await authApi.forgotPassword(email);
-      setSuccess(res.data?.message || 'OTP sent successfully to your email.');
+      const successMsg = res.data?.message || 'OTP sent successfully to your email.';
+      setSuccess(successMsg);
+      toast.success(successMsg);
       // Move to step 2 after a brief delay
       setTimeout(() => {
         setStep(2);
@@ -43,6 +46,7 @@ export default function ForgotPassword() {
         err?.response?.data?.errorSources?.[0]?.message ||
         'Failed to send OTP. Please check your email and try again.';
       setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }
@@ -54,12 +58,16 @@ export default function ForgotPassword() {
     setSuccess('');
 
     if (newPassword !== confirmPassword) {
-      setError('Passwords do not match');
+      const msg = 'Passwords do not match';
+      setError(msg);
+      toast.warning(msg);
       return;
     }
 
     if (newPassword.length < 6) {
-      setError('Password must be at least 6 characters');
+      const msg = 'Password must be at least 6 characters';
+      setError(msg);
+      toast.warning(msg);
       return;
     }
 
@@ -67,7 +75,9 @@ export default function ForgotPassword() {
 
     try {
       const res = await authApi.resetPassword(email, otp, newPassword);
-      setSuccess(res.data?.message || 'Password reset successful!');
+      const successMsg = res.data?.message || 'Password reset successful!';
+      setSuccess(successMsg);
+      toast.success(successMsg);
       
       // Redirect to login page after 2 seconds
       setTimeout(() => {
@@ -79,6 +89,7 @@ export default function ForgotPassword() {
         err?.response?.data?.errorSources?.[0]?.message ||
         'Password reset failed. Please check the OTP and try again.';
       setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

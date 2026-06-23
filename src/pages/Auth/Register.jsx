@@ -11,6 +11,7 @@ import { SEOHead } from '@/components/common/SEOHead';
 import { useAppDispatch } from '@/app/hooks';
 import { setCredentials } from '@/features/auth/authSlice';
 import { authApi } from '@/api/authApi';
+import { toast } from '@/components/common/Toast/Toast';
 
 // SVG Official Icons
 const GoogleIcon = () => (
@@ -56,12 +57,16 @@ export default function Register() {
 
     // Client-side validation
     if (form.password !== form.confirmPassword) {
-      setError('Passwords do not match. Please try again.');
+      const msg = 'Passwords do not match. Please try again.';
+      setError(msg);
+      toast.warning(msg);
       return;
     }
 
     if (form.password.length < 6) {
-      setError('Password must be at least 6 characters.');
+      const msg = 'Password must be at least 6 characters.';
+      setError(msg);
+      toast.warning(msg);
       return;
     }
 
@@ -78,7 +83,9 @@ export default function Register() {
       const res = await authApi.register(payload);
       const { data } = res.data; // { accessToken, user }
 
-      setSuccess('Account created successfully! Redirecting...');
+      const successMsg = 'Account created successfully! Redirecting...';
+      setSuccess(successMsg);
+      toast.success('Registration successful! Welcome.');
 
       // Redux store এবং localStorage এ credentials সেট করা
       dispatch(
@@ -100,6 +107,7 @@ export default function Register() {
         err?.response?.data?.errorSources?.[0]?.message ||
         'Registration failed. Please try again.';
       setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

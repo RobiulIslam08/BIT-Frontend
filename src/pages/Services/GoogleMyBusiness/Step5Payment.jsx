@@ -11,6 +11,7 @@ import {
   ShieldAlert, Banknote, Receipt
 } from 'lucide-react';
 import './Step5Payment.css';
+import { toast } from '@/components/common/Toast/Toast';
 
 // Pricing constants
 const PRICING = {
@@ -90,14 +91,20 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
       if (discount) {
         setCouponDiscount(discount);
         setCouponApplied(true);
-        setCouponMessage(`Coupon applied! You save ${discount} SAR.`);
+        const msg = `Coupon applied! You save ${discount} SAR.`;
+        setCouponMessage(msg);
+        toast.success(msg);
       } else {
         setCouponDiscount(0);
         setCouponApplied(false);
-        setCouponMessage('Invalid coupon code. Please try again.');
+        const msg = 'Invalid coupon code. Please try again.';
+        setCouponMessage(msg);
+        toast.error(msg);
       }
     } catch {
-      setCouponMessage('Failed to validate coupon. Please try again.');
+      const msg = 'Failed to validate coupon. Please try again.';
+      setCouponMessage(msg);
+      toast.error(msg);
       setCouponApplied(false);
     } finally {
       setCouponLoading(false);
@@ -109,6 +116,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
     setCouponDiscount(0);
     setCouponApplied(false);
     setCouponMessage('');
+    toast.info('Coupon code removed.');
   };
 
   // ─── FILE UPLOAD ───
@@ -118,20 +126,26 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
       // Validate file type and size
       const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
       if (!validTypes.includes(file.type)) {
-        setValidationError('Only JPEG, PNG, WebP, GIF, or PDF files are allowed.');
+        const msg = 'Only JPEG, PNG, WebP, GIF, or PDF files are allowed.';
+        setValidationError(msg);
+        toast.error(msg);
         return;
       }
       if (file.size > 5 * 1024 * 1024) {
-        setValidationError('File size must be under 5MB.');
+        const msg = 'File size must be under 5MB.';
+        setValidationError(msg);
+        toast.error(msg);
         return;
       }
       setPaymentScreenshot(file);
       setValidationError('');
+      toast.success(`Proof of payment loaded: ${file.name}`);
     }
   };
 
   const handleRemoveFile = () => {
     setPaymentScreenshot(null);
+    toast.info('Payment proof removed.');
   };
 
   // ─── FORM VALIDATION ───
@@ -141,14 +155,18 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
     // Recovery-specific validation
     if (serviceType === 'recovery') {
       if (!recoveryEmail.trim() || !recoveryPhone.trim()) {
-        setValidationError('Please provide the registered email and phone number for recovery.');
+        const msg = 'Please provide the registered email and phone number for recovery.';
+        setValidationError(msg);
+        toast.warning(msg);
         return;
       }
     }
 
     // Payment method required
     if (!paymentMethod) {
-      setValidationError('Please select a payment method.');
+      const msg = 'Please select a payment method.';
+      setValidationError(msg);
+      toast.warning(msg);
       return;
     }
 
@@ -158,14 +176,18 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
       const hasTransactionDetails = transactionId.trim() && paymentMethodDetail.trim() && senderName.trim() && paymentDate.trim();
 
       if (!hasScreenshot && !hasTransactionDetails) {
-        setValidationError('Please upload your payment proof or provide transaction details.');
+        const msg = 'Please upload your payment proof or provide transaction details.';
+        setValidationError(msg);
+        toast.warning(msg);
         return;
       }
     }
 
     // Terms must be accepted
     if (!termsAccepted) {
-      setValidationError('You must accept the Terms of Service and Refund Policy to continue.');
+      const msg = 'You must accept the Terms of Service and Refund Policy to continue.';
+      setValidationError(msg);
+      toast.warning(msg);
       return;
     }
 
@@ -691,7 +713,9 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
                     style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay" }}
                     onClick={(data, actions) => {
                       if (!termsAccepted) {
-                        setValidationError('You must accept the Terms of Service and Refund Policy to proceed with PayPal payment.');
+                        const msg = 'You must accept the Terms of Service and Refund Policy to proceed with PayPal payment.';
+                        setValidationError(msg);
+                        toast.warning(msg);
                         // Scroll to validation error area
                         return actions.reject();
                       } else {
@@ -758,13 +782,17 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
                           };
                           onSubmit(orderPayload);
                         } catch (error) {
-                          setValidationError('Failed to capture PayPal transaction. Please contact support.');
+                          const msg = 'Failed to capture PayPal transaction. Please contact support.';
+                          setValidationError(msg);
+                          toast.error(msg);
                         } finally {
                           setIsSubmittingLocal(false);
                         }
                       }}
                       onError={(err) => {
-                        setValidationError('PayPal payment authorization failed. Please try again.');
+                        const msg = 'PayPal payment authorization failed. Please try again.';
+                        setValidationError(msg);
+                        toast.error(msg);
                         console.error("PayPal SDK Error:", err);
                       }}
                     />

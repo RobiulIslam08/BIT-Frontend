@@ -11,6 +11,7 @@ import { SEOHead } from '@/components/common/SEOHead';
 import { useAppDispatch } from '@/app/hooks';
 import { setCredentials } from '@/features/auth/authSlice';
 import { authApi } from '@/api/authApi';
+import { toast } from '@/components/common/Toast/Toast';
 
 // SVG Official Icons
 const GoogleIcon = () => (
@@ -53,22 +54,25 @@ export default function Login() {
 
       // Redux store এবং localStorage এ credentials সেট করা
       dispatch(
-        setCredentials({
-          user: data.user,
-          token: data.accessToken,
-          // refreshToken cookie-তে set হয়ে যাবে backend থেকে
-        })
+          setCredentials({
+            user: data.user,
+            token: data.accessToken,
+            // refreshToken cookie-তে set হয়ে যাবে backend থেকে
+          })
       );
+
+      toast.success('Logged in successfully!');
 
       // Role-based redirect
       const redirectTo = from || (data.user.role === 'admin' ? '/dashboard' : '/');
       navigate(redirectTo, { replace: true });
     } catch (err) {
       const message =
-        err?.response?.data?.message ||
-        err?.response?.data?.errorSources?.[0]?.message ||
-        'Login failed. Please check your email and password.';
+          err?.response?.data?.message ||
+          err?.response?.data?.errorSources?.[0]?.message ||
+          'Login failed. Please check your email and password.';
       setError(message);
+      toast.error(message);
     } finally {
       setIsLoading(false);
     }

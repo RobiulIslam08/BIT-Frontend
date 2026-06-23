@@ -13,6 +13,7 @@ import {
 import { SEOHead } from '@/components/common/SEOHead';
 import { FadeInUp } from '@/components/animations/FadeInUp';
 import { COMPANY } from '@/utils/constants';
+import { toast } from '@/components/common/Toast/Toast';
 import MapPicker from './MapPicker';
 import Step5Payment from './Step5Payment';
 import './GoogleMyBusiness.css';
@@ -133,24 +134,24 @@ export default function GoogleMyBusiness() {
     // Basic validation per step
     if (step === 1) {
       if (!form.businessName || !form.category) {
-        alert('Please enter your business name and category.');
+        toast.warning('Please enter your business name and category.');
         return;
       }
     } else if (step === 2) {
       if (form.hasPhysicalLocation === 'yes') {
         if (!form.streetAddress || !form.city || !form.postalCode) {
-          alert('Please fill out all address fields.');
+          toast.warning('Please fill out all address fields.');
           return;
         }
       } else {
         if (!form.serviceAreas) {
-          alert('Please specify your service areas.');
+          toast.warning('Please specify your service areas.');
           return;
         }
       }
     } else if (step === 3) {
       if (!form.phone || !form.email) {
-        alert('Please fill out contact phone and email.');
+        toast.warning('Please fill out contact phone and email.');
         return;
       }
     }
@@ -175,8 +176,9 @@ export default function GoogleMyBusiness() {
       await new Promise(resolve => setTimeout(resolve, 1500));
       setOrderData(orderPayload);
       setSubmitted(true);
+      toast.success('Order submitted successfully!');
     } catch (error) {
-      alert('Failed to submit order. Please try again.');
+      toast.error('Failed to submit order. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
