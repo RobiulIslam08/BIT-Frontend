@@ -1021,3 +1021,240 @@
   }
 }
 
+/* ─── MANUAL BANK TRANSFER DETAILS ─── */
+.gmb-bank-info-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  margin-bottom: 0.25rem;
+}
+
+.gmb-bank-info-icon {
+  color: var(--color-primary);
+}
+
+.gmb-bank-info-title {
+  font-size: var(--text-base);
+  font-weight: 800;
+  color: var(--color-text-primary);
+  margin-bottom: 0 !important;
+}
+
+.gmb-bank-info-subtitle {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  margin-bottom: 1.5rem;
+  line-height: 1.5;
+}
+
+.gmb-bank-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.25rem;
+  margin-bottom: 1.5rem;
+}
+
+.gmb-bank-card {
+  background: var(--color-bg);
+  border: 2px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  padding: 1.25rem;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  overflow: hidden;
+}
+
+.gmb-bank-card:hover {
+  transform: translateY(-3px);
+  border-color: var(--color-primary-border);
+  box-shadow: 0 8px 24px rgba(0, 255, 255, 0.04);
+}
+
+.gmb-bank-card.snb.active {
+  border-color: #34A853;
+  background: rgba(52, 168, 83, 0.04);
+  box-shadow: 0 8px 30px rgba(52, 168, 83, 0.08);
+}
+
+.gmb-bank-card.stc.active {
+  border-color: #8b5cf6;
+  background: rgba(139, 92, 246, 0.04);
+  box-shadow: 0 8px 30px rgba(139, 92, 246, 0.08);
+}
+
+.gmb-bank-badge-wrap {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.gmb-bank-card-badge {
+  font-size: 10px;
+  font-weight: 800;
+  padding: 0.25rem 0.6rem;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.gmb-bank-card-badge.snb {
+  background: rgba(52, 168, 83, 0.15);
+  color: #34A853;
+  border: 1px solid rgba(52, 168, 83, 0.3);
+}
+
+.gmb-bank-card-badge.stc {
+  background: rgba(139, 92, 246, 0.15);
+  color: #a78bfa;
+  border: 1px solid rgba(139, 92, 246, 0.3);
+}
+
+.gmb-bank-card-select-hint {
+  font-size: 10px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  transition: all 0.2s ease;
+}
+
+.gmb-bank-card.active .gmb-bank-card-select-hint {
+  color: var(--color-text-primary);
+}
+
+.gmb-bank-card.snb.active .gmb-bank-card-select-hint {
+  color: #34A853;
+}
+
+.gmb-bank-card.stc.active .gmb-bank-card-select-hint {
+  color: #a78bfa;
+}
+
+.gmb-bank-card-name {
+  font-size: var(--text-sm);
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.gmb-bank-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.gmb-bank-field-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.field-label {
+  font-size: 9px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.field-value-copy {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 0.5rem;
+  background: var(--color-bg-secondary);
+  padding: 0.4rem 0.75rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  min-height: 2.25rem;
+}
+
+.field-value {
+  font-size: var(--text-xs);
+  color: var(--color-text-primary);
+  word-break: break-all;
+}
+
+.field-value.text-bold {
+  font-weight: 700;
+}
+
+.field-value.font-mono {
+  font-family: SFMono-Regular, Consolas, Liberation Mono, Menlo, monospace;
+  letter-spacing: 0.02em;
+}
+
+.gmb-bank-copy-btn {
+  background: none;
+  border: none;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.gmb-bank-copy-btn:hover {
+  color: var(--color-primary);
+  background: rgba(0, 255, 255, 0.08);
+}
+
+.gmb-bank-card.snb .gmb-bank-copy-btn:hover {
+  color: #34A853;
+  background: rgba(52, 168, 83, 0.08);
+}
+
+.gmb-bank-card.stc .gmb-bank-copy-btn:hover {
+  color: #a78bfa;
+  background: rgba(139, 92, 246, 0.08);
+}
+
+.gmb-bank-copy-btn svg {
+  transition: transform 0.2s ease;
+}
+
+.gmb-bank-copy-btn:active svg {
+  transform: scale(0.85);
+}
+
+.gmb-manual-bank-divider {
+  height: 1px;
+  background: var(--color-border);
+  margin: 1.75rem 0;
+}
+
+/* Custom dropdown arrow for Select payments */
+select.input {
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2300ffff' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 1rem center;
+  background-size: 1rem;
+  padding-right: 2.5rem;
+  cursor: pointer;
+}
+
+[data-theme="light"] select.input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%234b5563' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M19.5 8.25l-7.5 7.5-7.5-7.5'/%3E%3C/svg%3E");
+}
+
+/* ── RESPONSIVE BANK GRID ── */
+@media (max-width: 768px) {
+  .gmb-bank-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  
+  .gmb-bank-card {
+    padding: 1rem;
+  }
+}
+

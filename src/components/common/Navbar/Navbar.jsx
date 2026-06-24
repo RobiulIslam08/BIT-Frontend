@@ -11,10 +11,11 @@ import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { toggleMobileMenu, closeMobileMenu } from '@/features/ui/uiSlice';
 import { NAV_ITEMS, COMPANY, SOCIALS } from '@/utils/constants';
 import { useAuth } from '@/hooks/useAuth';
+import { getImageUrl } from '@/config/env';
 import './Navbar.css';
 
 export function Navbar() {
-  const { isAuthenticated, logout, user } = useAuth();
+  const { isAuthenticated, logout, user, isAdmin } = useAuth();
   const [scrolled, setScrolled] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState(null);
   const [mobileExpandedItems, setMobileExpandedItems] = useState({});
@@ -168,11 +169,28 @@ export function Navbar() {
               {/* Authentication Buttons (Desktop) */}
               <div className="navbar__auth-desktop" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                 {isAuthenticated ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.875rem' }}>
-                    <Link to="/dashboard" style={{ display: 'flex', alignItems: 'center', gap: '0.625rem', textDecoration: 'none', color: 'inherit' }}>
+                  <div 
+                    className="navbar__user-menu"
+                    style={{ position: 'relative' }}
+                    onMouseEnter={() => setActiveDropdown('user-menu')}
+                    onMouseLeave={() => setActiveDropdown(null)}
+                  >
+                    <button 
+                      style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        gap: '0.625rem', 
+                        background: 'none', 
+                        border: 'none', 
+                        cursor: 'pointer',
+                        color: 'inherit',
+                        padding: 0
+                      }}
+                      onClick={() => setActiveDropdown(activeDropdown === 'user-menu' ? null : 'user-menu')}
+                    >
                       {user?.profileImage ? (
                         <img 
-                          src={user.profileImage} 
+                          src={getImageUrl(user.profileImage)} 
                           alt={user.name} 
                           style={{
                             width: '32px',
@@ -205,10 +223,61 @@ export function Navbar() {
                       <span className="body-xs" style={{ fontWeight: 600, color: 'var(--color-text-primary)' }}>
                         {user?.name || 'User'}
                       </span>
-                    </Link>
-                    <button onClick={logout} className="btn btn-secondary btn-sm">
-                      Logout
+                      <ChevronDown size={14} className="navbar__chevron" style={{
+                        transform: activeDropdown === 'user-menu' ? 'rotate(180deg)' : 'rotate(0deg)',
+                        transition: 'transform 0.2s ease'
+                      }} />
                     </button>
+
+                    <AnimatePresence>
+                      {activeDropdown === 'user-menu' && (
+                        <motion.div
+                          className="navbar__dropdown"
+                          initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                          animate={{ opacity: 1, y: 0, scale: 1 }}
+                          exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                          transition={{ duration: 0.2, ease: [0.4, 0, 0.2, 1] }}
+                          style={{
+                            right: 0,
+                            left: 'auto',
+                            minWidth: '220px',
+                            padding: '0.5rem',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '0.25rem'
+                          }}
+                        >
+                          <div style={{ padding: '0.75rem', borderBottom: '1px solid var(--color-primary-border)', marginBottom: '0.25rem' }}>
+                            <p style={{ margin: 0, fontWeight: 600, fontSize: 'var(--text-sm)', color: 'var(--color-text-primary)' }}>{user?.name}</p>
+                            <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</p>
+                          </div>
+                          
+                          {isAdmin && (
+                            <Link to="/admin" className="navbar__dropdown-link" onClick={() => setActiveDropdown(null)}>
+                              Admin Dashboard
+                            </Link>
+                          )}
+                          
+                          <button 
+                            onClick={() => {
+                              setActiveDropdown(null);
+                              logout();
+                            }} 
+                            className="navbar__dropdown-link"
+                            style={{ 
+                              width: '100%', 
+                              textAlign: 'left', 
+                              background: 'none', 
+                              border: 'none', 
+                              cursor: 'pointer',
+                              color: 'var(--color-danger)'
+                            }}
+                          >
+                            Logout
+                          </button>
+                        </motion.div>
+                      )}
+                    </AnimatePresence>
                   </div>
                 ) : (
                   <>
@@ -354,7 +423,7 @@ export function Navbar() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.5rem 0', marginBottom: '0.5rem' }}>
                         {user?.profileImage ? (
                           <img 
-                            src={user.profileImage} 
+                            src={getImageUrl(user.profileImage)} 
                             alt={user.name} 
                             style={{
                               width: '40px',
@@ -391,9 +460,11 @@ export function Navbar() {
                           </span>
                         </div>
                       </div>
-                      <Link to="/dashboard" className="btn btn-secondary btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
-                        Dashboard
-                      </Link>
+                      {isAdmin && (
+                        <Link to="/admin" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} onClick={() => dispatch(closeMobileMenu())}>
+                          Admin Dashboard
+                        </Link>
+                      )}
                       <button onClick={logout} className="btn btn-outline-cyan btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
                         Logout
                       </button>

@@ -8,7 +8,7 @@ import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
 import {
   CreditCard, Upload, CheckCircle2, AlertCircle, Tag, Shield,
   FileText, ArrowLeft, Send, Loader2, X, Image as ImageIcon,
-  ShieldAlert, Banknote, Receipt
+  ShieldAlert, Banknote, Receipt, Copy, Check, Landmark
 } from 'lucide-react';
 import './Step5Payment.css';
 import { toast } from '@/components/common/Toast/Toast';
@@ -40,6 +40,16 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
   const [paymentMethodDetail, setPaymentMethodDetail] = useState('');
   const [senderName, setSenderName] = useState('');
   const [paymentDate, setPaymentDate] = useState('');
+  const [copiedField, setCopiedField] = useState('');
+
+  const handleCopy = useCallback((text, fieldId, label) => {
+    navigator.clipboard.writeText(text);
+    setCopiedField(fieldId);
+    toast.success(`${label} copied to clipboard!`);
+    setTimeout(() => {
+      setCopiedField('');
+    }, 2000);
+  }, []);
 
   // Terms
   const [termsAccepted, setTermsAccepted] = useState(false);
@@ -445,8 +455,8 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
           />
           <div className="gmb-payment-card-body">
             <div className="gmb-payment-card-title">
-              Pay with PayPal
-              <span className="paypal-badge">PayPal</span>
+              Pay with Credit / Debit Card
+              <span className="paypal-badge">Card</span>
             </div>
             <span className="gmb-payment-card-desc">
               Secure online payment via PayPal. You'll be redirected to complete the transaction.
@@ -477,6 +487,159 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
       {/* ─── MANUAL PAYMENT VERIFICATION ─── */}
       {paymentMethod === 'manual' && (
         <div className="gmb-manual-payment">
+          {/* Bank Accounts Section */}
+          <div className="gmb-bank-info-header">
+            <Landmark size={18} className="gmb-bank-info-icon" />
+            <h4 className="gmb-bank-info-title">Our Bank Transfer Details</h4>
+          </div>
+          <p className="gmb-bank-info-subtitle">
+            Transfer the amount to any of the banks below, copy the information, and then upload your receipt or enter transfer details.
+          </p>
+
+          <div className="gmb-bank-grid">
+            {/* Saudi National Bank Card */}
+            <div 
+              className={`gmb-bank-card snb ${paymentMethodDetail === 'SNB' ? 'active' : ''}`}
+              onClick={() => setPaymentMethodDetail('SNB')}
+            >
+              <div className="gmb-bank-badge-wrap">
+                <span className="gmb-bank-card-badge snb">SNB</span>
+                <span className="gmb-bank-card-select-hint">Click to Select</span>
+              </div>
+              <div className="gmb-bank-card-name">The Saudi National Bank</div>
+              
+              <div className="gmb-bank-fields">
+                <div className="gmb-bank-field-row">
+                  <span className="field-label">Name</span>
+                  <div className="field-value-copy">
+                    <span className="field-value text-bold">MD JAKIR HOSSEN</span>
+                    <button
+                      type="button"
+                      className="gmb-bank-copy-btn"
+                      onClick={(e) => { e.stopPropagation(); handleCopy('MD JAKIR HOSSEN', 'snb-name', 'Account Name'); }}
+                    >
+                      {copiedField === 'snb-name' ? <Check size={14} /> : <Copy size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="gmb-bank-field-row">
+                  <span className="field-label">Account No.</span>
+                  <div className="field-value-copy">
+                    <span className="field-value">42100001258506</span>
+                    <button
+                      type="button"
+                      className="gmb-bank-copy-btn"
+                      onClick={(e) => { e.stopPropagation(); handleCopy('42100001258506', 'snb-acc', 'Account Number'); }}
+                    >
+                      {copiedField === 'snb-acc' ? <Check size={14} /> : <Copy size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="gmb-bank-field-row">
+                  <span className="field-label">IBAN</span>
+                  <div className="field-value-copy">
+                    <span className="field-value font-mono">SA6310000042100001258506</span>
+                    <button
+                      type="button"
+                      className="gmb-bank-copy-btn"
+                      onClick={(e) => { e.stopPropagation(); handleCopy('SA6310000042100001258506', 'snb-iban', 'IBAN'); }}
+                    >
+                      {copiedField === 'snb-iban' ? <Check size={14} /> : <Copy size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="gmb-bank-field-row">
+                  <span className="field-label">Swift Code</span>
+                  <div className="field-value-copy">
+                    <span className="field-value">NCBKSAJE</span>
+                    <button
+                      type="button"
+                      className="gmb-bank-copy-btn"
+                      onClick={(e) => { e.stopPropagation(); handleCopy('NCBKSAJE', 'snb-swift', 'Swift Code'); }}
+                    >
+                      {copiedField === 'snb-swift' ? <Check size={14} /> : <Copy size={14} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* STC Bank Card */}
+            <div 
+              className={`gmb-bank-card stc ${paymentMethodDetail === 'STC' ? 'active' : ''}`}
+              onClick={() => setPaymentMethodDetail('STC')}
+            >
+              <div className="gmb-bank-badge-wrap">
+                <span className="gmb-bank-card-badge stc">STC Bank</span>
+                <span className="gmb-bank-card-select-hint">Click to Select</span>
+              </div>
+              <div className="gmb-bank-card-name">STC Bank / Pay</div>
+              
+              <div className="gmb-bank-fields">
+                <div className="gmb-bank-field-row">
+                  <span className="field-label">Name</span>
+                  <div className="field-value-copy">
+                    <span className="field-value text-bold">MD JAKIR HOSSEN</span>
+                    <button
+                      type="button"
+                      className="gmb-bank-copy-btn"
+                      onClick={(e) => { e.stopPropagation(); handleCopy('MD JAKIR HOSSEN', 'stc-name', 'Account Name'); }}
+                    >
+                      {copiedField === 'stc-name' ? <Check size={14} /> : <Copy size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="gmb-bank-field-row">
+                  <span className="field-label">Account No.</span>
+                  <div className="field-value-copy">
+                    <span className="field-value">1281187925</span>
+                    <button
+                      type="button"
+                      className="gmb-bank-copy-btn"
+                      onClick={(e) => { e.stopPropagation(); handleCopy('1281187925', 'stc-acc', 'Account Number'); }}
+                    >
+                      {copiedField === 'stc-acc' ? <Check size={14} /> : <Copy size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="gmb-bank-field-row">
+                  <span className="field-label">IBAN</span>
+                  <div className="field-value-copy">
+                    <span className="field-value font-mono">SA4578000000001281187925</span>
+                    <button
+                      type="button"
+                      className="gmb-bank-copy-btn"
+                      onClick={(e) => { e.stopPropagation(); handleCopy('SA4578000000001281187925', 'stc-iban', 'IBAN'); }}
+                    >
+                      {copiedField === 'stc-iban' ? <Check size={14} /> : <Copy size={14} />}
+                    </button>
+                  </div>
+                </div>
+
+                <div className="gmb-bank-field-row">
+                  <span className="field-label">STC Pay</span>
+                  <div className="field-value-copy">
+                    <span className="field-value font-mono text-bold">0597516519</span>
+                    <button
+                      type="button"
+                      className="gmb-bank-copy-btn"
+                      onClick={(e) => { e.stopPropagation(); handleCopy('0597516519', 'stc-pay', 'STC Pay Number'); }}
+                    >
+                      {copiedField === 'stc-pay' ? <Check size={14} /> : <Copy size={14} />}
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="gmb-manual-bank-divider" />
+
           <h4 className="form-step-title" style={{ fontSize: 'var(--text-base)', marginBottom: '0.25rem' }}>
             Payment Verification
           </h4>
@@ -544,14 +707,17 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
               />
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Payment Method</label>
-              <input
-                type="text"
+              <label className="form-label">Payment Method *</label>
+              <select
                 className="input"
                 value={paymentMethodDetail}
                 onChange={(e) => setPaymentMethodDetail(e.target.value)}
-                placeholder="e.g. Bank Transfer, bKash, STC Pay"
-              />
+                required
+              >
+                <option value="">Select Bank</option>
+                <option value="STC">STC</option>
+                <option value="SNB">SNB</option>
+              </select>
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
               <label className="form-label">Sender Name</label>

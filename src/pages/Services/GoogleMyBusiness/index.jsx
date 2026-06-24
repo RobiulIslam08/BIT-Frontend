@@ -29,17 +29,33 @@ const COUNTRIES = [
   { name: 'Bangladesh', code: 'BD', dial: '+880' }
 ];
 
+// const CATEGORIES = [
+//   'Restaurant / Cafe',
+//   'Software & IT Solution',
+//   'Retail Store / Shop',
+//   'Medical Clinic / Hospital',
+//   'Real Estate Agency',
+//   'Professional Consulting Services',
+//   'E-commerce Brand',
+//   'Local Service (Plumber, Electrician)',
+//   'Hair Salon & Spa',
+//   'Educational Institute'
+
+
+  
+// ];
+
 const CATEGORIES = [
-  'Restaurant / Cafe',
-  'Software & IT Solution',
-  'Retail Store / Shop',
-  'Medical Clinic / Hospital',
-  'Real Estate Agency',
-  'Professional Consulting Services',
-  'E-commerce Brand',
-  'Local Service (Plumber, Electrician)',
-  'Hair Salon & Spa',
-  'Educational Institute'
+  'Grocery Store / Supermarket (For Baqalas and Super shops)',
+  'Restaurant / Cafe (For food and beverage businesses)',
+  'Hotel / Serviced Apartment (For residential hotels and furnished rentals)',
+  'Construction Company / General Contractor (For contracting firms)',
+  'Logistics Service / Delivery Service (For supply chain and transport businesses)',
+  'Car Rental Agency / Auto Repair Shop (For car rentals and garages)',
+  'Beauty Salon / Spa (For gents and ladies salons)',
+  'Travel Agency (For tourism and booking businesses)',
+  'Medical Clinic / Pharmacy (For healthcare businesses)',
+  'E-commerce Service (For online stores and delivery setups)'
 ];
 
 export default function GoogleMyBusiness() {

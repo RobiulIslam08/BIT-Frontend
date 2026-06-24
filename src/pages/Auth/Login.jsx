@@ -148,7 +148,7 @@ export default function Login() {
           </div>
 
           {/* Social Auth Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.75rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem', marginBottom: '1.75rem' }}>
             <button
               type="button"
               onClick={() => loginWithGoogle()}
@@ -158,13 +158,13 @@ export default function Login() {
             >
               <GoogleIcon /> Google
             </button>
-            <button
+            {/* <button
               type="button"
               className="btn btn-secondary btn-md"
               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontWeight: 600, fontSize: 'var(--text-xs)' }}
             >
               <FacebookIcon /> Facebook
-            </button>
+            </button> */}
           </div>
 
           {/* Separator */}
