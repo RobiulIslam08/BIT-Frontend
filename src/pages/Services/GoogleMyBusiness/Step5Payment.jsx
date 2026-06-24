@@ -16,8 +16,8 @@ import { validateCoupon } from '@/api/gmbOrderApi';
 
 // Pricing constants
 const PRICING = {
-  NEW_PROFILE: 1,
-  RECOVERY_SERVICE: 2,
+  NEW_PROFILE: 4,
+  RECOVERY_SERVICE: 5,
 };
 
 // ─── PayPal Buttons Inner Component ───
