@@ -4,7 +4,7 @@
 
 import { useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { PayPalScriptProvider, PayPalButtons } from '@paypal/react-paypal-js';
+import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
 import {
   CreditCard, Upload, CheckCircle2, AlertCircle, Tag, Shield,
   FileText, ArrowLeft, Send, Loader2, X, Image as ImageIcon,
@@ -12,13 +12,148 @@ import {
 } from 'lucide-react';
 import './Step5Payment.css';
 import { toast } from '@/components/common/Toast/Toast';
+import { validateCoupon } from '@/api/gmbOrderApi';
 
 // Pricing constants
 const PRICING = {
-  NEW_PROFILE: 399,
-  RECOVERY_SERVICE: 500,
+  NEW_PROFILE: 1,
+  RECOVERY_SERVICE: 2,
 };
 
+// ─── PayPal Buttons Inner Component ───
+// Separated so it can use usePayPalScriptReducer inside PayPalScriptProvider context
+function PayPalCheckoutButtons({ finalPrice, serviceType, form, hasExistingProfile, profileHasIssues, recoveryEmail, recoveryPhone, basePrice, couponApplied, couponCode, couponDiscount, termsAccepted, setValidationError, isSubmittingLocal, setIsSubmittingLocal, onSubmit, isSubmitting }) {
+  const [{ isPending, isRejected }] = usePayPalScriptReducer();
+
+  if (isPending) {
+    return (
+      <div className="paypal-loading-state">
+        <Loader2 size={24} className="gmb-btn-spinner" style={{ color: 'var(--color-primary)' }} />
+        <span>Loading PayPal checkout...</span>
+      </div>
+    );
+  }
+
+  if (isRejected) {
+    return (
+      <div className="paypal-error-state">
+        <AlertCircle size={20} />
+        <span>Failed to load PayPal. Please check your internet connection and refresh.</span>
+      </div>
+    );
+  }
+
+  if (isSubmittingLocal || isSubmitting) {
+    return (
+      <div className="paypal-processing-state">
+        <Loader2 size={20} className="gmb-btn-spinner" />
+        <span>Capturing payment and placing order...</span>
+      </div>
+    );
+  }
+
+  return (
+    <PayPalButtons
+      style={{ layout: 'vertical', color: 'gold', shape: 'rect', label: 'pay' }}
+      disabled={isSubmittingLocal || isSubmitting}
+      forceReRender={[finalPrice]}
+      onClick={(data, actions) => {
+        if (!termsAccepted) {
+          const msg = 'You must accept the Terms of Service and Refund Policy to proceed with PayPal payment.';
+          setValidationError(msg);
+          toast.warning(msg);
+          return actions.reject();
+        }
+        setValidationError('');
+        return actions.resolve();
+      }}
+      createOrder={(data, actions) => {
+        return actions.order.create({
+          purchase_units: [
+            {
+              amount: {
+                currency_code: 'USD',
+                value: (finalPrice / 3.75).toFixed(2),
+              },
+              description: `BIT Software — GMB Service: ${serviceType === 'new' ? 'New Profile Setup' : serviceType === 'recovery' ? 'Profile Recovery' : 'Profile Management'}`,
+            },
+          ],
+          application_context: {
+            brand_name: 'BIT Software & IT Solution',
+            user_action: 'PAY_NOW',
+          },
+        });
+      }}
+      onApprove={async (data, actions) => {
+        setIsSubmittingLocal(true);
+        try {
+          const details = await actions.order.capture();
+          const orderPayload = {
+            // Business info from parent form
+            businessName: form.businessName,
+            category: form.category,
+            hasPhysicalLocation: form.hasPhysicalLocation,
+            streetAddress: form.streetAddress,
+            city: form.city,
+            state: form.state,
+            postalCode: form.postalCode,
+            country: form.country,
+            latitude: form.latitude,
+            longitude: form.longitude,
+            serviceAreas: form.serviceAreas,
+            phone: `${form.phoneCode} ${form.phone}`,
+            whatsapp: form.whatsapp,
+            email: form.email,
+            website: form.website,
+            description: form.description,
+            servicesList: form.servicesList,
+            // Step 5 data
+            serviceType,
+            hasExistingProfile,
+            profileHasIssues: profileHasIssues === 'yes',
+            recoveryEmail: serviceType === 'recovery' ? recoveryEmail : undefined,
+            recoveryPhone: serviceType === 'recovery' ? recoveryPhone : undefined,
+            originalPrice: basePrice,
+            couponCode: couponApplied ? couponCode : undefined,
+            discountAmount: couponDiscount,
+            finalAmount: finalPrice,
+            paymentMethod: 'paypal',
+            termsAccepted: true,
+            // PayPal transaction details
+            paypalOrderId: data.orderID,
+            paypalTransactionId: details.id,
+            transactionDetails: {
+              transactionId: details.id,
+              senderName: `${details.payer?.name?.given_name || ''} ${details.payer?.name?.surname || ''}`.trim(),
+              paymentDate: details.create_time,
+            },
+            paymentStatus: 'paid',
+            orderStatus: 'pending_review',
+          };
+          onSubmit(orderPayload);
+        } catch (err) {
+          console.error('PayPal capture error:', err);
+          const msg = 'Failed to capture PayPal transaction. Please contact support.';
+          setValidationError(msg);
+          toast.error(msg);
+        } finally {
+          setIsSubmittingLocal(false);
+        }
+      }}
+      onError={(err) => {
+        console.error('PayPal SDK Error:', err);
+        const msg = 'PayPal payment failed. Please try again or use manual payment.';
+        setValidationError(msg);
+        toast.error(msg);
+      }}
+      onCancel={() => {
+        toast.info('PayPal payment cancelled.');
+      }}
+    />
+  );
+}
+
+// ─── MAIN COMPONENT ───
 export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
   // ─── LOCAL STATE ───
   const [hasExistingProfile, setHasExistingProfile] = useState(false);
@@ -59,23 +194,29 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
   const [isSubmittingLocal, setIsSubmittingLocal] = useState(false);
 
   // ─── COMPUTED VALUES ───
-  const getServiceType = () => {
+  const serviceType = (() => {
     if (!hasExistingProfile) return 'new';
     if (profileHasIssues === 'yes') return 'recovery';
     return 'regular';
-  };
+  })();
 
-  const serviceType = getServiceType();
-
-  const getBasePrice = () => {
-    if (serviceType === 'new') return PRICING.NEW_PROFILE;
+  const basePrice = (() => {
     if (serviceType === 'recovery') return PRICING.RECOVERY_SERVICE;
     return PRICING.NEW_PROFILE;
-  };
+  })();
 
-  const basePrice = getBasePrice();
   const showCoupon = serviceType !== 'recovery';
   const finalPrice = showCoupon ? Math.max(0, basePrice - couponDiscount) : basePrice;
+
+  // ─── PayPal Client ID ───
+  // Uses real client ID from env if provided, otherwise falls back to 'sb' (sandbox mode)
+  const paypalClientId = (() => {
+    const envId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
+    if (!envId || envId === 'YOUR_PAYPAL_SANDBOX_CLIENT_ID_HERE' || envId.trim() === '') {
+      return 'sb'; // PayPal sandbox test mode
+    }
+    return envId;
+  })();
 
   // ─── COUPON HANDLER ───
   const handleApplyCoupon = useCallback(async () => {
@@ -85,19 +226,9 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
     setCouponMessage('');
 
     try {
-      // TODO: Replace with actual API call when backend is ready
-      // const res = await validateCoupon(couponCode);
-      // Simulated validation — will connect to Express backend
-      await new Promise(resolve => setTimeout(resolve, 800));
+      const result = await validateCoupon(couponCode);
+      const discount = result?.data?.discount;
 
-      // Demo coupon codes for testing
-      const testCoupons = {
-        'BIT50': 50,
-        'WELCOME100': 100,
-        'SAVE25': 25,
-      };
-
-      const discount = testCoupons[couponCode.toUpperCase()];
       if (discount) {
         setCouponDiscount(discount);
         setCouponApplied(true);
@@ -111,11 +242,14 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
         setCouponMessage(msg);
         toast.error(msg);
       }
-    } catch {
-      const msg = 'Failed to validate coupon. Please try again.';
+    } catch (err) {
+      setCouponDiscount(0);
+      setCouponApplied(false);
+      const msg =
+        err?.response?.data?.message ||
+        'Invalid coupon code. Please try again.';
       setCouponMessage(msg);
       toast.error(msg);
-      setCouponApplied(false);
     } finally {
       setCouponLoading(false);
     }
@@ -133,7 +267,6 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
   const handleFileChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
-      // Validate file type and size
       const validTypes = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'application/pdf'];
       if (!validTypes.includes(file.type)) {
         const msg = 'Only JPEG, PNG, WebP, GIF, or PDF files are allowed.';
@@ -158,11 +291,10 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
     toast.info('Payment proof removed.');
   };
 
-  // ─── FORM VALIDATION ───
+  // ─── FORM VALIDATION (Manual payment only) ───
   const validateAndSubmit = () => {
     setValidationError('');
 
-    // Recovery-specific validation
     if (serviceType === 'recovery') {
       if (!recoveryEmail.trim() || !recoveryPhone.trim()) {
         const msg = 'Please provide the registered email and phone number for recovery.';
@@ -172,7 +304,6 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
       }
     }
 
-    // Payment method required
     if (!paymentMethod) {
       const msg = 'Please select a payment method.';
       setValidationError(msg);
@@ -180,10 +311,10 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
       return;
     }
 
-    // Manual payment validation: must provide screenshot OR transaction details
     if (paymentMethod === 'manual') {
       const hasScreenshot = !!paymentScreenshot;
-      const hasTransactionDetails = transactionId.trim() && paymentMethodDetail.trim() && senderName.trim() && paymentDate.trim();
+      const hasTransactionDetails =
+        transactionId.trim() && paymentMethodDetail.trim() && senderName.trim() && paymentDate.trim();
 
       if (!hasScreenshot && !hasTransactionDetails) {
         const msg = 'Please upload your payment proof or provide transaction details.';
@@ -193,7 +324,6 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
       }
     }
 
-    // Terms must be accepted
     if (!termsAccepted) {
       const msg = 'You must accept the Terms of Service and Refund Policy to continue.';
       setValidationError(msg);
@@ -201,9 +331,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
       return;
     }
 
-    // Build order payload
     const orderPayload = {
-      // From parent form
       businessName: form.businessName,
       category: form.category,
       hasPhysicalLocation: form.hasPhysicalLocation,
@@ -221,8 +349,6 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
       website: form.website,
       description: form.description,
       servicesList: form.servicesList,
-
-      // Step 5 data
       serviceType,
       hasExistingProfile,
       profileHasIssues: profileHasIssues === 'yes',
@@ -234,32 +360,32 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
       finalAmount: finalPrice,
       paymentMethod,
       termsAccepted: true,
-
-      // Manual payment details
       paymentScreenshot: paymentMethod === 'manual' ? paymentScreenshot : undefined,
-      transactionDetails: paymentMethod === 'manual' ? {
-        transactionId: transactionId || undefined,
-        paymentMethodDetail: paymentMethodDetail || undefined,
-        senderName: senderName || undefined,
-        paymentDate: paymentDate || undefined,
-      } : undefined,
-
-      // Status defaults
-      paymentStatus: paymentMethod === 'paypal' ? 'paid' : 'pending_verification',
+      transactionDetails:
+        paymentMethod === 'manual'
+          ? {
+              transactionId: transactionId || undefined,
+              paymentMethodDetail: paymentMethodDetail || undefined,
+              senderName: senderName || undefined,
+              paymentDate: paymentDate || undefined,
+            }
+          : undefined,
+      paymentStatus: 'pending_verification',
       orderStatus: 'pending_review',
     };
 
     onSubmit(orderPayload);
   };
 
-  // Check if submit should be enabled
+  // Check if submit button should be enabled (manual payment only)
   const isFormValid = (() => {
-    if (!paymentMethod) return false;
+    if (!paymentMethod || paymentMethod === 'paypal') return false;
     if (!termsAccepted) return false;
     if (serviceType === 'recovery' && (!recoveryEmail.trim() || !recoveryPhone.trim())) return false;
     if (paymentMethod === 'manual') {
       const hasScreenshot = !!paymentScreenshot;
-      const hasDetails = transactionId.trim() && paymentMethodDetail.trim() && senderName.trim() && paymentDate.trim();
+      const hasDetails =
+        transactionId.trim() && paymentMethodDetail.trim() && senderName.trim() && paymentDate.trim();
       if (!hasScreenshot && !hasDetails) return false;
     }
     return true;
@@ -267,7 +393,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
 
   return (
     <div className="form-step-content">
-      <h3 className="form-step-title">Service Selection & Payment</h3>
+      <h3 className="form-step-title">Service Selection &amp; Payment</h3>
       <p className="form-step-subtitle">
         Choose your service type, apply any coupon codes, and select your preferred payment method.
       </p>
@@ -284,7 +410,6 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
               setRecoveryEmail('');
               setRecoveryPhone('');
             }
-            // Reset coupon when switching
             handleRemoveCoupon();
           }}
         />
@@ -294,7 +419,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
         </div>
       </label>
 
-      {/* ─── PROFILE ISSUES SECTION (Scenario B) ─── */}
+      {/* ─── PROFILE ISSUES SECTION ─── */}
       {hasExistingProfile && (
         <div className="gmb-issue-section">
           <div className="gmb-issue-question">
@@ -324,11 +449,10 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
                 checked={profileHasIssues === 'no'}
                 onChange={() => setProfileHasIssues('no')}
               />
-              No, it's working fine
+              No, it&apos;s working fine
             </label>
           </div>
 
-          {/* Recovery Email & Phone */}
           {profileHasIssues === 'yes' && (
             <div className="gmb-recovery-fields">
               <div className="form-group" style={{ marginBottom: 0 }}>
@@ -390,7 +514,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
         )}
       </div>
 
-      {/* ─── COUPON SECTION (NOT for recovery services) ─── */}
+      {/* ─── COUPON SECTION ─── */}
       {showCoupon && (
         <div className="gmb-coupon-section">
           <label className="form-label" style={{ marginBottom: '0.75rem', display: 'block' }}>
@@ -456,10 +580,10 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
           <div className="gmb-payment-card-body">
             <div className="gmb-payment-card-title">
               Pay with Credit / Debit Card
-              <span className="paypal-badge">Card</span>
+              <span className="paypal-badge">PayPal</span>
             </div>
             <span className="gmb-payment-card-desc">
-              Secure online payment via PayPal. You'll be redirected to complete the transaction.
+              Secure online payment via PayPal. Pay instantly with your PayPal account or credit/debit card.
             </span>
           </div>
         </label>
@@ -487,7 +611,6 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
       {/* ─── MANUAL PAYMENT VERIFICATION ─── */}
       {paymentMethod === 'manual' && (
         <div className="gmb-manual-payment">
-          {/* Bank Accounts Section */}
           <div className="gmb-bank-info-header">
             <Landmark size={18} className="gmb-bank-info-icon" />
             <h4 className="gmb-bank-info-title">Our Bank Transfer Details</h4>
@@ -498,7 +621,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
 
           <div className="gmb-bank-grid">
             {/* Saudi National Bank Card */}
-            <div 
+            <div
               className={`gmb-bank-card snb ${paymentMethodDetail === 'SNB' ? 'active' : ''}`}
               onClick={() => setPaymentMethodDetail('SNB')}
             >
@@ -507,7 +630,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
                 <span className="gmb-bank-card-select-hint">Click to Select</span>
               </div>
               <div className="gmb-bank-card-name">The Saudi National Bank</div>
-              
+
               <div className="gmb-bank-fields">
                 <div className="gmb-bank-field-row">
                   <span className="field-label">Name</span>
@@ -522,7 +645,6 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
                     </button>
                   </div>
                 </div>
-
                 <div className="gmb-bank-field-row">
                   <span className="field-label">Account No.</span>
                   <div className="field-value-copy">
@@ -536,7 +658,6 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
                     </button>
                   </div>
                 </div>
-
                 <div className="gmb-bank-field-row">
                   <span className="field-label">IBAN</span>
                   <div className="field-value-copy">
@@ -550,7 +671,6 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
                     </button>
                   </div>
                 </div>
-
                 <div className="gmb-bank-field-row">
                   <span className="field-label">Swift Code</span>
                   <div className="field-value-copy">
@@ -568,7 +688,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
             </div>
 
             {/* STC Bank Card */}
-            <div 
+            <div
               className={`gmb-bank-card stc ${paymentMethodDetail === 'STC' ? 'active' : ''}`}
               onClick={() => setPaymentMethodDetail('STC')}
             >
@@ -577,7 +697,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
                 <span className="gmb-bank-card-select-hint">Click to Select</span>
               </div>
               <div className="gmb-bank-card-name">STC Bank / Pay</div>
-              
+
               <div className="gmb-bank-fields">
                 <div className="gmb-bank-field-row">
                   <span className="field-label">Name</span>
@@ -592,7 +712,6 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
                     </button>
                   </div>
                 </div>
-
                 <div className="gmb-bank-field-row">
                   <span className="field-label">Account No.</span>
                   <div className="field-value-copy">
@@ -606,7 +725,6 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
                     </button>
                   </div>
                 </div>
-
                 <div className="gmb-bank-field-row">
                   <span className="field-label">IBAN</span>
                   <div className="field-value-copy">
@@ -620,7 +738,6 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
                     </button>
                   </div>
                 </div>
-
                 <div className="gmb-bank-field-row">
                   <span className="field-label">STC Pay</span>
                   <div className="field-value-copy">
@@ -647,7 +764,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
             Please provide your payment proof. Upload a screenshot <strong>OR</strong> fill in the transaction details below.
           </p>
 
-          {/* Option A: Screenshot Upload */}
+          {/* Screenshot Upload */}
           <div className="form-group" style={{ marginBottom: '0' }}>
             <label className="form-label">
               <ImageIcon size={14} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '0.35rem' }} />
@@ -687,7 +804,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
             <span>OR</span>
           </div>
 
-          {/* Option B: Transaction Details */}
+          {/* Transaction Details */}
           <div className="form-group" style={{ marginBottom: '0.75rem' }}>
             <label className="form-label">
               <Receipt size={14} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '0.35rem' }} />
@@ -754,9 +871,8 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
           I have read and agree to the{' '}
           <Link to="/terms-and-conditions" target="_blank">
             Terms of Service and Refund Policy
-          </Link>.
-          By proceeding, I understand that refunds are only available if the requested service
-          cannot be delivered.
+          </Link>
+          . By proceeding, I understand that refunds are only available if the requested service cannot be delivered.
         </label>
       </div>
 
@@ -828,6 +944,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
       <div className="form-actions row-gap" style={{ flexDirection: paymentMethod === 'paypal' ? 'column' : 'row', gap: '1rem' }}>
         {paymentMethod !== 'paypal' ? (
           <>
+            {/* Back + Submit (Manual / No selection) */}
             <button type="button" onClick={onBack} className="btn btn-secondary btn-lg">
               <ArrowLeft size={18} /> Back
             </button>
@@ -852,123 +969,58 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
             </button>
           </>
         ) : (
-          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-            <div style={{ display: 'flex', gap: '0.75rem', width: '100%' }}>
-              <button type="button" onClick={onBack} className="btn btn-secondary btn-lg" style={{ flex: 1 }}>
-                <ArrowLeft size={18} /> Back
-              </button>
-            </div>
-            
-            {/* PayPal Integration */}
-            <div className="paypal-btn-container" style={{ width: '100%', marginTop: '0.5rem' }}>
-              <PayPalScriptProvider options={{
-                "client-id": import.meta.env.VITE_PAYPAL_CLIENT_ID || "sb",
-                currency: "USD", // Universal USD fallback to bypass SAR limitations
-              }}>
-                <div style={{ textAlign: 'center', marginBottom: '0.75rem', fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
-                  {isSubmitting || isSubmittingLocal ? (
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', color: 'var(--color-primary)' }}>
-                      <span className="gmb-btn-spinner" /> Capturing transaction and placing order...
-                    </div>
-                  ) : (
-                    <>Amount converted for PayPal checkout: <strong>${(finalPrice / 3.75).toFixed(2)} USD</strong> (equivalent to {finalPrice} SAR)</>
-                  )}
-                </div>
-                {!isSubmittingLocal && !isSubmitting && (
-                  <PayPalButtons
-                    style={{ layout: "vertical", color: "gold", shape: "rect", label: "pay" }}
-                    onClick={(data, actions) => {
-                      if (!termsAccepted) {
-                        const msg = 'You must accept the Terms of Service and Refund Policy to proceed with PayPal payment.';
-                        setValidationError(msg);
-                        toast.warning(msg);
-                        // Scroll to validation error area
-                        return actions.reject();
-                      } else {
-                        setValidationError('');
-                        return actions.resolve();
-                      }
-                    }}
-                      createOrder={(data, actions) => {
-                        return actions.order.create({
-                          purchase_units: [
-                            {
-                              amount: {
-                                currency_code: "USD",
-                                value: (finalPrice / 3.75).toFixed(2),
-                              },
-                              description: `GMB Service: ${serviceType === 'new' ? 'New Profile Setup' : 'Profile Recovery'}`,
-                            },
-                          ],
-                        });
-                      }}
-                      onApprove={async (data, actions) => {
-                        setIsSubmittingLocal(true);
-                        try {
-                          const details = await actions.order.capture();
-                          const orderPayload = {
-                            businessName: form.businessName,
-                            category: form.category,
-                            hasPhysicalLocation: form.hasPhysicalLocation,
-                            streetAddress: form.streetAddress,
-                            city: form.city,
-                            state: form.state,
-                            postalCode: form.postalCode,
-                            country: form.country,
-                            latitude: form.latitude,
-                            longitude: form.longitude,
-                            serviceAreas: form.serviceAreas,
-                            phone: `${form.phoneCode} ${form.phone}`,
-                            whatsapp: form.whatsapp,
-                            email: form.email,
-                            website: form.website,
-                            description: form.description,
-                            servicesList: form.servicesList,
+          /* PayPal Payment Section */
+          <div className="paypal-section-wrapper">
+            <button type="button" onClick={onBack} className="btn btn-secondary btn-lg paypal-back-btn">
+              <ArrowLeft size={18} /> Back
+            </button>
 
-                            serviceType,
-                            hasExistingProfile,
-                            profileHasIssues: profileHasIssues === 'yes',
-                            recoveryEmail: serviceType === 'recovery' ? recoveryEmail : undefined,
-                            recoveryPhone: serviceType === 'recovery' ? recoveryPhone : undefined,
-                            originalPrice: basePrice,
-                            couponCode: couponApplied ? couponCode : undefined,
-                            discountAmount: couponDiscount,
-                            finalAmount: finalPrice,
-                            paymentMethod: 'paypal',
-                            termsAccepted: true,
-
-                            paypalOrderId: data.orderID,
-                            transactionDetails: {
-                              transactionId: details.id,
-                              senderName: `${details.payer.name.given_name} ${details.payer.name.surname}`,
-                              paymentDate: details.create_time,
-                            },
-                            paymentStatus: 'paid',
-                            orderStatus: 'pending_review',
-                          };
-                          onSubmit(orderPayload);
-                        } catch {
-                          const msg = 'Failed to capture PayPal transaction. Please contact support.';
-                          setValidationError(msg);
-                          toast.error(msg);
-                        } finally {
-                          setIsSubmittingLocal(false);
-                        }
-                      }}
-                      onError={(err) => {
-                        const msg = 'PayPal payment authorization failed. Please try again.';
-                        setValidationError(msg);
-                        toast.error(msg);
-                        console.error("PayPal SDK Error:", err);
-                      }}
-                    />
-                  )}
-                </PayPalScriptProvider>
+            <div className="paypal-checkout-box">
+              <div className="paypal-amount-info">
+                <span>Amount for PayPal checkout:</span>
+                <strong>${(finalPrice / 3.75).toFixed(2)} USD</strong>
+                <span className="paypal-sar-note">(= {finalPrice} SAR)</span>
               </div>
+
+              {!termsAccepted && (
+                <div className="paypal-terms-warning">
+                  <AlertCircle size={15} />
+                  Please accept the Terms of Service above before paying with PayPal.
+                </div>
+              )}
+
+              <PayPalScriptProvider
+                options={{
+                  'client-id': paypalClientId,
+                  currency: 'USD',
+                  intent: 'capture',
+                  components: 'buttons',
+                }}
+              >
+                <PayPalCheckoutButtons
+                  finalPrice={finalPrice}
+                  serviceType={serviceType}
+                  form={form}
+                  hasExistingProfile={hasExistingProfile}
+                  profileHasIssues={profileHasIssues}
+                  recoveryEmail={recoveryEmail}
+                  recoveryPhone={recoveryPhone}
+                  basePrice={basePrice}
+                  couponApplied={couponApplied}
+                  couponCode={couponCode}
+                  couponDiscount={couponDiscount}
+                  termsAccepted={termsAccepted}
+                  setValidationError={setValidationError}
+                  isSubmittingLocal={isSubmittingLocal}
+                  setIsSubmittingLocal={setIsSubmittingLocal}
+                  onSubmit={onSubmit}
+                  isSubmitting={isSubmitting}
+                />
+              </PayPalScriptProvider>
+            </div>
           </div>
         )}
       </div>
     </div>
   );
 }
- 

@@ -1,0 +1,90 @@
+# ✅ PayPal Integration & Production Hardening — Complete Walkthrough
+
+## সম্পন্ন কাজের সারসংক্ষেপ
+
+সম্পূর্ণ GMB Setup Form এর সাথে PayPal Integration সফলভাবে সম্পন্ন করা হয়েছে। এছাড়াও এটি সরাসরি production-এ নেয়ার জন্য সকল প্রকার সিকিউরিটি, ডেটাবেস ট্রানজেকশন রোলব্যাক এবং রেট লিমিটিং যুক্ত করে সুরক্ষিত করা হয়েছে।
+
+---
+
+## 🔧 Production Security & Reliability Features
+
+Production-এ কোনো প্রকার ভুল বা ইনকনসিস্টেন্সি যেন না হয়, সেজন্য নিচের সিকিউরিটি ফিচারগুলো যুক্ত করা হয়েছে:
+
+### 1. Database Transaction & Rollback
+* **ACID Transactions**: Order সাবমিশনের সময় MongoDB Session ও `session.withTransaction` ব্যবহার করা হয়েছে। যদি অর্ডারের ডেটাবেজ সেভ করার সময় কোনো ত্রুটি ঘটে, তবে অর্ডারের স্টেট ডেটাবেজে সেভ হবে না এবং স্বয়ংক্রিয়ভাবে Rollback হবে।
+* **Idempotency (ডুপ্লিকেট পেমেন্ট প্রতিরোধ)**: একই `paypalOrderId` একাধিকবার সাবমিট করতে দেয়া হয় না। ট্রানজেকশন শুরু হওয়ার আগে ডেটাবেজে ডুপ্লিকেট এন্ট্রি চেক করা হয়।
+
+### 2. Anti-Tampering & Payment Amount Verification
+* **SAR to USD Conversion Checking**: পেপ্যাল থেকে সরাসরি সার্ভার-টু-সার্ভার কলের মাধ্যমে অর্ডারের মূল টাকা ভেরিফাই করা হয়। সৌদি রিয়াল (SAR) এবং ইউএসডি (USD) এর মধ্যকার কনভার্সন রেট ৩.৭৫ ব্যবহার করা হয়েছে এবং ৫ সেন্ট টলারেন্স রেঞ্জ রাখা হয়েছে। গ্রাহক যদি অ্যামাউন্ট টেম্পারিং করার চেষ্টা করে, সাথে সাথে সার্ভার থেকে সিকিউরিটি অ্যালার্ট লগ করা হবে এবং অ্যাডমিনকে ইমেইল নোটিফিকেশন পাঠানো হবে।
+
+### 3. Rate Limiting (DoS & Brute-Force Protection)
+* **Order Limit**: একই আইপি (IP) থেকে ১৫ মিনিটে সর্বোচ্চ ৫টির বেশি অর্ডার সাবমিট করা যাবে না।
+* **Coupon Limit**: একই আইপি থেকে ১০ মিনিটে সর্বোচ্চ ২০টির বেশি কুপন কোড চেক করার ট্রাই করা যাবে না। এতে কুপন কোড ব্রুট-ফোর্স করা অসম্ভব হবে।
+
+### 4. Admin Auth & Router Protections
+* অ্যাডমিন গেটওয়ে যেমন: `/api/v1/gmb-orders` (সব অর্ডার রিট্রিভ করা) এবং স্ট্যাটাস প্যাচ করা শুধুমাত্র অথরাইজড `admin` রোলের ইউজারদের অ্যাক্সেস দেয়া হয়েছে।
+* ইউজার বা বাইরে থেকে অন্য কেউ স্ট্যাটাস চেঞ্জ বা অ্যামাউন্ট পরিবর্তন করতে পারবে না, কারণ স্ট্যাটাস আপডেটের ফিল্ডগুলো অ্যাডমিন রাউটে Whitelist করে ফিল্টার করা হয়।
+
+### 5. Multer Secure Proof Uploads
+* ম্যানুয়াল পেমেন্ট স্ক্রিনশটের সাইজ সর্বোচ্চ ৫ মেগাবাইট (5MB) ফিক্স করা হয়েছে।
+* ফাইল নেমকে স্যানিটাইজ করা হয়েছে যাতে ডিরেক্টরি ট্রাভার্সাল (Directory Traversal) এট্যাক করা না যায়।
+* শুধুমাত্র নিরাপদ ইমেজ ফরমেট এবং পিডিএফ (`jpeg`, `png`, `webp`, `gif`, `pdf`) এলাও করা হয়েছে।
+
+---
+
+## 🔧 Backend পরিবর্তন
+
+### নতুন ফাইল
+
+| ফাইল | কাজ |
+|------|-----|
+| [paypal.ts](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/src/app/utils/paypal.ts) | PayPal OAuth token + order verification (server-to-server) |
+| [gmbOrder.interface.ts](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/src/app/modules/GmbOrder/gmbOrder.interface.ts) | TypeScript types/interfaces |
+| [gmbOrder.model.ts](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/src/app/modules/GmbOrder/gmbOrder.model.ts) | Mongoose Schema (Strict mode, proper indexes, length validation) |
+| [gmbOrder.service.ts](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/src/app/modules/GmbOrder/gmbOrder.service.ts) | Business logic + Database transaction + PayPal verification + admin notifications |
+| [gmbOrder.controller.ts](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/src/app/modules/GmbOrder/gmbOrder.controller.ts) | Controller with catchAsync wrapper and TypeScript casting fixes |
+| [gmbOrder.routes.ts](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/src/app/modules/GmbOrder/gmbOrder.routes.ts) | Rate limiters + Multer upload + safe file extension checks |
+
+### পরিবর্তিত ফাইল
+
+- [routes/index.ts](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/src/app/routes/index.ts) — `/gmb-orders` রাউট যোগ
+- [app.ts](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/src/app.ts) — Helmet সিকিউরিটি হেডার্স + production-grade CORS configuration + payload limit
+- [.env](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/.env) — PayPal credentials placeholder ও `FRONTEND_URL` ভ্যারিয়েবল
+
+---
+
+## 🌐 Frontend পরিবর্তন
+
+- [index.jsx](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Frontend/src/pages/Services/GoogleMyBusiness/index.jsx) — `handleSubmit` এ `submitGMBOrder()` API call যুক্ত করা হয়েছে
+- [Step5Payment.jsx](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Frontend/src/pages/Services/GoogleMyBusiness/Step5Payment.jsx) — `validateCoupon()` API call যুক্ত করা হয়েছে এবং পেপ্যাল SDK কে loading / error রেডি করা হয়েছে
+- [.env](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Frontend/.env) — `VITE_PAYPAL_CLIENT_ID` কে `sb` (sandbox fallback) সেটআপ করা হয়েছে
+
+---
+
+## 📸 visual Verification
+
+ব্রাউজার সাব-এজেন্টের সাহায্যে ৫টি ধাপের উইজার্ড পূরণ করে আমরা সাকসেসফুলি ৫ নম্বর ধাপে পেপ্যাল চেকআউট বাটন লোড করেছি। পেপ্যাল এসডিকে এবং বাটনগুলো একদম সুন্দরভাবে রেন্ডার হচ্ছে:
+
+![PayPal Buttons Render Success](file:///C:/Users/User/.gemini/antigravity-ide/brain/1d3cfc13-062c-4b16-9092-431b9b97f7c5/paypal_buttons_final_1782282164026.png)
+
+---
+
+## 🔑 Production-এ যাওয়ার আগের করণীয় (আপনাকে করতে হবে)
+
+> [!IMPORTANT]
+> প্রোডাকশনে যাওয়ার আগে লাইভ পেপ্যাল বাটন দেখানোর জন্য নিচের ধাপগুলো অনুসরণ করুন:
+> 
+> 1. **[PayPal Developer Console](https://developer.paypal.com/developer/applications)** এ লগইন করুন।
+> 2. **"Create App"** ক্লিক করুন → App Name দিন → প্রোডাকশনের জন্য **Live** মোড সিলেক্ট করুন (টেস্টিং এর জন্য Sandbox)।
+> 3. **Client ID** এবং **Client Secret** কপি করে নিন।
+> 4. **Backend `.env`** ফাইলে নিচের ভ্যালুগুলো দিয়ে পরিবর্তন করুন:
+> ```env
+> PAYPAL_CLIENT_ID=আপনার_লাইভ_ক্লায়েন্ট_আইডি
+> PAYPAL_CLIENT_SECRET=আপনার_লাইভ_ক্লায়েন্ট_সিক্রেট
+> PAYPAL_MODE=live
+> ```
+> 5. **Frontend `.env`** ফাইলে রিলেটেড ক্লায়েন্ট আইডি দিন:
+> ```env
+> VITE_PAYPAL_CLIENT_ID=আপনার_লাইভ_ক্লায়েন্ট_আইডি
+> ```
+> 6. সার্ভারগুলো রিস্টার্ট করুন যাতে নতুন এনভায়রনমেন্ট লোড হতে পারে।

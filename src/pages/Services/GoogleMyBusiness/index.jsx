@@ -12,6 +12,7 @@ import {
 import { SEOHead } from '@/components/common/SEOHead';
 import { FadeInUp } from '@/components/animations/FadeInUp';
 import { toast } from '@/components/common/Toast/Toast';
+import { submitGMBOrder } from '@/api/gmbOrderApi';
 import MapPicker from './MapPicker';
 import Step5Payment from './Step5Payment';
 import './GoogleMyBusiness.css';
@@ -185,14 +186,17 @@ export default function GoogleMyBusiness() {
   const handleSubmit = async (orderPayload) => {
     setIsSubmitting(true);
     try {
-      // TODO: Replace with actual API call when backend is ready
-      // const result = await submitGMBOrder(orderPayload);
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      setOrderData(orderPayload);
+      const result = await submitGMBOrder(orderPayload);
+      // Use the returned order data from backend, fallback to local payload
+      setOrderData(result?.data || orderPayload);
       setSubmitted(true);
-      toast.success('Order submitted successfully!');
-    } catch {
-      toast.error('Failed to submit order. Please try again.');
+      toast.success('Order submitted successfully! We will contact you soon.');
+    } catch (err) {
+      const errorMsg =
+        err?.response?.data?.message ||
+        err?.message ||
+        'Failed to submit order. Please try again.';
+      toast.error(errorMsg);
     } finally {
       setIsSubmitting(false);
     }

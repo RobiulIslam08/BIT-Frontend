@@ -1,0 +1,102 @@
+# ✅ PayPal Integration — Complete Walkthrough
+
+## সম্পন্ন কাজের সারসংক্ষেপ
+
+সম্পূর্ণ PayPal integration Backend ও Frontend উভয়তেই implement করা হয়েছে।
+
+---
+
+## 🔧 Backend পরিবর্তন
+
+### নতুন ফাইল
+
+| ফাইল | কাজ |
+|------|-----|
+| [paypal.ts](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/src/app/utils/paypal.ts) | PayPal OAuth token + order verification (server-to-server) |
+| [gmbOrder.interface.ts](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/src/app/modules/GmbOrder/gmbOrder.interface.ts) | TypeScript types/interfaces |
+| [gmbOrder.model.ts](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/src/app/modules/GmbOrder/gmbOrder.model.ts) | Mongoose Schema (PayPal + Manual payment fields) |
+| [gmbOrder.service.ts](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/src/app/modules/GmbOrder/gmbOrder.service.ts) | Business logic + PayPal verification + coupon validation |
+| [gmbOrder.controller.ts](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/src/app/modules/GmbOrder/gmbOrder.controller.ts) | Express controller (catchAsync pattern) |
+| [gmbOrder.routes.ts](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/src/app/modules/GmbOrder/gmbOrder.routes.ts) | Routes + Multer file upload middleware |
+
+### পরিবর্তিত ফাইল
+
+- [routes/index.ts](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/src/app/routes/index.ts) — `/gmb-orders` route যোগ
+- [app.ts](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/src/app.ts) — static uploads folder + globalErrorHandler + notFound
+- [.env](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Backend/.env) — PayPal credentials placeholder যোগ
+
+### API Endpoints
+
+| Method | URL | কাজ |
+|--------|-----|-----|
+| `POST` | `/api/v1/gmb-orders` | Order submit (PayPal/Manual) |
+| `POST` | `/api/v1/gmb-orders/validate-coupon` | Coupon code validate |
+| `GET` | `/api/v1/gmb-orders/:id` | Order status by ID |
+| `GET` | `/api/v1/gmb-orders` | Admin: সব orders |
+| `PATCH` | `/api/v1/gmb-orders/:id` | Admin: Order status update |
+
+---
+
+## 🌐 Frontend পরিবর্তন
+
+- [index.jsx](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Frontend/src/pages/Services/GoogleMyBusiness/index.jsx) — `handleSubmit` এ `submitGMBOrder()` API call যুক্ত
+- [Step5Payment.jsx](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Frontend/src/pages/Services/GoogleMyBusiness/Step5Payment.jsx) — `validateCoupon()` API call যুক্ত
+- [.env](file:///D:/Jakir-Vai/BIT_Software_&_IT_Soilution_Frontend/.env) — `VITE_PAYPAL_CLIENT_ID` placeholder যোগ
+
+---
+
+## 🔑 PayPal Credentials সেটআপ (আপনাকে করতে হবে)
+
+> [!IMPORTANT]
+> নিচের steps follow করুন:
+
+1. **[PayPal Developer Console](https://developer.paypal.com/developer/applications)** এ login করুন
+2. **"Create App"** click করুন → App Name দিন → **Sandbox** select করুন
+3. **Client ID** ও **Client Secret** copy করুন
+4. **Backend `.env`** এ replace করুন:
+```env
+PAYPAL_CLIENT_ID=আপনার_actual_client_id
+PAYPAL_CLIENT_SECRET=আপনার_actual_client_secret
+PAYPAL_MODE=sandbox
+```
+5. **Frontend `.env`** এ replace করুন:
+```env
+VITE_PAYPAL_CLIENT_ID=আপনার_actual_client_id
+```
+6. **Frontend restart** করুন (Vite env reload হবে)
+
+---
+
+## 🔒 Security Flow
+
+```
+Customer → PayPal Button click
+  → PayPal processes payment
+  → Frontend receives { orderID } from PayPal
+  → Frontend POST /api/v1/gmb-orders { paypalOrderId: orderID, ...formData }
+  → Backend fetches order from PayPal API directly (server-to-server)
+  → Backend verifies: status=COMPLETED AND amount >= expected SAR→USD
+  → Backend saves to MongoDB as paymentStatus: 'paid'
+  → Frontend shows ✅ success screen
+```
+
+---
+
+## 🧪 Test করার উপায়
+
+### PayPal Sandbox Test Accounts
+PayPal Developer Console → **Sandbox** → **Accounts** → Buyer account এর credentials দিয়ে test করুন।
+
+### Manual Payment Test
+1. Step 5 এ "Manual Payment" select করুন
+2. SNB বা STC bank select করুন
+3. Screenshot upload করুন অথবা transaction details দিন
+4. Submit করুন → MongoDB তে `paymentStatus: 'pending_verification'` সেভ হবে
+
+### Valid Coupon Codes (Backend তে configured)
+| Code | Discount |
+|------|----------|
+| `BIT50` | 50 SAR |
+| `WELCOME100` | 100 SAR |
+| `SAVE25` | 25 SAR |
+
