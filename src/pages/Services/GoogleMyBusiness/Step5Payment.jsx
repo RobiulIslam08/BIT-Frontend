@@ -12,7 +12,7 @@ import {
 } from 'lucide-react';
 import './Step5Payment.css';
 import { toast } from '@/components/common/Toast/Toast';
-import { validateCoupon } from '@/api/gmbOrderApi';
+import { validateCoupon, createPayPalOrder } from '@/api/gmbOrderApi';
 
 // Pricing constants
 const PRICING = {
@@ -67,27 +67,30 @@ function PayPalCheckoutButtons({ finalPrice, serviceType, form, hasExistingProfi
         setValidationError('');
         return actions.resolve();
       }}
-      createOrder={(data, actions) => {
-        return actions.order.create({
-          purchase_units: [
-            {
-              amount: {
-                currency_code: 'USD',
-                value: (finalPrice / 3.75).toFixed(2),
-              },
-              description: `BIT Software — GMB Service: ${serviceType === 'new' ? 'New Profile Setup' : serviceType === 'recovery' ? 'Profile Recovery' : 'Profile Management'}`,
-            },
-          ],
-          application_context: {
-            brand_name: 'BIT Software & IT Solution',
-            user_action: 'PAY_NOW',
-          },
-        });
+      createOrder={async () => {
+        // ✅ Server-side order creation — replaces deprecated client-side actions.order.create()
+        try {
+          const res = await createPayPalOrder({ finalAmount: finalPrice, serviceType });
+          // Debug: verify response structure in console
+          console.log('[PayPal createOrder] Full API response:', res);
+          console.log('[PayPal createOrder] res.data:', res?.data);
+          console.log('[PayPal createOrder] paypalOrderId:', res?.data?.paypalOrderId);
+
+          if (!res?.data?.paypalOrderId) {
+            throw new Error('No PayPal order ID returned from server. Check console for response structure.');
+          }
+          return res.data.paypalOrderId;
+        } catch (err) {
+          console.error('Server-side PayPal order creation failed:', err);
+          const msg = 'Failed to initialize PayPal. Please refresh and try again.';
+          setValidationError(msg);
+          toast.error(msg);
+          throw err;
+        }
       }}
       onApprove={async (data, actions) => {
         setIsSubmittingLocal(true);
         try {
-          const details = await actions.order.capture();
           const orderPayload = {
             // Business info from parent form
             businessName: form.businessName,
@@ -121,19 +124,13 @@ function PayPalCheckoutButtons({ finalPrice, serviceType, form, hasExistingProfi
             termsAccepted: true,
             // PayPal transaction details
             paypalOrderId: data.orderID,
-            paypalTransactionId: details.id,
-            transactionDetails: {
-              transactionId: details.id,
-              senderName: `${details.payer?.name?.given_name || ''} ${details.payer?.name?.surname || ''}`.trim(),
-              paymentDate: details.create_time,
-            },
-            paymentStatus: 'paid',
+            paymentStatus: 'pending',
             orderStatus: 'pending_review',
           };
           onSubmit(orderPayload);
         } catch (err) {
-          console.error('PayPal capture error:', err);
-          const msg = 'Failed to capture PayPal transaction. Please contact support.';
+          console.error('PayPal processing error:', err);
+          const msg = 'Failed to process PayPal order. Please contact support.';
           setValidationError(msg);
           toast.error(msg);
         } finally {

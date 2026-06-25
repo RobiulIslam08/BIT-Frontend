@@ -319,7 +319,7 @@ export default function GoogleMyBusiness() {
               </div>
             </div>
 
-            <form onSubmit={handleSubmit} className="gmb-interactive-form">
+            <form onSubmit={(e) => e.preventDefault()} className="gmb-interactive-form">
               {/* STEP 1: Core Business Identity */}
               {step === 1 && (
                 <div className="form-step-content">

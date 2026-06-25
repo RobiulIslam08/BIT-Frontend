@@ -18,8 +18,11 @@ export const submitGMBOrder = async (orderData) => {
   Object.entries(orderData).forEach(([key, value]) => {
     if (key === 'paymentScreenshot' && value instanceof File) {
       formData.append('paymentScreenshot', value);
-    } else if (key === 'businessHours' || key === 'transactionDetails') {
-      formData.append(key, JSON.stringify(value));
+    } else if (key === 'businessHours' || key === 'transactionDetails' || Array.isArray(value)) {
+      // Arrays and known objects must be JSON stringified for FormData
+      if (value !== null && value !== undefined) {
+        formData.append(key, JSON.stringify(value));
+      }
     } else if (value !== null && value !== undefined) {
       formData.append(key, value);
     }
@@ -38,6 +41,19 @@ export const submitGMBOrder = async (orderData) => {
 export const validateCoupon = async (couponCode) => {
   const response = await axiosInstance.post('/gmb-orders/validate-coupon', {
     couponCode,
+  });
+  return response.data;
+};
+
+/**
+ * Create a PayPal order SERVER-SIDE.
+ * Returns the PayPal order ID for the frontend SDK to use.
+ * This replaces the deprecated client-side actions.order.create().
+ */
+export const createPayPalOrder = async ({ finalAmount, serviceType }) => {
+  const response = await axiosInstance.post('/gmb-orders/create-paypal-order', {
+    finalAmount,
+    serviceType,
   });
   return response.data;
 };
