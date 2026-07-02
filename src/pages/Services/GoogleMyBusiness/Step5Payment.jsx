@@ -253,11 +253,15 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
   }, [couponCode]);
 
   const handleRemoveCoupon = () => {
+    const wasApplied = couponApplied;
     setCouponCode('');
     setCouponDiscount(0);
     setCouponApplied(false);
     setCouponMessage('');
-    toast.info('Coupon code removed.');
+    // শুধুমাত্র coupon আগে থেকে apply থাকলে toast দেখাও
+    if (wasApplied) {
+      toast.info('Coupon code removed.');
+    }
   };
 
   // ─── FILE UPLOAD ───
