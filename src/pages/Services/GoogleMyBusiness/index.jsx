@@ -236,6 +236,9 @@ export default function GoogleMyBusiness() {
                   <li><strong>Verification Contact:</strong> {form.phoneCode} {form.phone}</li>
                   {orderData && (
                     <>
+                      {orderData.orderId && (
+                        <li><strong>Order ID:</strong> #{orderData.orderId}</li>
+                      )}
                       <li><strong>Service:</strong> {orderData.serviceType === 'new' ? 'New Profile Creation' : orderData.serviceType === 'recovery' ? 'GMB Recovery' : 'Profile Management'}</li>
                       <li><strong>Amount Paid:</strong> {orderData.finalAmount} SAR</li>
                       <li><strong>Payment Method:</strong> {orderData.paymentMethod === 'paypal' ? 'PayPal' : 'Manual Payment'}</li>
