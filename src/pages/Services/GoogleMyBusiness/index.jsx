@@ -66,6 +66,7 @@ export default function GoogleMyBusiness() {
   const [orderData, setOrderData] = useState(null);
   const formTopRef = useRef(null);
   const [openFaq, setOpenFaq] = useState(null);
+  const [errors, setErrors] = useState({});
   const [form, setForm] = useState({
     businessName: '',
     category: '',
@@ -110,6 +111,14 @@ export default function GoogleMyBusiness() {
       }
       return updated;
     });
+
+    if (errors[name]) {
+      setErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[name];
+        return copy;
+      });
+    }
   };
 
   const handleHoursToggle = (day) => {
@@ -135,6 +144,14 @@ export default function GoogleMyBusiness() {
       postalCode: addressObj.postalCode || prev.postalCode,
       country: addressObj.country || prev.country
     }));
+
+    setErrors((prev) => {
+      const copy = { ...prev };
+      if (addressObj.streetAddress) delete copy.streetAddress;
+      if (addressObj.city) delete copy.city;
+      if (addressObj.postalCode) delete copy.postalCode;
+      return copy;
+    });
   };
 
   const handleLocationSelect = ({ lat, lng }) => {
@@ -146,30 +163,75 @@ export default function GoogleMyBusiness() {
   };
 
   const handleNext = () => {
-    // Basic validation per step
+    const newErrors = {};
+    const missingFieldLabels = [];
+
     if (step === 1) {
-      if (!form.businessName || !form.category) {
-        toast.warning('Please enter your business name and category.');
-        return;
+      if (!form.businessName.trim()) {
+        newErrors.businessName = true;
+        missingFieldLabels.push('Business Name');
+      }
+      if (!form.category) {
+        newErrors.category = true;
+        missingFieldLabels.push('Primary Business Category');
       }
     } else if (step === 2) {
       if (form.hasPhysicalLocation === 'yes') {
-        if (!form.streetAddress || !form.city || !form.postalCode) {
-          toast.warning('Please fill out all address fields.');
-          return;
+        if (!form.streetAddress.trim()) {
+          newErrors.streetAddress = true;
+          missingFieldLabels.push('Street Address');
+        }
+        if (!form.city.trim()) {
+          newErrors.city = true;
+          missingFieldLabels.push('City');
+        }
+        if (!form.postalCode.trim()) {
+          newErrors.postalCode = true;
+          missingFieldLabels.push('Postal / ZIP Code');
         }
       } else {
-        if (!form.serviceAreas) {
-          toast.warning('Please specify your service areas.');
-          return;
+        if (!form.serviceAreas.trim()) {
+          newErrors.serviceAreas = true;
+          missingFieldLabels.push('Service Areas');
         }
       }
     } else if (step === 3) {
-      if (!form.phone || !form.email) {
-        toast.warning('Please fill out contact phone and email.');
-        return;
+      if (!form.phone.trim()) {
+        newErrors.phone = true;
+        missingFieldLabels.push('Phone Number');
+      }
+      if (!form.email.trim()) {
+        newErrors.email = true;
+        missingFieldLabels.push('Google Account Email');
+      } else {
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(form.email.trim())) {
+          newErrors.email = true;
+          missingFieldLabels.push('Google Account Email (Invalid Format)');
+        }
+      }
+    } else if (step === 4) {
+      if (!form.description.trim()) {
+        newErrors.description = true;
+        missingFieldLabels.push('Business Description');
       }
     }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      const fieldsList = missingFieldLabels.join(', ');
+      toast.warning(`Please fill in the required field(s): ${fieldsList}`);
+      
+      const firstErrorField = Object.keys(newErrors)[0];
+      setTimeout(() => {
+        const inputElement = document.querySelector(`[name="${firstErrorField}"]`);
+        if (inputElement) {
+          inputElement.focus();
+        }
+      }, 50);
+      return;
+    }
+
     setStep((prev) => prev + 1);
     setTimeout(() => {
       formTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -330,10 +392,10 @@ export default function GoogleMyBusiness() {
                   <p className="form-step-subtitle">This helps customers find your listing when looking for similar products or services.</p>
 
                   <div className="form-group">
-                    <label className="form-label">Business Name *</label>
+                    <label className="form-label">Business Name <span className="required-asterisk">*</span></label>
                     <input
                       type="text"
-                      className="input"
+                      className={`input ${errors.businessName ? 'input-error' : ''}`}
                       name="businessName"
                       value={form.businessName}
                       onChange={handleChange}
@@ -344,9 +406,9 @@ export default function GoogleMyBusiness() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Primary Business Category *</label>
+                    <label className="form-label">Primary Business Category <span className="required-asterisk">*</span></label>
                     <select
-                      className="input"
+                      className={`input ${errors.category ? 'input-error' : ''}`}
                       name="category"
                       value={form.category}
                       onChange={handleChange}
@@ -407,7 +469,7 @@ export default function GoogleMyBusiness() {
                   {form.hasPhysicalLocation === 'yes' ? (
                     <div className="address-fields animate-fade-in">
                       <div className="form-group">
-                        <label className="form-label">Search & Pin Precise Map Location *</label>
+                        <label className="form-label">Search & Pin Precise Map Location <span className="required-asterisk">*</span></label>
                         <MapPicker
                           latitude={form.latitude}
                           longitude={form.longitude}
@@ -430,10 +492,10 @@ export default function GoogleMyBusiness() {
                       </div>
 
                       <div className="form-group">
-                        <label className="form-label">Street Address *</label>
+                        <label className="form-label">Street Address <span className="required-asterisk">*</span></label>
                         <input
                           type="text"
-                          className="input"
+                          className={`input ${errors.streetAddress ? 'input-error' : ''}`}
                           name="streetAddress"
                           value={form.streetAddress}
                           onChange={handleChange}
@@ -444,10 +506,10 @@ export default function GoogleMyBusiness() {
 
                       <div className="grid-3col">
                         <div className="form-group">
-                          <label className="form-label">City *</label>
+                          <label className="form-label">City <span className="required-asterisk">*</span></label>
                           <input
                             type="text"
-                            className="input"
+                            className={`input ${errors.city ? 'input-error' : ''}`}
                             name="city"
                             value={form.city}
                             onChange={handleChange}
@@ -467,10 +529,10 @@ export default function GoogleMyBusiness() {
                           />
                         </div>
                         <div className="form-group">
-                          <label className="form-label">Postal / ZIP Code *</label>
+                          <label className="form-label">Postal / ZIP Code <span className="required-asterisk">*</span></label>
                           <input
                             type="text"
-                            className="input"
+                            className={`input ${errors.postalCode ? 'input-error' : ''}`}
                             name="postalCode"
                             value={form.postalCode}
                             onChange={handleChange}
@@ -483,10 +545,10 @@ export default function GoogleMyBusiness() {
                   ) : (
                     <div className="address-fields animate-fade-in">
                       <div className="form-group">
-                        <label className="form-label">Service Areas *</label>
+                        <label className="form-label">Service Areas <span className="required-asterisk">*</span></label>
                         <input
                           type="text"
-                          className="input"
+                          className={`input ${errors.serviceAreas ? 'input-error' : ''}`}
                           name="serviceAreas"
                           value={form.serviceAreas}
                           onChange={handleChange}
@@ -516,8 +578,8 @@ export default function GoogleMyBusiness() {
                   <p className="form-step-subtitle">This helps customers reach you directly and verifies your listing.</p>
 
                   <div className="form-group">
-                    <label className="form-label">Phone Number *</label>
-                    <div className="phone-input-wrap">
+                    <label className="form-label">Phone Number <span className="required-asterisk">*</span></label>
+                    <div className={`phone-input-wrap ${errors.phone ? 'input-error' : ''}`}>
                       <select
                         className="phone-code-select"
                         name="phoneCode"
@@ -555,10 +617,10 @@ export default function GoogleMyBusiness() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Google Account Email *</label>
+                    <label className="form-label">Google Account Email <span className="required-asterisk">*</span></label>
                     <input
                       type="email"
-                      className="input"
+                      className={`input ${errors.email ? 'input-error' : ''}`}
                       name="email"
                       value={form.email}
                       onChange={handleChange}
@@ -636,9 +698,9 @@ export default function GoogleMyBusiness() {
                   </div>
 
                   <div className="form-group">
-                    <label className="form-label">Business Description *</label>
+                    <label className="form-label">Business Description <span className="required-asterisk">*</span></label>
                     <textarea
-                      className="input"
+                      className={`input ${errors.description ? 'input-error' : ''}`}
                       name="description"
                       value={form.description}
                       onChange={handleChange}

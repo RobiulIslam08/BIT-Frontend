@@ -157,6 +157,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
   const [profileHasIssues, setProfileHasIssues] = useState(null);
   const [recoveryEmail, setRecoveryEmail] = useState('');
   const [recoveryPhone, setRecoveryPhone] = useState('');
+  const [errors, setErrors] = useState({});
 
   // Coupon
   const [couponCode, setCouponCode] = useState('');
@@ -283,6 +284,14 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
       }
       setPaymentScreenshot(file);
       setValidationError('');
+      setErrors((prev) => ({
+        ...prev,
+        paymentScreenshot: false,
+        transactionId: false,
+        paymentMethodDetail: false,
+        senderName: false,
+        paymentDate: false
+      }));
       toast.success(`Proof of payment loaded: ${file.name}`);
     }
   };
@@ -295,21 +304,23 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
   // ─── FORM VALIDATION (Manual payment only) ───
   const validateAndSubmit = () => {
     setValidationError('');
+    const newErrors = {};
+    const missingFieldLabels = [];
 
     if (serviceType === 'recovery') {
-      if (!recoveryEmail.trim() || !recoveryPhone.trim()) {
-        const msg = 'Please provide the registered email and phone number for recovery.';
-        setValidationError(msg);
-        toast.warning(msg);
-        return;
+      if (!recoveryEmail.trim()) {
+        newErrors.recoveryEmail = true;
+        missingFieldLabels.push('Registered Email');
+      }
+      if (!recoveryPhone.trim()) {
+        newErrors.recoveryPhone = true;
+        missingFieldLabels.push('Registered Phone');
       }
     }
 
     if (!paymentMethod) {
-      const msg = 'Please select a payment method.';
-      setValidationError(msg);
-      toast.warning(msg);
-      return;
+      newErrors.paymentMethod = true;
+      missingFieldLabels.push('Payment Method Selection');
     }
 
     if (paymentMethod === 'manual') {
@@ -318,11 +329,45 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
         transactionId.trim() && paymentMethodDetail.trim() && senderName.trim() && paymentDate.trim();
 
       if (!hasScreenshot && !hasTransactionDetails) {
+        newErrors.paymentScreenshot = true;
+        newErrors.transactionId = true;
+        newErrors.paymentMethodDetail = true;
+        newErrors.senderName = true;
+        newErrors.paymentDate = true;
         const msg = 'Please upload your payment proof or provide transaction details.';
         setValidationError(msg);
         toast.warning(msg);
+        setErrors(newErrors);
         return;
       }
+
+      if (!hasScreenshot && (transactionId.trim() || paymentMethodDetail.trim() || senderName.trim() || paymentDate.trim())) {
+        if (!transactionId.trim()) {
+          newErrors.transactionId = true;
+          missingFieldLabels.push('Transaction ID');
+        }
+        if (!paymentMethodDetail.trim()) {
+          newErrors.paymentMethodDetail = true;
+          missingFieldLabels.push('Payment Method');
+        }
+        if (!senderName.trim()) {
+          newErrors.senderName = true;
+          missingFieldLabels.push('Sender Name');
+        }
+        if (!paymentDate.trim()) {
+          newErrors.paymentDate = true;
+          missingFieldLabels.push('Payment Date');
+        }
+      }
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      if (missingFieldLabels.length > 0) {
+        const fieldsList = missingFieldLabels.join(', ');
+        toast.warning(`Please fill in the required field(s): ${fieldsList}`);
+      }
+      return;
     }
 
     if (!termsAccepted) {
@@ -380,15 +425,6 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
 
   // Check if submit button should be enabled (manual payment only)
   const isFormValid = (() => {
-    if (!paymentMethod || paymentMethod === 'paypal') return false;
-    if (!termsAccepted) return false;
-    if (serviceType === 'recovery' && (!recoveryEmail.trim() || !recoveryPhone.trim())) return false;
-    if (paymentMethod === 'manual') {
-      const hasScreenshot = !!paymentScreenshot;
-      const hasDetails =
-        transactionId.trim() && paymentMethodDetail.trim() && senderName.trim() && paymentDate.trim();
-      if (!hasScreenshot && !hasDetails) return false;
-    }
     return true;
   })();
 
@@ -457,23 +493,29 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
           {profileHasIssues === 'yes' && (
             <div className="gmb-recovery-fields">
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Registered Email Address *</label>
+                <label className="form-label">Registered Email Address <span className="required-asterisk">*</span></label>
                 <input
                   type="email"
-                  className="input"
+                  className={`input ${errors.recoveryEmail ? 'input-error' : ''}`}
                   value={recoveryEmail}
-                  onChange={(e) => setRecoveryEmail(e.target.value)}
+                  onChange={(e) => {
+                    setRecoveryEmail(e.target.value);
+                    if (errors.recoveryEmail) setErrors(prev => ({ ...prev, recoveryEmail: false }));
+                  }}
                   placeholder="your-gmb@gmail.com"
                   required
                 />
               </div>
               <div className="form-group" style={{ marginBottom: 0 }}>
-                <label className="form-label">Registered Phone Number *</label>
+                <label className="form-label">Registered Phone Number <span className="required-asterisk">*</span></label>
                 <input
                   type="tel"
-                  className="input"
+                  className={`input ${errors.recoveryPhone ? 'input-error' : ''}`}
                   value={recoveryPhone}
-                  onChange={(e) => setRecoveryPhone(e.target.value)}
+                  onChange={(e) => {
+                    setRecoveryPhone(e.target.value);
+                    if (errors.recoveryPhone) setErrors(prev => ({ ...prev, recoveryPhone: false }));
+                  }}
                   placeholder="+966 50 123 4567"
                   required
                 />
@@ -624,7 +666,10 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
             {/* Saudi National Bank Card */}
             <div
               className={`gmb-bank-card snb ${paymentMethodDetail === 'SNB' ? 'active' : ''}`}
-              onClick={() => setPaymentMethodDetail('SNB')}
+              onClick={() => {
+                setPaymentMethodDetail('SNB');
+                setErrors((prev) => ({ ...prev, paymentMethodDetail: false, paymentScreenshot: false }));
+              }}
             >
               <div className="gmb-bank-badge-wrap">
                 <span className="gmb-bank-card-badge snb">SNB</span>
@@ -691,7 +736,10 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
             {/* STC Bank Card */}
             <div
               className={`gmb-bank-card stc ${paymentMethodDetail === 'STC' ? 'active' : ''}`}
-              onClick={() => setPaymentMethodDetail('STC')}
+              onClick={() => {
+                setPaymentMethodDetail('STC');
+                setErrors((prev) => ({ ...prev, paymentMethodDetail: false, paymentScreenshot: false }));
+              }}
             >
               <div className="gmb-bank-badge-wrap">
                 <span className="gmb-bank-card-badge stc">STC Bank</span>
@@ -771,7 +819,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
               <ImageIcon size={14} style={{ display: 'inline', verticalAlign: '-2px', marginRight: '0.35rem' }} />
               Payment Screenshot
             </label>
-            <div className={`gmb-upload-area ${paymentScreenshot ? 'has-file' : ''}`}>
+            <div className={`gmb-upload-area ${paymentScreenshot ? 'has-file' : ''} ${errors.paymentScreenshot ? 'input-error' : ''}`}>
               <input
                 type="file"
                 accept="image/jpeg,image/png,image/webp,image/gif,application/pdf"
@@ -818,18 +866,24 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
               <label className="form-label">Transaction ID</label>
               <input
                 type="text"
-                className="input"
+                className={`input ${errors.transactionId ? 'input-error' : ''}`}
                 value={transactionId}
-                onChange={(e) => setTransactionId(e.target.value)}
+                onChange={(e) => {
+                  setTransactionId(e.target.value);
+                  if (errors.transactionId) setErrors(prev => ({ ...prev, transactionId: false }));
+                }}
                 placeholder="e.g. TXN-20260622-1234"
               />
             </div>
             <div className="form-group" style={{ marginBottom: 0 }}>
-              <label className="form-label">Payment Method *</label>
+              <label className="form-label">Payment Method <span className="required-asterisk">*</span></label>
               <select
-                className="input"
+                className={`input ${errors.paymentMethodDetail ? 'input-error' : ''}`}
                 value={paymentMethodDetail}
-                onChange={(e) => setPaymentMethodDetail(e.target.value)}
+                onChange={(e) => {
+                  setPaymentMethodDetail(e.target.value);
+                  if (errors.paymentMethodDetail) setErrors(prev => ({ ...prev, paymentMethodDetail: false }));
+                }}
                 required
               >
                 <option value="">Select Bank</option>
@@ -841,9 +895,12 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
               <label className="form-label">Sender Name</label>
               <input
                 type="text"
-                className="input"
+                className={`input ${errors.senderName ? 'input-error' : ''}`}
                 value={senderName}
-                onChange={(e) => setSenderName(e.target.value)}
+                onChange={(e) => {
+                  setSenderName(e.target.value);
+                  if (errors.senderName) setErrors(prev => ({ ...prev, senderName: false }));
+                }}
                 placeholder="e.g. Mohammad Al-Farsi"
               />
             </div>
@@ -851,9 +908,12 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
               <label className="form-label">Payment Date</label>
               <input
                 type="date"
-                className="input"
+                className={`input ${errors.paymentDate ? 'input-error' : ''}`}
                 value={paymentDate}
-                onChange={(e) => setPaymentDate(e.target.value)}
+                onChange={(e) => {
+                  setPaymentDate(e.target.value);
+                  if (errors.paymentDate) setErrors(prev => ({ ...prev, paymentDate: false }));
+                }}
               />
             </div>
           </div>

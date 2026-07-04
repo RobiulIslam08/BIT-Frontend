@@ -225,6 +225,21 @@
   box-shadow: 0 0 0 3px var(--color-primary-muted);
 }
 
+.input.input-error {
+  border-color: var(--color-error) !important;
+}
+
+.input.input-error:focus {
+  border-color: var(--color-error) !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15) !important;
+}
+
+.required-asterisk {
+  color: var(--color-error) !important;
+  margin-left: 0.25rem;
+  font-weight: bold;
+}
+
 .input::placeholder {
   color: var(--color-text-muted);
 }

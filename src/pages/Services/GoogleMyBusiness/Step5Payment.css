@@ -1381,3 +1381,9 @@ select.input {
   letter-spacing: 0.03em;
   text-transform: uppercase;
 }
+
+/* Custom error highlighting for file upload container */
+.gmb-upload-area.input-error {
+  border-color: var(--color-error) !important;
+  background: rgba(239, 68, 68, 0.03) !important;
+}

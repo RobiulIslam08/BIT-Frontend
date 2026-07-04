@@ -8,15 +8,68 @@ import { SEOHead } from '@/components/common/SEOHead';
 import { FadeInUp } from '@/components/animations/FadeInUp';
 import { ScrollBlurReveal } from '@/components/animations/ScrollBlurReveal';
 import { COMPANY } from '@/utils/constants';
+import { toast } from '@/components/common/Toast/Toast';
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
+  const [errors, setErrors] = useState({});
   const [submitted, setSubmitted] = useState(false);
 
-  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm({ ...form, [name]: value });
+    if (errors[name]) {
+      setErrors((prev) => {
+        const copy = { ...prev };
+        delete copy[name];
+        return copy;
+      });
+    }
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    const newErrors = {};
+    const missingFieldLabels = [];
+
+    if (!form.name.trim()) {
+      newErrors.name = true;
+      missingFieldLabels.push('Full Name');
+    }
+    if (!form.email.trim()) {
+      newErrors.email = true;
+      missingFieldLabels.push('Email');
+    } else {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(form.email.trim())) {
+        newErrors.email = true;
+        missingFieldLabels.push('Email (Invalid Format)');
+      }
+    }
+    if (!form.subject.trim()) {
+      newErrors.subject = true;
+      missingFieldLabels.push('Subject');
+    }
+    if (!form.message.trim()) {
+      newErrors.message = true;
+      missingFieldLabels.push('Message');
+    }
+
+    if (Object.keys(newErrors).length > 0) {
+      setErrors(newErrors);
+      const fieldsList = missingFieldLabels.join(', ');
+      toast.warning(`Please fill in the required field(s): ${fieldsList}`);
+      
+      const firstErrorField = Object.keys(newErrors)[0];
+      setTimeout(() => {
+        const inputElement = document.querySelector(`[name="${firstErrorField}"]`);
+        if (inputElement) {
+          inputElement.focus();
+        }
+      }, 50);
+      return;
+    }
+
     setSubmitted(true);
   };
 
@@ -80,15 +133,15 @@ export default function Contact() {
                       <p className="body-sm">We'll get back to you within 24 hours. Thank you for reaching out.</p>
                     </div>
                   ) : (
-                    <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
+                    <form noValidate onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                       <div className="form-grid">
                         <div className="form-group">
-                          <label className="form-label">Full Name *</label>
-                          <input className="input" name="name" value={form.name} onChange={handleChange} placeholder="Your full name" required />
+                          <label className="form-label">Full Name <span className="required-asterisk">*</span></label>
+                          <input className={`input ${errors.name ? 'input-error' : ''}`} name="name" value={form.name} onChange={handleChange} placeholder="Your full name" required />
                         </div>
                         <div className="form-group">
-                          <label className="form-label">Email *</label>
-                          <input className="input" name="email" type="email" value={form.email} onChange={handleChange} placeholder="your@email.com" required />
+                          <label className="form-label">Email <span className="required-asterisk">*</span></label>
+                          <input className={`input ${errors.email ? 'input-error' : ''}`} name="email" type="email" value={form.email} onChange={handleChange} placeholder="your@email.com" required />
                         </div>
                       </div>
                       <div className="form-grid">
@@ -97,13 +150,13 @@ export default function Contact() {
                           <input className="input" name="phone" value={form.phone} onChange={handleChange} placeholder="+966 5X XXX XXXX" />
                         </div>
                         <div className="form-group">
-                          <label className="form-label">Subject *</label>
-                          <input className="input" name="subject" value={form.subject} onChange={handleChange} placeholder="What's this about?" required />
+                          <label className="form-label">Subject <span className="required-asterisk">*</span></label>
+                          <input className={`input ${errors.subject ? 'input-error' : ''}`} name="subject" value={form.subject} onChange={handleChange} placeholder="What's this about?" required />
                         </div>
                       </div>
                       <div className="form-group">
-                        <label className="form-label">Message *</label>
-                        <textarea className="input" name="message" value={form.message} onChange={handleChange} placeholder="Tell us about your project, goals, and timeline..." rows={5} required style={{ resize: 'vertical' }} />
+                        <label className="form-label">Message <span className="required-asterisk">*</span></label>
+                        <textarea className={`input ${errors.message ? 'input-error' : ''}`} name="message" value={form.message} onChange={handleChange} placeholder="Tell us about your project, goals, and timeline..." rows={5} required style={{ resize: 'vertical' }} />
                       </div>
                       <button type="submit" className="btn btn-primary btn-lg" style={{ width: '100%' }}>
                         <Send size={18} /> Send Message
