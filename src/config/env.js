@@ -6,9 +6,9 @@
 
 export const ENV = {
   // Express.js backend base URL (without /api suffix)
-  API_BASE_URL: import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:5000',
+  API_BASE_URL: import.meta.env.VITE_API_URL?.replace('/api/v1', '')?.replace('/api', '') || 'http://localhost:5000',
   // Full API URL (with /api suffix) — axiosInstance এটা ব্যবহার করে
-  API_URL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  API_URL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api/v1',
   APP_URL: import.meta.env.VITE_APP_URL || 'http://localhost:5173',
   GOOGLE_CLIENT_ID: import.meta.env.VITE_GOOGLE_CLIENT_ID || '',
   FB_APP_ID: import.meta.env.VITE_FB_APP_ID || '',
