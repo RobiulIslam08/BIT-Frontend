@@ -20,7 +20,7 @@ const SIDEBAR_ITEMS = [
   { label: 'Services', path: '/dashboard/services', icon: Package },
   { label: 'Offers', path: '/dashboard/offers', icon: Tag },
   { label: 'Leads', path: '/dashboard/leads', icon: FileText },
-  { label: 'Orders', path: '/dashboard/orders', icon: ShoppingCart },
+  { label: 'GMB Orders', path: '/dashboard/orders', icon: ShoppingCart },
   { label: 'Users', path: '/dashboard/users', icon: Users },
   { label: 'Analytics', path: '/dashboard/analytics', icon: BarChart3 },
   { label: 'Settings', path: '/dashboard/settings', icon: Settings },

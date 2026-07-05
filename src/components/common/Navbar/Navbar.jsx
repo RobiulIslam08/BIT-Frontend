@@ -253,7 +253,7 @@ export function Navbar() {
                           </div>
                           
                           {isAdmin && (
-                            <Link to="/admin" className="navbar__dropdown-link" onClick={() => setActiveDropdown(null)}>
+                            <Link to="/dashboard" className="navbar__dropdown-link" onClick={() => setActiveDropdown(null)}>
                               Admin Dashboard
                             </Link>
                           )}
@@ -461,7 +461,7 @@ export function Navbar() {
                         </div>
                       </div>
                       {isAdmin && (
-                        <Link to="/admin" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} onClick={() => dispatch(closeMobileMenu())}>
+                        <Link to="/dashboard" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} onClick={() => dispatch(closeMobileMenu())}>
                           Admin Dashboard
                         </Link>
                       )}

@@ -39,6 +39,7 @@ export const ROUTES = {
   DASHBOARD_OFFERS: '/dashboard/offers',
   DASHBOARD_LEADS: '/dashboard/leads',
   DASHBOARD_ORDERS: '/dashboard/orders',
+  DASHBOARD_GMB_ORDERS: '/dashboard/orders',
   DASHBOARD_USERS: '/dashboard/users',
   DASHBOARD_ANALYTICS: '/dashboard/analytics',
   DASHBOARD_SETTINGS: '/dashboard/settings',
