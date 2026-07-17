@@ -43,9 +43,9 @@ export const COMPANY = {
   name: 'BIT Software & IT Solution',
   nameShort: 'BIT Software',
   tagline: 'World-class IT solutions from Saudi Arabia',
-  phone: '+966 50 000 0000',
-  email: 'info@bitsoftware.sa',
-  whatsapp: 'https://wa.me/966500000000',
+  phone: '+966573385463',
+  email: 'info@bitsoftwareanditsolution.com',
+  whatsapp: 'https://wa.me/966573385463',
   address: 'Riyadh, Saudi Arabia',
   website: 'https://bitsoftware.sa',
 };
