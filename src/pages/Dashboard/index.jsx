@@ -90,7 +90,7 @@ export default function DashboardHome() {
   const recentOrders = useMemo(() => {
     return [...orders]
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-      .slice(0, 5);
+      .slice(0, 10);
   }, [orders]);
 
   const formatDate = (dateStr) => {
@@ -268,7 +268,17 @@ export default function DashboardHome() {
                         {order.finalAmount} SAR
                       </td>
                       <td style={{ fontSize: 'var(--text-xs)', fontWeight: 600 }}>
-                        {order.paymentMethod === 'paypal' ? '💳 PayPal' : '🏦 Manual'}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                          <span>{order.paymentMethod === 'paypal' ? '💳 PayPal' : '🏦 Manual'}</span>
+                          <span style={{
+                            fontSize: '10px',
+                            color: order.paymentStatus === 'paid' ? '#10B981' : 
+                                   order.paymentStatus === 'failed' ? '#EF4444' : 
+                                   order.paymentStatus === 'due' ? '#8B5CF6' : '#F59E0B'
+                          }}>
+                            ({order.paymentStatus === 'pending_verification' ? 'Pending' : order.paymentStatus === 'paid' ? 'Paid' : order.paymentStatus === 'due' ? 'Due' : 'Failed'})
+                          </span>
+                        </div>
                       </td>
                       <td>
                         <span style={{
@@ -283,7 +293,9 @@ export default function DashboardHome() {
                             order.orderStatus === 'in_progress' ? '#F59E0B' : '#3B82F6',
                         }}>
                           {order.orderStatus === 'completed' ? '✅' : order.orderStatus === 'cancelled' ? '❌' : order.orderStatus === 'in_progress' ? '🔄' : '📋'}
-                          {' '}{order.orderStatus?.replace('_', ' ')}
+                          <span style={{ textTransform: 'capitalize' }}>
+                            {' '}{order.orderStatus?.replace('_', ' ')}
+                          </span>
                         </span>
                       </td>
                       <td style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>

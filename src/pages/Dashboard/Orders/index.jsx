@@ -8,12 +8,14 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   Search, Package, DollarSign, Clock, CheckCircle2,
   AlertCircle, XCircle, Eye, RefreshCw, Filter,
-  ChevronLeft, ChevronRight, Loader2, ShoppingCart
+  ChevronLeft, ChevronRight, Loader2, ShoppingCart,
+  Edit3, Trash2
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { Counter } from '@/components/animations/CounterAnimation';
-import { getAllGMBOrders, updateGMBOrderStatus } from '@/api/gmbOrderApi';
+import { getAllGMBOrders, updateGMBOrderStatus, deleteGMBOrder } from '@/api/gmbOrderApi';
 import OrderDetailModal from './OrderDetailModal';
+import EditOrderModal from './EditOrderModal';
 import './GmbOrdersPage.css';
 
 const SERVICE_LABELS = {
@@ -26,6 +28,7 @@ const PAYMENT_STATUS_OPTIONS = [
   { value: '', label: 'All Payments' },
   { value: 'paid', label: 'Paid' },
   { value: 'pending_verification', label: 'Pending' },
+  { value: 'due', label: 'Due' },
   { value: 'failed', label: 'Failed' },
 ];
 
@@ -46,6 +49,7 @@ const PAYMENT_METHOD_OPTIONS = [
 const PAYMENT_STATUS_LABELS = {
   paid: 'Paid',
   pending_verification: 'Pending',
+  due: 'Due',
   failed: 'Failed',
 };
 
@@ -72,6 +76,9 @@ export default function DashboardOrders() {
 
   // Modal
   const [selectedOrder, setSelectedOrder] = useState(null);
+  const [orderToEdit, setOrderToEdit] = useState(null);
+  const [orderToDelete, setOrderToDelete] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Toast
   const [toast, setToast] = useState(null);
@@ -139,6 +146,25 @@ export default function DashboardOrders() {
       }
     } catch (err) {
       showToast('error', err.response?.data?.message || 'Failed to update status');
+    }
+  };
+
+  // ─── Delete Order Handler ───
+  const handleDeleteOrder = async () => {
+    if (!orderToDelete) return;
+    try {
+      setIsDeleting(true);
+      const res = await deleteGMBOrder(orderToDelete);
+      if (res.success) {
+        showToast('success', 'Order deleted successfully');
+        setOrders(prev => prev.filter(o => o._id !== orderToDelete));
+        setMeta(prev => ({ ...prev, total: prev.total - 1 }));
+        setOrderToDelete(null);
+      }
+    } catch (err) {
+      showToast('error', err.response?.data?.message || 'Failed to delete order');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -444,12 +470,13 @@ export default function DashboardOrders() {
                             value={order.paymentStatus}
                             onChange={(e) => handleStatusUpdate(order._id, 'paymentStatus', e.target.value)}
                             style={{
-                              color: order.paymentStatus === 'paid' ? '#10B981' : order.paymentStatus === 'failed' ? '#EF4444' : '#F59E0B',
-                              borderColor: order.paymentStatus === 'paid' ? 'rgba(16,185,129,0.3)' : order.paymentStatus === 'failed' ? 'rgba(239,68,68,0.3)' : 'rgba(245,158,11,0.3)',
+                              color: order.paymentStatus === 'paid' ? '#10B981' : order.paymentStatus === 'failed' ? '#EF4444' : order.paymentStatus === 'due' ? '#8B5CF6' : '#F59E0B',
+                              borderColor: order.paymentStatus === 'paid' ? 'rgba(16,185,129,0.3)' : order.paymentStatus === 'failed' ? 'rgba(239,68,68,0.3)' : order.paymentStatus === 'due' ? 'rgba(139,92,246,0.3)' : 'rgba(245,158,11,0.3)',
                             }}
                           >
                             <option value="pending_verification">⏳ Pending</option>
                             <option value="paid">✅ Paid</option>
+                            <option value="due">💸 Due</option>
                             <option value="failed">❌ Failed</option>
                           </select>
                         </td>
@@ -481,6 +508,20 @@ export default function DashboardOrders() {
                             >
                               <Eye size={14} />
                             </button>
+                            <button
+                              className="gmb-orders__action-btn"
+                              onClick={() => setOrderToEdit(order)}
+                              title="Edit Order"
+                            >
+                              <Edit3 size={14} />
+                            </button>
+                            <button
+                              className="gmb-orders__action-btn gmb-orders__action-btn--delete"
+                              onClick={() => setOrderToDelete(order._id)}
+                              title="Delete Order"
+                            >
+                              <Trash2 size={14} />
+                            </button>
                           </div>
                         </td>
                       </motion.tr>
@@ -503,6 +544,73 @@ export default function DashboardOrders() {
           onClose={() => setSelectedOrder(null)}
         />
       )}
+
+      {/* Edit Order Modal */}
+      {orderToEdit && (
+        <EditOrderModal
+          order={orderToEdit}
+          onClose={() => setOrderToEdit(null)}
+          onUpdate={(id, data) => {
+            setOrders(prev => prev.map(o => o._id === id ? { ...o, ...data } : o));
+            showToast('success', 'Order information updated');
+          }}
+        />
+      )}
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {orderToDelete && (
+          <motion.div
+            className="gmb-modal__overlay"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => !isDeleting && setOrderToDelete(null)}
+          >
+            <motion.div
+              className="gmb-modal__content"
+              style={{ maxWidth: '400px', textAlign: 'center', padding: '2.5rem 2rem' }}
+              initial={{ opacity: 0, scale: 0.95, y: 20 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 20 }}
+              onClick={e => e.stopPropagation()}
+            >
+              <div style={{ 
+                width: '64px', height: '64px', borderRadius: '50%', 
+                background: 'rgba(239, 68, 68, 0.1)', color: '#EF4444', 
+                display: 'flex', alignItems: 'center', justifyContent: 'center', 
+                margin: '0 auto 1.25rem auto' 
+              }}>
+                <Trash2 size={32} />
+              </div>
+              <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-text-primary)', marginBottom: '0.75rem' }}>
+                Delete Order
+              </h3>
+              <p style={{ color: 'var(--color-text-secondary)', fontSize: '0.875rem', marginBottom: '2rem', lineHeight: 1.5 }}>
+                Are you sure you want to permanently delete this order? This action cannot be undone.
+              </p>
+              <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+                <button
+                  className="btn btn-outline"
+                  onClick={() => setOrderToDelete(null)}
+                  disabled={isDeleting}
+                  style={{ flex: 1 }}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn"
+                  onClick={handleDeleteOrder}
+                  disabled={isDeleting}
+                  style={{ flex: 1, background: '#EF4444', borderColor: '#EF4444', color: 'white' }}
+                >
+                  {isDeleting ? <Loader2 size={18} className="spin" /> : 'Delete'}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </>
   );
 }

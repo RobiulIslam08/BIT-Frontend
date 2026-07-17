@@ -48,9 +48,8 @@ export function DashboardLayout() {
       {/* Desktop Sidebar */}
       <aside className={`dashboard__sidebar ${isSidebarOpen ? '' : 'dashboard__sidebar--collapsed'}`}>
         <div className="dashboard__sidebar-header">
-          <Link to="/" className="dashboard__logo">
-            <div className="dashboard__logo-icon">B</div>
-            {isSidebarOpen && <span className="dashboard__logo-text">BIT Software</span>}
+          <Link to="/" className="dashboard__logo" style={{ display: 'flex', justifyContent: isSidebarOpen ? 'flex-start' : 'center' }}>
+            <img src="/bit-logo.png" alt="BIT Logo" style={{ height: '60px', width: 'auto' }} />
           </Link>
         </div>
 
@@ -97,8 +96,7 @@ export function DashboardLayout() {
             >
               <div className="dashboard__sidebar-header">
                 <Link to="/" className="dashboard__logo">
-                  <div className="dashboard__logo-icon">B</div>
-                  <span className="dashboard__logo-text">BIT Software</span>
+                  <img src="/bit-logo.png" alt="BIT Logo" style={{ height: '32px', width: 'auto' }} />
                 </Link>
                 <button onClick={() => setIsMobileSidebarOpen(false)} style={{ background: 'none', border: 'none', color: 'var(--color-text-primary)', cursor: 'pointer' }}>
                   <X size={20} />

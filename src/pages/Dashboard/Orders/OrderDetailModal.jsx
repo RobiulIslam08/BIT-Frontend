@@ -19,6 +19,7 @@ const SERVICE_LABELS = {
 const PAYMENT_STATUS_MAP = {
   paid: { label: 'Paid', color: '#10B981', icon: CheckCircle2 },
   pending_verification: { label: 'Pending Verification', color: '#F59E0B', icon: Clock },
+  due: { label: 'Due', color: '#8B5CF6', icon: AlertCircle },
   failed: { label: 'Failed', color: '#EF4444', icon: AlertCircle },
 };
 

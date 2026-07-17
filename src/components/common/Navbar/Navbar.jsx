@@ -110,13 +110,7 @@ export function Navbar() {
           <div className="navbar__container container">
             {/* Logo */}
             <Link to="/" className="navbar__logo" aria-label="BIT Software Home">
-              <div className="navbar__logo-icon">
-                <span>B</span>
-              </div>
-              <div className="navbar__logo-text">
-                <span className="navbar__logo-name">BIT Software</span>
-                <span className="navbar__logo-tagline">& IT Solution</span>
-              </div>
+              <img src="/bit-logo.png" alt="BIT Software Logo" style={{ height: '60px', width: 'auto' }} />
             </Link>
 
             {/* Desktop Navigation */}
@@ -324,10 +318,7 @@ export function Navbar() {
             >
               <div className="navbar__mobile-header">
                 <Link to="/" className="navbar__logo" aria-label="BIT Software Home">
-                  <div className="navbar__logo-icon">
-                    <span>B</span>
-                  </div>
-                  <span className="navbar__logo-name">BIT Software</span>
+                  <img src="/bit-logo.png" alt="BIT Software Logo" style={{ height: '36px', width: 'auto' }} />
                 </Link>
                 <button
                   onClick={() => dispatch(closeMobileMenu())}

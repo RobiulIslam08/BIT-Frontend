@@ -840,3 +840,31 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ─── ADDITIONS FOR EDIT & DELETE ─── */
+.gmb-orders__action-btn--delete:hover {
+  background: rgba(239, 68, 68, 0.1) !important;
+  color: var(--color-error) !important;
+  border-color: rgba(239, 68, 68, 0.3) !important;
+}
+
+.gmb-modal__content--edit {
+  max-width: 700px !important;
+}
+
+.gmb-orders__input {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  font-size: var(--text-sm);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  outline: none;
+  transition: all var(--transition-fast);
+}
+
+.gmb-orders__input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-muted);
+}

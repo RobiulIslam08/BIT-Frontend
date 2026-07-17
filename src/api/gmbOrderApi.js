@@ -81,3 +81,19 @@ export const updateGMBOrderStatus = async (orderId, statusData) => {
   const response = await axiosInstance.patch(`/gmb-orders/${orderId}`, statusData);
   return response.data;
 };
+
+/**
+ * Admin: Update order info (Business Name, Email, etc).
+ */
+export const updateGMBOrderInfo = async (orderId, updateData) => {
+  const response = await axiosInstance.put(`/gmb-orders/${orderId}`, updateData);
+  return response.data;
+};
+
+/**
+ * Admin: Delete an order completely.
+ */
+export const deleteGMBOrder = async (orderId) => {
+  const response = await axiosInstance.delete(`/gmb-orders/${orderId}`);
+  return response.data;
+};

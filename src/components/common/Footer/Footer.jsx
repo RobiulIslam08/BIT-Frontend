@@ -36,8 +36,7 @@ export function Footer() {
           <div className="footer__grid">
             <div className="footer__col footer__col--brand">
               <Link to="/" className="footer__logo">
-                <div className="footer__logo-icon"><span>B</span></div>
-                <div><div className="footer__logo-name">BIT Software</div><div className="footer__logo-tagline">& IT Solution</div></div>
+                <img src="/bit-logo.png" alt="BIT Software Logo" style={{ height: '80px', width: 'auto' }} />
               </Link>
               <p className="footer__desc body-sm">Delivering world-class IT solutions to businesses across Saudi Arabia and beyond.</p>
               <div className="footer__socials">
