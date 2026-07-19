@@ -10,7 +10,7 @@ import axiosInstance from '@/api/axiosInstance';
 const CurrencyContext = createContext();
 
 const SUPPORTED_CURRENCIES = ['SAR', 'USD', 'EUR', 'CAD', 'BDT', 'PKR', 'INR'];
-const CURRENCY_SYMBOLS = { SAR: 'ر.স', USD: '$', EUR: '€', CAD: 'C$', BDT: '৳', PKR: '₨', INR: '₹' };
+const CURRENCY_SYMBOLS = { SAR: 'SR', USD: '$', EUR: '€', CAD: 'C$', BDT: '৳', PKR: '₨', INR: '₹' };
 const CURRENCY_NAMES = { SAR: 'Saudi Riyal', USD: 'US Dollar', EUR: 'Euro', CAD: 'Canadian Dollar', BDT: 'Bangladeshi Taka', PKR: 'Pakistani Rupee', INR: 'Indian Rupee' };
 
 export function CurrencyProvider({ children }) {

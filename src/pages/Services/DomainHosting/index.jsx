@@ -36,8 +36,9 @@ const TLD_PRICES = {
 function DomainResultCard({ result, isPrimary = false }) {
   const { formatPrice } = useCurrency();
 
-  const tld = result.domain.split('.').slice(1).join('.');
-  const basePriceUSD = result.isPremium && result.premiumPrice ? result.premiumPrice : (TLD_PRICES[tld] ?? 20);
+  const parts = result.domain.split('.');
+  const tld = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : 'com';
+  const basePriceUSD = TLD_PRICES[tld] ?? 20;
   const displayPrice = formatPrice(basePriceUSD);
 
   return (
