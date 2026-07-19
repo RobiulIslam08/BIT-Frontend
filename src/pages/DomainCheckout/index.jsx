@@ -147,23 +147,16 @@ export default function DomainCheckout() {
         description={`Purchase domain ${domainName} securely with PayPal.`}
       />
 
-      <div style={{
-        minHeight: '100vh',
-        background: 'var(--color-bg-secondary)',
-        padding: '2rem 1rem',
-        display: 'flex',
-        alignItems: 'flex-start',
-        justifyContent: 'center',
-      }}>
-        <div style={{ width: '100%', maxWidth: '560px' }}>
+      <div className="checkout-container">
+        <div style={{ width: '100%', maxWidth: '540px' }}>
 
           {/* ─── Header ─── */}
-          <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-              <Globe size={22} style={{ color: 'var(--color-primary)' }} />
-              <h1 className="h3" style={{ margin: 0 }}>Domain Checkout</h1>
+          <motion.div initial={{ opacity: 0, y: -12 }} animate={{ opacity: 1, y: 0 }} style={{ marginBottom: '1.25rem', textAlign: 'center' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginBottom: '0.25rem' }}>
+              <Globe size={20} style={{ color: 'var(--color-primary)' }} />
+              <h1 className="h4" style={{ margin: 0, fontSize: 'clamp(1.2rem, 5vw, 1.5rem)' }}>Domain Checkout</h1>
             </div>
-            <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
+            <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>
               Secure payment powered by PayPal
             </p>
           </motion.div>
@@ -172,33 +165,32 @@ export default function DomainCheckout() {
           <motion.div
             initial={{ opacity: 0, y: 12 }}
             animate={{ opacity: 1, y: 0 }}
-            className="card-elevated"
-            style={{ marginBottom: '1.25rem' }}
+            className="checkout-card"
           >
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                <div style={{ width: 44, height: 44, borderRadius: '50%', background: 'var(--color-primary-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <Globe size={20} style={{ color: 'var(--color-primary)' }} />
+            <div className="summary-header">
+              <div className="summary-left">
+                <div style={{ width: 40, height: 40, borderRadius: '50%', background: 'var(--color-primary-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <Globe size={18} style={{ color: 'var(--color-primary)' }} />
                 </div>
-                <div>
-                  <div style={{ fontFamily: 'var(--font-display)', fontWeight: 800, fontSize: 'var(--text-xl)', color: 'var(--color-text-primary)' }}>{domainName}</div>
-                  <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>Domain Registration • 1 Year</div>
+                <div style={{ minWidth: 0 }}>
+                  <div className="domain-display-name">{domainName}</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Domain Registration • 1 Year</div>
                 </div>
               </div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontWeight: 800, fontSize: 'var(--text-2xl)', fontFamily: 'var(--font-display)', color: 'var(--color-primary)' }}>{displayPrice}</div>
-                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>${priceUSD} USD/yr</div>
+              <div className="summary-right">
+                <div className="price-display-val">{displayPrice}</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>${priceUSD} USD/yr</div>
               </div>
             </div>
 
-            <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '0.875rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
               {[
                 { icon: CheckCircle2, text: 'WHOIS Privacy Protection — FREE', color: '#22c55e' },
                 { icon: Shield, text: 'DNS Management — FREE', color: '#3b82f6' },
                 { icon: Lock, text: 'Secure & Encrypted Payment', color: '#8b5cf6' },
               ].map(({ icon: Icon, text, color }) => (
-                <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-                  <Icon size={15} style={{ color, flexShrink: 0 }} /> {text}
+                <div key={text} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
+                  <Icon size={14} style={{ color, flexShrink: 0 }} /> {text}
                 </div>
               ))}
             </div>
@@ -211,9 +203,9 @@ export default function DomainCheckout() {
                 initial={{ opacity: 0, y: -8 }}
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0 }}
-                style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem', padding: '1rem', borderRadius: '10px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#dc2626', fontSize: 'var(--text-sm)', marginBottom: '1rem' }}
+                style={{ display: 'flex', alignItems: 'flex-start', gap: '0.625rem', padding: '0.75rem 1rem', borderRadius: '10px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.25)', color: '#dc2626', fontSize: 'var(--text-xs)', marginBottom: '1rem' }}
               >
-                <AlertCircle size={18} style={{ flexShrink: 0, marginTop: '1px' }} />
+                <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '1px' }} />
                 <span>{orderError}</span>
               </motion.div>
             )}
@@ -221,14 +213,14 @@ export default function DomainCheckout() {
 
           {/* ─── STEP: Form ─── */}
           {step === 'form' && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card-elevated">
-              <h3 className="h5" style={{ marginBottom: '1.25rem' }}>Contact Information</h3>
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="checkout-card">
+              <h3 className="h5" style={{ marginBottom: '1rem', fontSize: 'clamp(0.95rem, 4vw, 1.1rem)' }}>Contact Information</h3>
               <form onSubmit={handleProceedToPayment}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                <div className="form-group-row">
                   {/* Name */}
                   <div>
-                    <label style={{ fontSize: 'var(--text-sm)', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
-                      <User size={13} style={{ display: 'inline', marginRight: '0.35rem' }} />Full Name *
+                    <label style={{ fontSize: 'var(--text-xs)', fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>
+                       <User size={12} style={{ display: 'inline', marginRight: '0.25rem', verticalAlign: 'middle' }} />Full Name *
                     </label>
                     <input
                       type="text"
@@ -236,14 +228,14 @@ export default function DomainCheckout() {
                       value={form.customerName}
                       onChange={(e) => setForm(f => ({ ...f, customerName: e.target.value }))}
                       placeholder="Your full name"
-                      style={{ border: formErrors.customerName ? '1.5px solid #ef4444' : undefined }}
+                      style={{ border: formErrors.customerName ? '1.5px solid #ef4444' : undefined, padding: '0.625rem 0.875rem', fontSize: 'var(--text-sm)' }}
                     />
                     {formErrors.customerName && <p style={{ color: '#ef4444', fontSize: 'var(--text-xs)', marginTop: '0.25rem' }}>{formErrors.customerName}</p>}
                   </div>
                   {/* Email */}
                   <div>
-                    <label style={{ fontSize: 'var(--text-sm)', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
-                      <Mail size={13} style={{ display: 'inline', marginRight: '0.35rem' }} />Email Address *
+                    <label style={{ fontSize: 'var(--text-xs)', fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>
+                      <Mail size={12} style={{ display: 'inline', marginRight: '0.25rem', verticalAlign: 'middle' }} />Email Address *
                     </label>
                     <input
                       type="email"
@@ -251,14 +243,14 @@ export default function DomainCheckout() {
                       value={form.customerEmail}
                       onChange={(e) => setForm(f => ({ ...f, customerEmail: e.target.value }))}
                       placeholder="your@email.com"
-                      style={{ border: formErrors.customerEmail ? '1.5px solid #ef4444' : undefined }}
+                      style={{ border: formErrors.customerEmail ? '1.5px solid #ef4444' : undefined, padding: '0.625rem 0.875rem', fontSize: 'var(--text-sm)' }}
                     />
                     {formErrors.customerEmail && <p style={{ color: '#ef4444', fontSize: 'var(--text-xs)', marginTop: '0.25rem' }}>{formErrors.customerEmail}</p>}
                   </div>
                   {/* Phone */}
                   <div>
-                    <label style={{ fontSize: 'var(--text-sm)', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
-                      <Phone size={13} style={{ display: 'inline', marginRight: '0.35rem' }} />Phone Number (optional)
+                    <label style={{ fontSize: 'var(--text-xs)', fontWeight: 600, display: 'block', marginBottom: '0.3rem' }}>
+                      <Phone size={12} style={{ display: 'inline', marginRight: '0.25rem', verticalAlign: 'middle' }} />Phone Number (optional)
                     </label>
                     <input
                       type="tel"
@@ -266,30 +258,31 @@ export default function DomainCheckout() {
                       value={form.customerPhone}
                       onChange={(e) => setForm(f => ({ ...f, customerPhone: e.target.value }))}
                       placeholder="+966 5XX XXX XXXX"
+                      style={{ padding: '0.625rem 0.875rem', fontSize: 'var(--text-sm)' }}
                     />
                   </div>
                 </div>
 
-                <div style={{ marginTop: '1.5rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
-                    <span style={{ fontWeight: 600 }}>Total</span>
-                    <span style={{ fontWeight: 800, fontSize: 'var(--text-2xl)', fontFamily: 'var(--font-display)', color: 'var(--color-primary)' }}>{displayPrice}</span>
+                <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.875rem' }}>
+                    <span style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>Total</span>
+                    <span style={{ fontWeight: 800, fontSize: 'clamp(1.2rem, 5vw, 1.5rem)', fontFamily: 'var(--font-display)', color: 'var(--color-primary)' }}>{displayPrice}</span>
                   </div>
                   <button
                     type="submit"
                     className="btn btn-primary"
                     disabled={isCreatingOrder}
-                    style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--text-base)', padding: '0.875rem' }}
+                    style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--text-sm)', padding: '0.75rem' }}
                   >
                     {isCreatingOrder ? (
-                      <><Loader2 size={18} style={{ animation: 'spin 1s linear infinite' }} /> Creating Order...</>
+                      <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Creating Order...</>
                     ) : (
-                      <>Continue to Payment <ChevronRight size={18} /></>
+                      <>Continue to Payment <ChevronRight size={16} /></>
                     )}
                   </button>
 
                   {/* bKash placeholder */}
-                  <button type="button" disabled className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center', marginTop: '0.5rem', opacity: 0.4, cursor: 'not-allowed' }}>
+                  <button type="button" disabled className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center', marginTop: '0.375rem', opacity: 0.4, cursor: 'not-allowed', fontSize: 'var(--text-xs)' }}>
                     🟢 Pay with bKash (Coming Soon)
                   </button>
                 </div>
@@ -299,37 +292,39 @@ export default function DomainCheckout() {
 
           {/* ─── STEP: PayPal Payment ─── */}
           {step === 'payment' && (
-            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="card-elevated">
-              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1.25rem' }}>
-                <h3 className="h5" style={{ margin: 0 }}>Complete Payment</h3>
-                <button className="btn btn-ghost btn-sm" onClick={() => { setStep('form'); setPaypalOrderId(null); }}>
-                  <RefreshCw size={14} /> Back
+            <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="checkout-card">
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+                <h3 className="h5" style={{ margin: 0, fontSize: 'clamp(0.95rem, 4vw, 1.1rem)' }}>Complete Payment</h3>
+                <button className="btn btn-ghost btn-sm" style={{ padding: '0.35rem 0.6rem', fontSize: 'var(--text-xs)' }} onClick={() => { setStep('form'); setPaypalOrderId(null); }}>
+                  <RefreshCw size={12} /> Back
                 </button>
               </div>
 
-              <div style={{ padding: '0.75rem', background: 'var(--color-bg-secondary)', borderRadius: '10px', marginBottom: '1.25rem', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <span>{domainName}</span>
-                  <strong>{displayPrice}</strong>
+              <div style={{ padding: '0.625rem 0.875rem', background: 'var(--color-bg-secondary)', borderRadius: '10px', marginBottom: '1rem', fontSize: 'var(--text-xs)', color: 'var(--color-text-secondary)' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <span style={{ fontWeight: 500 }}>{domainName}</span>
+                  <strong style={{ color: 'var(--color-text-primary)' }}>{displayPrice}</strong>
                 </div>
               </div>
 
               {isCompleting ? (
-                <div style={{ textAlign: 'center', padding: '2rem' }}>
-                  <Loader2 size={32} style={{ animation: 'spin 1s linear infinite', color: 'var(--color-primary)' }} />
-                  <p style={{ marginTop: '1rem', color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
+                <div style={{ textAlign: 'center', padding: '1.5rem' }}>
+                  <Loader2 size={28} style={{ animation: 'spin 1s linear infinite', color: 'var(--color-primary)', margin: '0 auto' }} />
+                  <p style={{ marginTop: '0.875rem', color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)', lineHeight: '1.5' }}>
                     Registering your domain on Namecheap...<br />
                     This may take up to 30 seconds. Please don't close this page.
                   </p>
                 </div>
               ) : (
-                <PayPalButtons
-                  style={{ layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' }}
-                  createOrder={() => Promise.resolve(paypalOrderId)}
-                  onApprove={onPayPalApprove}
-                  onError={onPayPalError}
-                  onCancel={onPayPalCancel}
-                />
+                <div style={{ minHeight: '150px' }}>
+                  <PayPalButtons
+                    style={{ layout: 'vertical', color: 'blue', shape: 'rect', label: 'pay' }}
+                    createOrder={() => Promise.resolve(paypalOrderId)}
+                    onApprove={onPayPalApprove}
+                    onError={onPayPalError}
+                    onCancel={onPayPalCancel}
+                  />
+                </div>
               )}
             </motion.div>
           )}
@@ -339,36 +334,134 @@ export default function DomainCheckout() {
             <motion.div
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
-              className="card-elevated"
-              style={{ textAlign: 'center', padding: '2.5rem' }}
+              className="checkout-card"
+              style={{ textAlign: 'center', padding: '2rem 1.5rem' }}
             >
               <motion.div
                 initial={{ scale: 0 }}
                 animate={{ scale: 1 }}
                 transition={{ type: 'spring', stiffness: 260, damping: 20, delay: 0.1 }}
-                style={{ width: 72, height: 72, borderRadius: '50%', background: 'rgba(34,197,94,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}
+                style={{ width: 64, height: 64, borderRadius: '50%', background: 'rgba(34,197,94,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1rem' }}
               >
-                <CheckCircle2 size={36} style={{ color: '#22c55e' }} />
+                <CheckCircle2 size={32} style={{ color: '#22c55e' }} />
               </motion.div>
-              <h2 className="h3" style={{ marginBottom: '0.5rem', color: '#16a34a' }}>Domain Registered!</h2>
-              <p style={{ color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>
+              <h2 className="h4" style={{ marginBottom: '0.5rem', color: '#16a34a', fontSize: 'clamp(1.2rem, 5vw, 1.5rem)' }}>Domain Registered!</h2>
+              <p style={{ color: 'var(--color-text-muted)', marginBottom: '0.5rem', fontSize: 'var(--text-sm)' }}>
                 <strong style={{ color: 'var(--color-text-primary)' }}>{domainName}</strong> is now yours.
               </p>
-              <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginBottom: '1.5rem' }}>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)', marginBottom: '1.25rem' }}>
                 A confirmation email has been sent to <strong>{form.customerEmail}</strong>
               </p>
-              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center', flexWrap: 'wrap' }}>
-                <button className="btn btn-primary" onClick={() => navigate('/my-account')}>
+              <div className="success-button-group">
+                <button className="btn btn-primary" style={{ fontSize: 'var(--text-xs)', padding: '0.6rem 1rem' }} onClick={() => navigate('/my-account')}>
                   View My Domains
                 </button>
-                <button className="btn btn-ghost" onClick={() => navigate('/services/domain-hosting')}>
+                <button className="btn btn-ghost" style={{ fontSize: 'var(--text-xs)', padding: '0.6rem 1rem' }} onClick={() => navigate('/services/domain-hosting')}>
                   Search More Domains
                 </button>
               </div>
             </motion.div>
           )}
 
-          <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          <style>{`
+            @keyframes spin { to { transform: rotate(360deg); } }
+
+            .checkout-container {
+              min-height: 100vh;
+              background: var(--color-bg-secondary);
+              padding: 1rem 0.75rem;
+              display: flex;
+              align-items: flex-start;
+              justify-content: center;
+            }
+            @media (min-width: 480px) {
+              .checkout-container {
+                padding: 2rem 1.5rem;
+              }
+            }
+
+            .checkout-card {
+              background: var(--color-surface-elevated);
+              border: 1px solid var(--color-border);
+              border-radius: 12px;
+              padding: 1rem;
+              box-shadow: var(--shadow-md);
+              margin-bottom: 1rem;
+            }
+            @media (min-width: 480px) {
+              .checkout-card {
+                padding: 1.5rem;
+              }
+            }
+
+            .summary-header {
+              display: flex;
+              flex-direction: column;
+              gap: 0.75rem;
+              margin-bottom: 0.875rem;
+            }
+            @media (min-width: 440px) {
+              .summary-header {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                gap: 1rem;
+              }
+            }
+
+            .summary-left {
+              display: flex;
+              align-items: center;
+              gap: 0.625rem;
+              min-width: 0;
+            }
+
+            .summary-right {
+              text-align: left;
+            }
+            @media (min-width: 440px) {
+              .summary-right {
+                text-align: right;
+              }
+            }
+
+            .domain-display-name {
+              font-family: var(--font-display);
+              font-weight: 800;
+              font-size: clamp(1rem, 4vw, 1.25rem);
+              color: var(--color-text-primary);
+              word-break: break-all;
+              line-height: 1.2;
+            }
+
+            .price-display-val {
+              font-weight: 800;
+              font-size: clamp(1.2rem, 5vw, 1.5rem);
+              font-family: var(--font-display);
+              color: var(--color-primary);
+              line-height: 1.2;
+            }
+
+            .form-group-row {
+              display: flex;
+              flex-direction: column;
+              gap: 0.875rem;
+            }
+
+            .success-button-group {
+              display: flex;
+              flex-direction: column;
+              gap: 0.5rem;
+              width: 100%;
+            }
+            @media (min-width: 400px) {
+              .success-button-group {
+                flex-direction: row;
+                justify-content: center;
+                gap: 0.75rem;
+              }
+            }
+          `}</style>
         </div>
       </div>
     </PayPalScriptProvider>
