@@ -12,6 +12,7 @@ import { toggleMobileMenu, closeMobileMenu } from '@/features/ui/uiSlice';
 import { NAV_ITEMS, COMPANY, SOCIALS } from '@/utils/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { getImageUrl } from '@/config/env';
+import { CurrencySelector } from '../CurrencySelector';
 import './Navbar.css';
 
 export function Navbar() {
@@ -157,7 +158,8 @@ export function Navbar() {
             </nav>
 
             {/* Right Section */}
-            <div className="navbar__actions">
+            <div className="navbar__actions" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <CurrencySelector />
               <ThemeToggle />
 
               {/* Authentication Buttons (Desktop) */}
@@ -246,6 +248,10 @@ export function Navbar() {
                             <p style={{ margin: 0, fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{user?.email}</p>
                           </div>
                           
+                          <Link to="/my-account" className="navbar__dropdown-link" onClick={() => setActiveDropdown(null)}>
+                            My Account
+                          </Link>
+
                           {isAdmin && (
                             <Link to="/dashboard" className="navbar__dropdown-link" onClick={() => setActiveDropdown(null)}>
                               Admin Dashboard

@@ -1,0 +1,94 @@
+/* ============================================
+   BIT SOFTWARE — Currency Selector CSS
+   ============================================ */
+
+.currency-selector {
+  position: relative;
+  display: inline-block;
+  z-index: 1000; /* Header এর sticky stack এর উপরে রাখার জন্য */
+}
+
+.currency-selector__btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.875rem;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  font-size: var(--text-sm);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.currency-selector__btn:hover {
+  background: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.currency-selector__btn-text {
+  font-family: var(--font-mono);
+}
+
+.currency-selector__arrow {
+  transition: transform 0.15s ease;
+}
+
+.currency-selector__arrow--open {
+  transform: rotate(180deg);
+}
+
+.currency-selector__dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  right: 0;
+  width: 280px;
+  background: var(--color-surface); /* Solid surface background (transparent হবে না) */
+  border: 1px solid var(--color-border-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  padding: 0.35rem;
+  margin: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  z-index: 1010; /* Dropdown টি যেন বাটন ও অন্যান্য এলিমেন্ট এর উপরে থকে */
+}
+
+/* Dark theme logic override to use elevated surface */
+[data-theme="dark"] .currency-selector__dropdown {
+  background: var(--color-surface-elevated);
+}
+
+.currency-selector__option {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  padding: 0.625rem 0.75rem; /* ক্লিক এরিয়া বাড়াতে padding বাড়ালাম */
+  border-radius: var(--radius-sm);
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.currency-selector__option:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.currency-selector__option--active {
+  background: var(--color-primary-muted) !important;
+  color: var(--color-primary) !important;
+}
+
+.currency-selector__check {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}

@@ -12,6 +12,7 @@ import { PageLoader } from '@/components/common/LoadingSpinner';
 import {
   AdminRoute,
   GuestRoute,
+  ProtectedRoute,
 } from '@/components/common/ProtectedRoute/ProtectedRoute';
 
 // ─── LAZY PAGE IMPORTS ───
@@ -29,6 +30,8 @@ const ITManagement = lazy(() => import('@/pages/Services/ITManagement'));
 const OnlineMarketing = lazy(() => import('@/pages/Services/OnlineMarketing'));
 const GoogleMyBusiness = lazy(() => import('@/pages/Services/GoogleMyBusiness'));
 const DomainHosting = lazy(() => import('@/pages/Services/DomainHosting'));
+const DomainCheckout = lazy(() => import('@/pages/DomainCheckout'));
+const MyAccount = lazy(() => import('@/pages/MyAccount'));
 const TermsAndConditions = lazy(() => import('@/pages/TermsAndConditions'));
 const Portfolio = lazy(() => import('@/pages/Portfolio'));
 const Blog = lazy(() => import('@/pages/Blog'));
@@ -41,6 +44,7 @@ const DashboardServices = lazy(() => import('@/pages/Dashboard/Services'));
 const DashboardOffers = lazy(() => import('@/pages/Dashboard/Offers'));
 const DashboardLeads = lazy(() => import('@/pages/Dashboard/Leads'));
 const DashboardOrders = lazy(() => import('@/pages/Dashboard/Orders'));
+const AdminDomainOrders = lazy(() => import('@/pages/Dashboard/DomainOrders'));
 const DashboardUsers = lazy(() => import('@/pages/Dashboard/Users'));
 const DashboardAnalytics = lazy(() => import('@/pages/Dashboard/Analytics'));
 const DashboardSettings = lazy(() => import('@/pages/Dashboard/Settings'));
@@ -73,6 +77,13 @@ export const router = createBrowserRouter([
       { path: 'portfolio', element: <SuspenseWrap><Portfolio /></SuspenseWrap> },
       { path: 'blog', element: <SuspenseWrap><Blog /></SuspenseWrap> },
       { path: 'contact', element: <SuspenseWrap><Contact /></SuspenseWrap> },
+      {
+        element: <ProtectedRoute />,
+        children: [
+          { path: 'domain-checkout', element: <SuspenseWrap><DomainCheckout /></SuspenseWrap> },
+          { path: 'my-account', element: <SuspenseWrap><MyAccount /></SuspenseWrap> },
+        ],
+      },
       { path: '*', element: <SuspenseWrap><NotFound /></SuspenseWrap> },
     ],
   },
@@ -104,6 +115,7 @@ export const router = createBrowserRouter([
           { path: 'offers', element: <SuspenseWrap><DashboardOffers /></SuspenseWrap> },
           { path: 'leads', element: <SuspenseWrap><DashboardLeads /></SuspenseWrap> },
           { path: 'orders', element: <SuspenseWrap><DashboardOrders /></SuspenseWrap> },
+          { path: 'domain-orders', element: <SuspenseWrap><AdminDomainOrders /></SuspenseWrap> },
           { path: 'users', element: <SuspenseWrap><DashboardUsers /></SuspenseWrap> },
           { path: 'analytics', element: <SuspenseWrap><DashboardAnalytics /></SuspenseWrap> },
           { path: 'settings', element: <SuspenseWrap><DashboardSettings /></SuspenseWrap> },

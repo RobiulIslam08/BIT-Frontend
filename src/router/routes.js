@@ -43,4 +43,7 @@ export const ROUTES = {
   DASHBOARD_USERS: '/dashboard/users',
   DASHBOARD_ANALYTICS: '/dashboard/analytics',
   DASHBOARD_SETTINGS: '/dashboard/settings',
+  DOMAIN_CHECKOUT: '/domain-checkout',
+  MY_ACCOUNT: '/my-account',
+  DASHBOARD_DOMAIN_ORDERS: '/dashboard/domain-orders',
 };

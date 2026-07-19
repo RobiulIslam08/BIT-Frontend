@@ -1,0 +1,188 @@
+/* ============================================
+   BIT SOFTWARE — My Account CSS
+   ============================================ */
+
+.myaccount {
+  display: flex;
+  min-height: calc(100vh - 64px);
+  background: var(--color-bg-secondary);
+}
+
+.myaccount__sidebar {
+  width: 260px;
+  flex-shrink: 0;
+  background: var(--color-bg-primary);
+  border-right: 1px solid var(--color-border);
+  padding: 1.5rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  position: sticky;
+  top: 64px;
+  height: calc(100vh - 64px);
+  overflow-y: auto;
+}
+
+.myaccount__user-card {
+  display: flex;
+  align-items: center;
+  gap: 0.875rem;
+  padding: 1rem;
+  background: var(--color-bg-secondary);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.myaccount__avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--gradient-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+  font-weight: 800;
+  font-family: var(--font-display);
+  flex-shrink: 0;
+}
+
+.myaccount__user-name {
+  font-weight: 700;
+  font-size: var(--text-sm);
+  color: var(--color-text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.myaccount__user-email {
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 160px;
+}
+
+.myaccount__nav {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  flex: 1;
+}
+
+.myaccount__nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border-radius: var(--radius-md);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  background: transparent;
+  border: none;
+  text-decoration: none;
+  width: 100%;
+  text-align: left;
+}
+
+.myaccount__nav-item:hover {
+  background: var(--color-bg-secondary);
+  color: var(--color-text-primary);
+}
+
+.myaccount__nav-item--active {
+  background: var(--color-primary-muted) !important;
+  color: var(--color-primary) !important;
+}
+
+/* ─── Main ─── */
+
+.myaccount__main {
+  flex: 1;
+  min-width: 0;
+  padding: 2rem;
+}
+
+.myaccount__section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+/* ─── Domain Card ─── */
+
+.myaccount__domain-card {
+  padding: 1.25rem !important;
+}
+
+.myaccount__domain-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.myaccount__domain-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-top: 0.875rem;
+  padding-top: 0.875rem;
+  border-top: 1px solid var(--color-border);
+}
+
+.myaccount__domain-meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-size: var(--text-xs);
+  color: var(--color-text-muted);
+}
+
+/* ─── Responsive ─── */
+
+@media (max-width: 768px) {
+  .myaccount {
+    flex-direction: column;
+  }
+  .myaccount__sidebar {
+    width: 100%;
+    height: auto;
+    position: static;
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 1rem;
+    gap: 0.75rem;
+    border-right: none;
+    border-bottom: 1px solid var(--color-border);
+  }
+  .myaccount__user-card {
+    flex: 1 1 100%;
+  }
+  .myaccount__nav {
+    flex-direction: row;
+    flex-wrap: wrap;
+  }
+  .myaccount__nav-item {
+    flex: 1 1 auto;
+    justify-content: center;
+  }
+  .myaccount__main {
+    padding: 1rem;
+  }
+}
+
+.spin {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
