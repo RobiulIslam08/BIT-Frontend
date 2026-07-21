@@ -32,6 +32,7 @@ const GoogleMyBusiness = lazy(() => import('@/pages/Services/GoogleMyBusiness'))
 const DomainHosting = lazy(() => import('@/pages/Services/DomainHosting'));
 const DomainCheckout = lazy(() => import('@/pages/DomainCheckout'));
 const MyAccount = lazy(() => import('@/pages/MyAccount'));
+const DomainDetails = lazy(() => import('@/pages/DomainDetails'));
 const TermsAndConditions = lazy(() => import('@/pages/TermsAndConditions'));
 const Portfolio = lazy(() => import('@/pages/Portfolio'));
 const Blog = lazy(() => import('@/pages/Blog'));
@@ -45,6 +46,8 @@ const DashboardOffers = lazy(() => import('@/pages/Dashboard/Offers'));
 const DashboardLeads = lazy(() => import('@/pages/Dashboard/Leads'));
 const DashboardOrders = lazy(() => import('@/pages/Dashboard/Orders'));
 const AdminDomainOrders = lazy(() => import('@/pages/Dashboard/DomainOrders'));
+const AdminDomains = lazy(() => import('@/pages/Dashboard/Domains'));
+const AdminDomainPricing = lazy(() => import('@/pages/Dashboard/DomainPricing'));
 const DashboardUsers = lazy(() => import('@/pages/Dashboard/Users'));
 const DashboardAnalytics = lazy(() => import('@/pages/Dashboard/Analytics'));
 const DashboardSettings = lazy(() => import('@/pages/Dashboard/Settings'));
@@ -82,6 +85,7 @@ export const router = createBrowserRouter([
         children: [
           { path: 'domain-checkout', element: <SuspenseWrap><DomainCheckout /></SuspenseWrap> },
           { path: 'my-account', element: <SuspenseWrap><MyAccount /></SuspenseWrap> },
+          { path: 'my-account/domains/:id', element: <SuspenseWrap><DomainDetails /></SuspenseWrap> },
         ],
       },
       { path: '*', element: <SuspenseWrap><NotFound /></SuspenseWrap> },
@@ -116,6 +120,8 @@ export const router = createBrowserRouter([
           { path: 'leads', element: <SuspenseWrap><DashboardLeads /></SuspenseWrap> },
           { path: 'orders', element: <SuspenseWrap><DashboardOrders /></SuspenseWrap> },
           { path: 'domain-orders', element: <SuspenseWrap><AdminDomainOrders /></SuspenseWrap> },
+          { path: 'domains', element: <SuspenseWrap><AdminDomains /></SuspenseWrap> },
+          { path: 'domain-pricing', element: <SuspenseWrap><AdminDomainPricing /></SuspenseWrap> },
           { path: 'users', element: <SuspenseWrap><DashboardUsers /></SuspenseWrap> },
           { path: 'analytics', element: <SuspenseWrap><DashboardAnalytics /></SuspenseWrap> },
           { path: 'settings', element: <SuspenseWrap><DashboardSettings /></SuspenseWrap> },

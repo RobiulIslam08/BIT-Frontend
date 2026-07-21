@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
@@ -10,6 +10,7 @@ import { FadeInUp } from '@/components/animations/FadeInUp';
 import { StaggerChildren, StaggerItem } from '@/components/animations/StaggerChildren';
 import { COMPANY } from '@/utils/constants';
 import { checkDomainAvailability } from '@/api/domainApi';
+import { getPublicDomainPricing } from '@/api/domainPricingApi';
 import { useCurrency } from '@/context/CurrencyContext';
 
 // ─── Hosting Plans ───
@@ -24,11 +25,20 @@ const VPS_PLANS = [
   { name: 'VPS-4', monthly: 44.99, yearly: 449, features: ['4 vCPU Cores', '8 GB RAM', '160 GB NVMe', '8 TB Bandwidth', 'Root Access'] },
 ];
 
-const TLD_PRICES = {
-  com: 15, net: 17, org: 14, io: 55, co: 32, info: 12, biz: 17,
-  online: 8, tech: 35, store: 10, shop: 22, app: 20, dev: 14,
-  site: 8, website: 8, cloud: 22, digital: 32, agency: 32,
-  solutions: 22, services: 22,
+const FALLBACK_REGISTER_USD = 20;
+
+/** Convert API pricing rows → { com: { register, renew, transfer }, ... } */
+const toPriceMap = (list = []) => {
+  const map = {};
+  for (const row of list) {
+    if (!row?.tld) continue;
+    map[row.tld] = {
+      register: row.registerPriceUSD ?? FALLBACK_REGISTER_USD,
+      renew: row.renewPriceUSD ?? row.registerPriceUSD ?? FALLBACK_REGISTER_USD,
+      transfer: row.transferPriceUSD ?? row.registerPriceUSD ?? FALLBACK_REGISTER_USD,
+    };
+  }
+  return map;
 };
 
 const DOMAIN_SEARCH_STYLES = `
@@ -141,11 +151,12 @@ const DOMAIN_SEARCH_STYLES = `
 }
 `;
 
-function DomainResultCard({ result, isPrimary = false }) {
+function DomainResultCard({ result, isPrimary = false, priceMap = {} }) {
   const { formatPrice } = useCurrency();
   const parts = result.domain.split('.');
-  const tld = parts.length > 1 ? parts[parts.length - 1].toLowerCase() : 'com';
-  const displayPrice = formatPrice(TLD_PRICES[tld] ?? 20);
+  const tld = parts.length > 1 ? parts.slice(1).join('.').toLowerCase() : 'com';
+  const registerUSD = priceMap[tld]?.register ?? FALLBACK_REGISTER_USD;
+  const displayPrice = formatPrice(registerUSD);
 
   return (
     <motion.div
@@ -228,7 +239,7 @@ function SearchSkeleton() {
   );
 }
 
-function DomainSearchSection() {
+function DomainSearchSection({ priceMap = {} }) {
   const [query, setQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState(null);
@@ -309,7 +320,7 @@ function DomainSearchSection() {
             <motion.div key="res" initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} transition={{ duration: 0.35 }}>
               <div style={{ marginBottom: '1.125rem' }}>
                 <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--color-text-muted)', marginBottom: '0.5rem' }}>Your Search</div>
-                <DomainResultCard result={result.primaryResult} isPrimary />
+                <DomainResultCard result={result.primaryResult} isPrimary priceMap={priceMap} />
               </div>
               {availableSuggestions.length > 0 && (
                 <div style={{ marginBottom: '1.125rem' }}>
@@ -317,7 +328,7 @@ function DomainSearchSection() {
                     <Sparkles size={11} />Available Alternatives
                   </div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
-                    {availableSuggestions.map((s) => <DomainResultCard key={s.domain} result={s} />)}
+                    {availableSuggestions.map((s) => <DomainResultCard key={s.domain} result={s} priceMap={priceMap} />)}
                   </div>
                 </div>
               )}
@@ -341,19 +352,21 @@ function DomainSearchSection() {
   );
 }
 
-function DomainPricingTable({ formatPrice }) {
-  const rows = [
-    { ext: '.com', reg: 15, renew: 17, transfer: 15, privacy: 'Free' },
-    { ext: '.net', reg: 17, renew: 19, transfer: 17, privacy: 'Free' },
-    { ext: '.org', reg: 14, renew: 16, transfer: 14, privacy: 'Free' },
-    { ext: '.co', reg: 32, renew: 35, transfer: 32, privacy: 'Free' },
-    { ext: '.io', reg: 55, renew: 58, transfer: 55, privacy: 'Free' },
-    { ext: '.info', reg: 12, renew: 14, transfer: 12, privacy: 'Free' },
-    { ext: '.biz', reg: 17, renew: 19, transfer: 17, privacy: 'Free' },
-    { ext: '.online', reg: 8, renew: 20, transfer: 8, privacy: 'Free' },
-    { ext: '.tech', reg: 35, renew: 38, transfer: 35, privacy: 'Free' },
-    { ext: '.store', reg: 10, renew: 35, transfer: 10, privacy: 'Free' },
-  ];
+function DomainPricingTable({ formatPrice, rows = [], loading = false }) {
+  if (loading) {
+    return (
+      <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>
+        <Loader2 size={22} style={{ animation: 'spin 1s linear infinite' }} />
+      </div>
+    );
+  }
+  if (!rows.length) {
+    return (
+      <div style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
+        Pricing will appear here shortly.
+      </div>
+    );
+  }
   return (
     <>
       <div className="dpt-cards">
@@ -372,7 +385,7 @@ function DomainPricingTable({ formatPrice }) {
       <div className="dpt-table-wrap">
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 'var(--text-sm)' }}>
           <thead>
-            <tr style={{ background: 'var(--color-bg-primary)', borderBottom: '2px solid var(--color-border)' }}>
+            <tr style={{ background: 'var(--color-surface)', borderBottom: '2px solid var(--color-border)' }}>
               {['Extension', 'Register', 'Renew', 'Transfer', 'Privacy'].map((h) => (
                 <th key={h} style={{ padding: '0.75rem 1rem', textAlign: 'left', fontWeight: 700, color: 'var(--color-text-secondary)', fontSize: 'var(--text-xs)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>{h}</th>
               ))}
@@ -398,14 +411,47 @@ function DomainPricingTable({ formatPrice }) {
 export default function DomainHosting() {
   const [tab, setTab] = useState('shared');
   const [isYearly, setIsYearly] = useState(true);
+  const [priceMap, setPriceMap] = useState({});
+  const [pricingRows, setPricingRows] = useState([]);
+  const [pricingLoading, setPricingLoading] = useState(true);
   const plans = tab === 'shared' ? SHARED_PLANS : VPS_PLANS;
   const { formatPrice } = useCurrency();
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setPricingLoading(true);
+      try {
+        const res = await getPublicDomainPricing();
+        const list = res?.data || [];
+        if (cancelled) return;
+        setPriceMap(toPriceMap(list));
+        setPricingRows(
+          list.map((p) => ({
+            ext: `.${p.tld}`,
+            reg: p.registerPriceUSD,
+            renew: p.renewPriceUSD,
+            transfer: p.transferPriceUSD,
+            privacy: 'Free',
+          })),
+        );
+      } catch {
+        if (!cancelled) {
+          setPriceMap({});
+          setPricingRows([]);
+        }
+      } finally {
+        if (!cancelled) setPricingLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   return (
     <>
       <SEOHead
         title="Domain & Hosting"
-        description="Check domain availability and find reliable hosting plans at the best prices. Powered by Namecheap."
+        description="Check domain availability and find reliable hosting plans at the best prices."
       />
 
       {/* ─── Hero ─── */}
@@ -424,7 +470,7 @@ export default function DomainHosting() {
       </section>
 
       {/* ─── Domain Search ─── */}
-      <DomainSearchSection />
+      <DomainSearchSection priceMap={priceMap} />
 
       {/* ─── Hosting Plans ─── */}
       <section className="section">
@@ -505,7 +551,7 @@ export default function DomainHosting() {
             </div>
           </FadeInUp>
           <FadeInUp delay={0.1}>
-            <DomainPricingTable formatPrice={formatPrice} />
+            <DomainPricingTable formatPrice={formatPrice} rows={pricingRows} loading={pricingLoading} />
           </FadeInUp>
         </div>
       </section>

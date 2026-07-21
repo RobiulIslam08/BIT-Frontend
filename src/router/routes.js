@@ -45,5 +45,8 @@ export const ROUTES = {
   DASHBOARD_SETTINGS: '/dashboard/settings',
   DOMAIN_CHECKOUT: '/domain-checkout',
   MY_ACCOUNT: '/my-account',
+  DOMAIN_DETAILS: '/my-account/domains/:id',
   DASHBOARD_DOMAIN_ORDERS: '/dashboard/domain-orders',
+  DASHBOARD_DOMAINS: '/dashboard/domains',
+  DASHBOARD_DOMAIN_PRICING: '/dashboard/domain-pricing',
 };

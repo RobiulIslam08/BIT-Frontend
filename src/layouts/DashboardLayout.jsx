@@ -8,7 +8,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import {
   LayoutDashboard, Package, Tag, Users, FileText,
   ShoppingCart, Settings, BarChart3, LogOut,
-  Menu, X, ChevronRight, Globe
+  Menu, X, ChevronRight, Globe, Server
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { useAppDispatch } from '@/app/hooks';
@@ -22,6 +22,8 @@ const SIDEBAR_ITEMS = [
   { label: 'Leads', path: '/dashboard/leads', icon: FileText },
   { label: 'GMB Orders', path: '/dashboard/orders', icon: ShoppingCart },
   { label: 'Domain Orders', path: '/dashboard/domain-orders', icon: Globe },
+  { label: 'Domains', path: '/dashboard/domains', icon: Server },
+  { label: 'Domain Pricing', path: '/dashboard/domain-pricing', icon: Tag },
   { label: 'Users', path: '/dashboard/users', icon: Users },
   { label: 'Analytics', path: '/dashboard/analytics', icon: BarChart3 },
   { label: 'Settings', path: '/dashboard/settings', icon: Settings },

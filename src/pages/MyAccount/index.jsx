@@ -3,31 +3,33 @@
 // ============================================
 import { useState, useEffect } from 'react';
 import { useSelector } from 'react-redux';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Globe, User, Settings, RefreshCw, Loader2,
   AlertCircle, CheckCircle2, Clock, XCircle,
-  Calendar, AlertTriangle, ShoppingBag, ExternalLink,
-  Shield, LayoutDashboard,
+  Calendar, AlertTriangle, ShoppingBag, ChevronRight,
+  Shield, LayoutDashboard, CreditCard, RotateCw,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { selectCurrentUser, selectIsAuthenticated, selectIsAdmin } from '@/features/auth/authSlice';
-import { getMyDomains } from '@/api/domainOrderApi';
+import { getMyDomains } from '@/api/domainsApi';
 import { useCurrency } from '@/context/CurrencyContext';
+import PaymentMethods from './PaymentMethods';
 import './MyAccount.css';
 
 const TABS = [
   { id: 'domains', label: 'My Domains', icon: Globe },
+  { id: 'billing', label: 'Billing', icon: CreditCard },
   { id: 'profile', label: 'Profile', icon: Settings },
 ];
 
 const statusConfig = {
   active: { label: 'Active', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', icon: CheckCircle2 },
-  processing: { label: 'Processing', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', icon: Clock },
-  failed: { label: 'Failed', color: '#ef4444', bg: 'rgba(239,68,68,0.1)', icon: XCircle },
-  pending_payment: { label: 'Pending', color: '#6366f1', bg: 'rgba(99,102,241,0.1)', icon: Clock },
+  pending: { label: 'Pending', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', icon: Clock },
+  expired: { label: 'Expired', color: '#ef4444', bg: 'rgba(239,68,68,0.1)', icon: XCircle },
   cancelled: { label: 'Cancelled', color: '#9ca3af', bg: 'rgba(156,163,175,0.1)', icon: XCircle },
+  transferred_out: { label: 'Transferred', color: '#6366f1', bg: 'rgba(99,102,241,0.1)', icon: XCircle },
 };
 
 const getDaysUntilExpiry = (expiresAt) => {
@@ -58,20 +60,37 @@ const ExpiryBadge = ({ expiresAt }) => {
 
 export default function MyAccount() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const isAdmin = useSelector(selectIsAdmin);
   const user = useSelector(selectCurrentUser);
   const { formatPrice } = useCurrency();
 
-  const [activeTab, setActiveTab] = useState('domains');
+  const initialTab = TABS.some((t) => t.id === searchParams.get('tab')) ? searchParams.get('tab') : 'domains';
+  const [activeTab, setActiveTab] = useState(initialTab);
   const [domains, setDomains] = useState([]);
   const [isLoadingDomains, setIsLoadingDomains] = useState(true);
   const [domainError, setDomainError] = useState('');
 
+  // Keep tab in sync with ?tab= query (e.g. /my-account?tab=billing)
   useEffect(() => {
-    if (!isAuthenticated) {
-      navigate('/auth/login');
+    const tab = searchParams.get('tab');
+    if (tab && TABS.some((t) => t.id === tab) && tab !== activeTab) {
+      setActiveTab(tab);
     }
+  }, [searchParams, activeTab]);
+
+  const switchTab = (id) => {
+    setActiveTab(id);
+    const next = new URLSearchParams(searchParams);
+    if (id === 'domains') next.delete('tab');
+    else next.set('tab', id);
+    // Preserve other params except vault noise is handled in PaymentMethods
+    navigate({ pathname: '/my-account', search: next.toString() ? `?${next.toString()}` : '' }, { replace: true });
+  };
+
+  useEffect(() => {
+    if (!isAuthenticated) navigate('/auth/login');
   }, [isAuthenticated, navigate]);
 
   const fetchDomains = async () => {
@@ -118,13 +137,12 @@ export default function MyAccount() {
               <button
                 key={id}
                 className={`myaccount__nav-item ${activeTab === id ? 'myaccount__nav-item--active' : ''}`}
-                onClick={() => setActiveTab(id)}
+                onClick={() => switchTab(id)}
               >
                 <Icon size={18} />
                 <span>{label}</span>
               </button>
             ))}
-            {/* Admin shortcut */}
             {isAdmin && (
               <Link to="/dashboard" className="myaccount__nav-item" style={{ marginTop: 'auto' }}>
                 <LayoutDashboard size={18} />
@@ -157,40 +175,32 @@ export default function MyAccount() {
                   </div>
                 </div>
 
-                {/* Error */}
                 {domainError && (
                   <div style={{ display: 'flex', gap: '0.5rem', padding: '1rem', borderRadius: '10px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#dc2626', fontSize: 'var(--text-sm)', marginBottom: '1rem' }}>
                     <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '1px' }} /> {domainError}
                   </div>
                 )}
 
-                {/* Loading */}
                 {isLoadingDomains ? (
                   <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--color-text-muted)' }}>
                     <Loader2 size={32} className="spin" />
                     <p style={{ marginTop: '1rem', fontSize: 'var(--text-sm)' }}>Loading your domains...</p>
                   </div>
                 ) : domains.length === 0 ? (
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="card-elevated"
-                    style={{ textAlign: 'center', padding: '4rem 2rem' }}
-                  >
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="card-elevated" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
                     <Globe size={48} style={{ color: 'var(--color-text-muted)', marginBottom: '1rem' }} />
                     <h3 className="h5" style={{ marginBottom: '0.5rem' }}>No Domains Yet</h3>
                     <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginBottom: '1.5rem' }}>
                       Search and register your first domain to get started.
                     </p>
-                    <Link to="/services/domain-hosting" className="btn btn-primary">
-                      Search Domains
-                    </Link>
+                    <Link to="/services/domain-hosting" className="btn btn-primary">Search Domains</Link>
                   </motion.div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
                     {domains.map((domain, i) => {
-                      const status = statusConfig[domain.orderStatus] || statusConfig.processing;
+                      const status = statusConfig[domain.status] || statusConfig.pending;
                       const StatusIcon = status.icon;
+                      const daysLeft = getDaysUntilExpiry(domain.expiresAt);
                       return (
                         <motion.div
                           key={domain._id}
@@ -198,6 +208,8 @@ export default function MyAccount() {
                           animate={{ opacity: 1, x: 0 }}
                           transition={{ delay: i * 0.06 }}
                           className="card-elevated myaccount__domain-card"
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => navigate(`/my-account/domains/${domain._id}`)}
                         >
                           <div className="myaccount__domain-top">
                             <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
@@ -212,7 +224,12 @@ export default function MyAccount() {
                                   <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.15rem 0.5rem', borderRadius: '999px', fontSize: '11px', fontWeight: 700, background: status.bg, color: status.color }}>
                                     <StatusIcon size={11} /> {status.label}
                                   </span>
-                                  {domain.orderStatus === 'active' && <ExpiryBadge expiresAt={domain.expiresAt} />}
+                                  {domain.status === 'active' && <ExpiryBadge expiresAt={domain.expiresAt} />}
+                                  {domain.autoRenew && (
+                                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '11px', fontWeight: 700, color: '#16a34a' }}>
+                                      <RotateCw size={11} /> Auto-Renew
+                                    </span>
+                                  )}
                                   {domain.whoisPrivacy && (
                                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', fontSize: '11px', color: 'var(--color-text-muted)' }}>
                                       <Shield size={11} /> WHOIS Private
@@ -221,12 +238,14 @@ export default function MyAccount() {
                                 </div>
                               </div>
                             </div>
-                              <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                              <div style={{ fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-primary)' }}>
-                                {formatPrice(domain.sellPriceUSD)}/yr
-                              </div>
-                              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginTop: '0.2rem' }}>
-                                Order #{domain.orderId}
+                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                              {typeof domain.renewPriceUSD === 'number' && domain.renewPriceUSD > 0 && (
+                                <div style={{ fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-primary)' }}>
+                                  {formatPrice(domain.renewPriceUSD)}/yr
+                                </div>
+                              )}
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: 'var(--text-xs)', color: 'var(--color-primary)', marginTop: '0.3rem', fontWeight: 600 }}>
+                                Details <ChevronRight size={13} />
                               </div>
                             </div>
                           </div>
@@ -246,24 +265,10 @@ export default function MyAccount() {
                             </div>
                           </div>
 
-                          {/* Failure notice */}
-                          {domain.orderStatus === 'failed' && domain.failureReason && (
-                            <div style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(239,68,68,0.06)', border: '1px solid rgba(239,68,68,0.15)', fontSize: 'var(--text-xs)', color: '#dc2626' }}>
-                              <strong>Registration Failed:</strong> {domain.failureReason}
-                              {domain.paymentStatus === 'refunded' && (
-                                <span style={{ marginLeft: '0.5rem', color: '#16a34a' }}>✅ Refund Issued</span>
-                              )}
-                            </div>
-                          )}
-
-                          {/* Expiry warning */}
-                          {domain.orderStatus === 'active' && getDaysUntilExpiry(domain.expiresAt) <= 30 && getDaysUntilExpiry(domain.expiresAt) > 0 && (
+                          {domain.status === 'active' && daysLeft !== null && daysLeft <= 30 && daysLeft >= 0 && !domain.autoRenew && (
                             <div style={{ marginTop: '0.75rem', padding: '0.75rem', borderRadius: '8px', background: 'rgba(245,158,11,0.08)', border: '1px solid rgba(245,158,11,0.2)', fontSize: 'var(--text-xs)', color: '#b45309', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                               <AlertTriangle size={13} />
-                              Your domain expires soon. Please contact support to renew.
-                              <a href="mailto:support@bitsoftwareitsolution.com" style={{ color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}>
-                                Contact Support <ExternalLink size={11} style={{ display: 'inline' }} />
-                              </a>
+                              This domain expires soon. Open details to renew or enable auto-renew.
                             </div>
                           )}
                         </motion.div>
@@ -273,6 +278,9 @@ export default function MyAccount() {
                 )}
               </motion.div>
             )}
+
+            {/* ─── BILLING TAB ─── */}
+            {activeTab === 'billing' && <PaymentMethods key="billing" />}
 
             {/* ─── PROFILE TAB ─── */}
             {activeTab === 'profile' && (

@@ -13,19 +13,12 @@ import {
 import { SEOHead } from '@/components/common/SEOHead';
 import { selectCurrentUser, selectIsAuthenticated } from '@/features/auth/authSlice';
 import { createDomainPayPalOrder, completeDomainPurchase } from '@/api/domainOrderApi';
+import { getPublicDomainPricing } from '@/api/domainPricingApi';
 import { useCurrency } from '@/context/CurrencyContext';
 import { toast } from '@/components/common/Toast/Toast';
 import { ENV } from '@/config/env';
 
-// Domain pricing (must match backend DOMAIN_PRICING)
-const DOMAIN_PRICING = {
-  com: 15, net: 17, org: 14, io: 55, co: 32, info: 12, biz: 17,
-  online: 8, tech: 35, store: 10, shop: 22, app: 20, dev: 14,
-  site: 8, website: 8, cloud: 22, digital: 32, agency: 32,
-  solutions: 22, services: 22,
-};
-
-const getDomainPriceUSD = (tld) => DOMAIN_PRICING[tld?.toLowerCase()] ?? 20;
+const FALLBACK_PRICE_USD = 20;
 
 export default function DomainCheckout() {
   const [searchParams] = useSearchParams();
@@ -39,7 +32,9 @@ export default function DomainCheckout() {
   const sld = dotIdx > 0 ? domainParam.substring(0, dotIdx) : domainParam;
   const tld = dotIdx > 0 ? domainParam.substring(dotIdx + 1) : 'com';
   const domainName = `${sld}.${tld}`.toLowerCase();
-  const priceUSD = getDomainPriceUSD(tld);
+
+  const [priceUSD, setPriceUSD] = useState(FALLBACK_PRICE_USD);
+  const [priceLoading, setPriceLoading] = useState(true);
 
   const [form, setForm] = useState({
     customerName: user?.name || '',
@@ -52,6 +47,31 @@ export default function DomainCheckout() {
   const [isCompleting, setIsCompleting] = useState(false);
   const [orderError, setOrderError] = useState('');
   const [step, setStep] = useState('form'); // 'form' | 'payment' | 'success'
+
+  // Load live sell price from admin-maintainable pricing API
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      setPriceLoading(true);
+      try {
+        const res = await getPublicDomainPricing();
+        const list = res?.data || [];
+        const match = list.find((p) => p.tld === tld.toLowerCase());
+        if (!cancelled) {
+          setPriceUSD(
+            match && typeof match.registerPriceUSD === 'number'
+              ? match.registerPriceUSD
+              : FALLBACK_PRICE_USD,
+          );
+        }
+      } catch {
+        if (!cancelled) setPriceUSD(FALLBACK_PRICE_USD);
+      } finally {
+        if (!cancelled) setPriceLoading(false);
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [tld]);
 
   // Redirect to login if not authenticated
   useEffect(() => {
@@ -178,7 +198,7 @@ export default function DomainCheckout() {
                 </div>
               </div>
               <div className="summary-right">
-                <div className="price-display-val">{displayPrice}</div>
+                <div className="price-display-val">{priceLoading ? '…' : displayPrice}</div>
                 <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>${priceUSD} USD/yr</div>
               </div>
             </div>
@@ -311,7 +331,7 @@ export default function DomainCheckout() {
                 <div style={{ textAlign: 'center', padding: '1.5rem' }}>
                   <Loader2 size={28} style={{ animation: 'spin 1s linear infinite', color: 'var(--color-primary)', margin: '0 auto' }} />
                   <p style={{ marginTop: '0.875rem', color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)', lineHeight: '1.5' }}>
-                    Registering your domain on Namecheap...<br />
+                    Registering your domain...<br />
                     This may take up to 30 seconds. Please don't close this page.
                   </p>
                 </div>
