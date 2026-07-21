@@ -457,12 +457,20 @@ export function Navbar() {
                           </span>
                         </div>
                       </div>
+                      <Link
+                        to="/my-account"
+                        className="btn btn-primary btn-lg"
+                        style={{ width: '100%', justifyContent: 'center' }}
+                        onClick={() => dispatch(closeMobileMenu())}
+                      >
+                        My Account
+                      </Link>
                       {isAdmin && (
-                        <Link to="/dashboard" className="btn btn-primary btn-lg" style={{ width: '100%', justifyContent: 'center' }} onClick={() => dispatch(closeMobileMenu())}>
+                        <Link to="/dashboard" className="btn btn-secondary btn-lg" style={{ width: '100%', justifyContent: 'center' }} onClick={() => dispatch(closeMobileMenu())}>
                           Admin Dashboard
                         </Link>
                       )}
-                      <button onClick={logout} className="btn btn-outline-cyan btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
+                      <button onClick={() => { dispatch(closeMobileMenu()); logout(); }} className="btn btn-outline-cyan btn-lg" style={{ width: '100%', justifyContent: 'center' }}>
                         Logout
                       </button>
                     </>
