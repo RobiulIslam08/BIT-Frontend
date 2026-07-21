@@ -32,7 +32,8 @@ const toPriceMap = (list = []) => {
   const map = {};
   for (const row of list) {
     if (!row?.tld) continue;
-    map[row.tld] = {
+    const key = String(row.tld).replace(/^\./, '').toLowerCase();
+    map[key] = {
       register: row.registerPriceUSD ?? FALLBACK_REGISTER_USD,
       renew: row.renewPriceUSD ?? row.registerPriceUSD ?? FALLBACK_REGISTER_USD,
       transfer: row.transferPriceUSD ?? row.registerPriceUSD ?? FALLBACK_REGISTER_USD,
@@ -155,8 +156,17 @@ function DomainResultCard({ result, isPrimary = false, priceMap = {} }) {
   const { formatPrice } = useCurrency();
   const parts = result.domain.split('.');
   const tld = parts.length > 1 ? parts.slice(1).join('.').toLowerCase() : 'com';
-  const registerUSD = priceMap[tld]?.register ?? FALLBACK_REGISTER_USD;
-  const displayPrice = formatPrice(registerUSD);
+  const fromMap = priceMap[tld];
+  const registerUSD =
+    typeof result.registerPriceUSD === 'number' && result.registerPriceUSD > 0
+      ? result.registerPriceUSD
+      : (fromMap?.register ?? FALLBACK_REGISTER_USD);
+  const renewUSD =
+    typeof result.renewPriceUSD === 'number' && result.renewPriceUSD > 0
+      ? result.renewPriceUSD
+      : (fromMap?.renew ?? null);
+  const displayRegister = formatPrice(registerUSD);
+  const displayRenew = renewUSD != null ? formatPrice(renewUSD) : null;
 
   return (
     <motion.div
@@ -205,8 +215,13 @@ function DomainResultCard({ result, isPrimary = false, priceMap = {} }) {
               fontWeight: 800,
               fontSize: isPrimary ? 'clamp(1rem, 4vw, 1.4rem)' : 'clamp(0.85rem, 3vw, 1rem)',
               fontFamily: 'var(--font-display)', color: 'var(--color-primary)',
-            }}>{displayPrice}</div>
-            <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)' }}>/year</div>
+            }}>{displayRegister}</div>
+            <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)' }}>Register / 1st year</div>
+            {displayRenew && (
+              <div style={{ fontSize: '0.65rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+                Renews at {displayRenew}/yr
+              </div>
+            )}
           </div>
         )}
         {result.available ? (
@@ -274,7 +289,7 @@ function DomainSearchSection({ priceMap = {} }) {
               <Globe size={14} style={{ display: 'inline', marginRight: '0.4rem' }} />Domain Search
             </span>
             <h2 className="h2 section-header__title">Find Your <span className="text-gradient">Perfect Domain</span></h2>
-            <p className="section-header__desc">Search and check domain availability in real-time. Powered by Namecheap.</p>
+            <p className="section-header__desc">Search and check domain availability in real-time. Transparent register and renewal pricing.</p>
           </div>
         </FadeInUp>
 

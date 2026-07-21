@@ -12,6 +12,11 @@ import axiosInstance from './axiosInstance';
  * @returns {{ query, primaryResult, suggestions }}
  */
 export const checkDomainAvailability = async (domainName) => {
-  const response = await axiosInstance.post('/domain/check', { domainName });
+  // Availability + live renew enrichment can take longer on a cold registrar cache.
+  const response = await axiosInstance.post(
+    '/domain/check',
+    { domainName },
+    { timeout: 60000 },
+  );
   return response.data;
 };
