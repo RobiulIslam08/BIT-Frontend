@@ -75,24 +75,61 @@ export const searchHostingUsers = async (search = '') => {
 };
 
 export const uploadHostingProject = async (id, file, onProgress) => {
-  const form = new FormData();
-  form.append('projectFile', file);
-  const res = await axiosInstance.post(`/hostings/${id}/project`, form, {
-    // Do NOT set Content-Type manually — browser must add multipart boundary
-    timeout: 60 * 60 * 1000, // 60 minutes for slow networks / large ZIPs
-    maxBodyLength: Infinity,
-    maxContentLength: Infinity,
-    onUploadProgress: (event) => {
-      if (!onProgress || !event.total) return;
-      const percent = Math.min(100, Math.round((event.loaded / event.total) * 100));
-      onProgress({
-        percent,
-        loaded: event.loaded,
-        total: event.total,
+  // Chunked upload — each piece ~5 MB so Traefik/proxy won't stall on 100–400 MB bodies
+  const CHUNK_SIZE = 5 * 1024 * 1024;
+  const totalChunks = Math.max(1, Math.ceil(file.size / CHUNK_SIZE));
+  const uploadId = `${id}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+
+  try {
+    for (let i = 0; i < totalChunks; i++) {
+      const start = i * CHUNK_SIZE;
+      const end = Math.min(file.size, start + CHUNK_SIZE);
+      const blob = file.slice(start, end);
+
+      const form = new FormData();
+      form.append('chunk', blob, `${file.name}.part${i}`);
+      form.append('uploadId', uploadId);
+      form.append('chunkIndex', String(i));
+      form.append('totalChunks', String(totalChunks));
+
+      await axiosInstance.post(`/hostings/${id}/project/chunk`, form, {
+        timeout: 10 * 60 * 1000,
+        maxBodyLength: Infinity,
+        maxContentLength: Infinity,
       });
-    },
-  });
-  return res.data;
+
+      if (onProgress) {
+        onProgress({
+          percent: Math.min(99, Math.round(((i + 1) / totalChunks) * 100)),
+          loaded: end,
+          total: file.size,
+        });
+      }
+    }
+
+    const res = await axiosInstance.post(`/hostings/${id}/project/complete`, {
+      uploadId,
+      totalChunks,
+      originalName: file.name,
+      mimeType: file.type || 'application/zip',
+      totalSize: file.size,
+    }, {
+      timeout: 10 * 60 * 1000,
+    });
+
+    if (onProgress) {
+      onProgress({ percent: 100, loaded: file.size, total: file.size });
+    }
+
+    return res.data;
+  } catch (err) {
+    try {
+      await axiosInstance.post(`/hostings/${id}/project/abort`, { uploadId });
+    } catch {
+      /* ignore abort errors */
+    }
+    throw err;
+  }
 };
 
 export const removeHostingProject = async (id) => {

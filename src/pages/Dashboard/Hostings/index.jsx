@@ -413,13 +413,13 @@ function HostingFormModal({ initial, catalog, onClose, onSaved }) {
                   <p style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: '0.35rem' }}>
                     {formatBytes(uploadProgress.loaded)} / {formatBytes(uploadProgress.total)}
                     {' · '}
-                    Do not close this tab — 150 MB can take 5–20+ minutes on slow upload speed.
+                    Do not close this tab — large ZIPs upload in small chunks (works behind Traefik).
                   </p>
                 </div>
               )}
               {!uploading && (
                 <p style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
-                  Max 500 MB · large files may take several minutes depending on your internet upload speed
+                  Max 500 MB · uploads in 5 MB chunks (stable on VPS / Dokploy)
                 </p>
               )}
             </div>
