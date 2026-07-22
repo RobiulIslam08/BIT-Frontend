@@ -9,17 +9,19 @@ import {
   Globe, User, Settings, RefreshCw, Loader2,
   AlertCircle, CheckCircle2, Clock, XCircle,
   Calendar, AlertTriangle, ShoppingBag, ChevronRight,
-  Shield, LayoutDashboard, CreditCard, RotateCw,
+  Shield, LayoutDashboard, CreditCard, RotateCw, Server,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { selectCurrentUser, selectIsAuthenticated, selectIsAdmin } from '@/features/auth/authSlice';
 import { getMyDomains } from '@/api/domainsApi';
+import { getMyHostings } from '@/api/hostingApi';
 import { useCurrency } from '@/context/CurrencyContext';
 import PaymentMethods from './PaymentMethods';
 import './MyAccount.css';
 
 const TABS = [
   { id: 'domains', label: 'My Domains', icon: Globe },
+  { id: 'hosting', label: 'My Hosting', icon: Server },
   { id: 'billing', label: 'Billing', icon: CreditCard },
   { id: 'profile', label: 'Profile', icon: Settings },
 ];
@@ -29,6 +31,7 @@ const statusConfig = {
   pending: { label: 'Pending', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', icon: Clock },
   expired: { label: 'Expired', color: '#ef4444', bg: 'rgba(239,68,68,0.1)', icon: XCircle },
   cancelled: { label: 'Cancelled', color: '#9ca3af', bg: 'rgba(156,163,175,0.1)', icon: XCircle },
+  suspended: { label: 'Suspended', color: '#f97316', bg: 'rgba(249,115,22,0.1)', icon: AlertTriangle },
   transferred_out: { label: 'Transferred', color: '#6366f1', bg: 'rgba(99,102,241,0.1)', icon: XCircle },
 };
 
@@ -71,6 +74,9 @@ export default function MyAccount() {
   const [domains, setDomains] = useState([]);
   const [isLoadingDomains, setIsLoadingDomains] = useState(true);
   const [domainError, setDomainError] = useState('');
+  const [hostings, setHostings] = useState([]);
+  const [isLoadingHostings, setIsLoadingHostings] = useState(true);
+  const [hostingError, setHostingError] = useState('');
 
   // Keep tab in sync with ?tab= query (e.g. /my-account?tab=billing)
   useEffect(() => {
@@ -106,7 +112,20 @@ export default function MyAccount() {
     }
   };
 
-  useEffect(() => { fetchDomains(); }, []);
+  const fetchHostings = async () => {
+    setIsLoadingHostings(true);
+    setHostingError('');
+    try {
+      const res = await getMyHostings();
+      if (res.success) setHostings(res.data || []);
+    } catch (err) {
+      setHostingError(err?.response?.data?.message || 'Failed to load hosting.');
+    } finally {
+      setIsLoadingHostings(false);
+    }
+  };
+
+  useEffect(() => { fetchDomains(); fetchHostings(); }, []);
 
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
@@ -271,6 +290,120 @@ export default function MyAccount() {
                               This domain expires soon. Open details to renew or enable auto-renew.
                             </div>
                           )}
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* ─── HOSTING TAB ─── */}
+            {activeTab === 'hosting' && (
+              <motion.div key="hosting" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <div className="myaccount__section-header">
+                  <div>
+                    <h2 className="h4">My Hosting</h2>
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginTop: '0.25rem' }}>
+                      View and manage your hosting plans
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button className="btn btn-ghost btn-sm" onClick={fetchHostings} disabled={isLoadingHostings}>
+                      <RefreshCw size={14} className={isLoadingHostings ? 'spin' : ''} /> Refresh
+                    </button>
+                    <Link to="/services/domain-hosting" className="btn btn-primary btn-sm">
+                      <Server size={14} /> Get Hosting
+                    </Link>
+                  </div>
+                </div>
+
+                {hostingError && (
+                  <div style={{ display: 'flex', gap: '0.5rem', padding: '1rem', borderRadius: '10px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#dc2626', fontSize: 'var(--text-sm)', marginBottom: '1rem' }}>
+                    <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '1px' }} /> {hostingError}
+                  </div>
+                )}
+
+                {isLoadingHostings ? (
+                  <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--color-text-muted)' }}>
+                    <Loader2 size={32} className="spin" />
+                    <p style={{ marginTop: '1rem', fontSize: 'var(--text-sm)' }}>Loading your hosting...</p>
+                  </div>
+                ) : hostings.length === 0 ? (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="card-elevated" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+                    <Server size={48} style={{ color: 'var(--color-text-muted)', marginBottom: '1rem' }} />
+                    <h3 className="h5" style={{ marginBottom: '0.5rem' }}>No Hosting Yet</h3>
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginBottom: '1.5rem' }}>
+                      Choose a hosting plan for your website to get started.
+                    </p>
+                    <Link to="/services/domain-hosting" className="btn btn-primary">Browse Hosting Plans</Link>
+                  </motion.div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {hostings.map((item, i) => {
+                      const status = statusConfig[item.status] || statusConfig.pending;
+                      const StatusIcon = status.icon;
+                      return (
+                        <motion.div
+                          key={item._id}
+                          initial={{ opacity: 0, x: -12 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.06 }}
+                          className="card-elevated myaccount__domain-card"
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => navigate(`/my-account/hosting/${item._id}`)}
+                        >
+                          <div className="myaccount__domain-top">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+                              <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--color-primary-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Server size={20} style={{ color: 'var(--color-primary)' }} />
+                              </div>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontWeight: 800, fontSize: 'var(--text-lg)', fontFamily: 'var(--font-display)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {item.planName}
+                                  <span style={{ fontWeight: 500, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', marginLeft: '0.4rem', textTransform: 'capitalize' }}>
+                                    ({item.planType})
+                                  </span>
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.15rem 0.5rem', borderRadius: '999px', fontSize: '11px', fontWeight: 700, background: status.bg, color: status.color }}>
+                                    <StatusIcon size={11} /> {status.label}
+                                  </span>
+                                  {item.status === 'active' && <ExpiryBadge expiresAt={item.expiresAt} />}
+                                  {item.websiteLabel && (
+                                    <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                                      {item.websiteLabel}
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                              {typeof item.amountUSD === 'number' && item.amountUSD > 0 && (
+                                <div style={{ fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-primary)' }}>
+                                  {formatPrice(item.amountUSD)}
+                                </div>
+                              )}
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: 'var(--text-xs)', color: 'var(--color-primary)', marginTop: '0.3rem', fontWeight: 600 }}>
+                                Details <ChevronRight size={13} />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="myaccount__domain-meta">
+                            <div className="myaccount__domain-meta-item">
+                              <Calendar size={13} />
+                              <span>Started: {formatDate(item.startsAt)}</span>
+                            </div>
+                            <div className="myaccount__domain-meta-item">
+                              <Calendar size={13} />
+                              <span>Expires: {formatDate(item.expiresAt)}</span>
+                            </div>
+                            <div className="myaccount__domain-meta-item">
+                              <Server size={13} />
+                              <span style={{ textTransform: 'capitalize' }}>{item.billingCycle} billing</span>
+                            </div>
+                          </div>
                         </motion.div>
                       );
                     })}

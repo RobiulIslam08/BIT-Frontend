@@ -8,22 +8,33 @@ import {
 import { SEOHead } from '@/components/common/SEOHead';
 import { FadeInUp } from '@/components/animations/FadeInUp';
 import { StaggerChildren, StaggerItem } from '@/components/animations/StaggerChildren';
-import { COMPANY } from '@/utils/constants';
 import { checkDomainAvailability } from '@/api/domainApi';
 import { getPublicDomainPricing } from '@/api/domainPricingApi';
+import { getPublicHostingPlans } from '@/api/hostingPlanApi';
 import { useCurrency } from '@/context/CurrencyContext';
 
-// ─── Hosting Plans ───
+// ─── Hosting Plans (fallback if API unavailable) ───
 const SHARED_PLANS = [
-  { name: 'Starter', monthly: 3.99, yearly: 39, popular: false, features: ['10 GB SSD', '1 Website', 'Unmetered Bandwidth', '10 Email Accounts', 'Free SSL', 'cPanel Access'] },
-  { name: 'Business', monthly: 7.99, yearly: 79, popular: true, features: ['50 GB SSD', '5 Websites', 'Unmetered Bandwidth', '50 Email Accounts', 'Free SSL', 'cPanel Access', 'Free Domain'] },
-  { name: 'Professional', monthly: 14.99, yearly: 149, popular: false, features: ['Unlimited SSD', 'Unlimited Websites', 'Unmetered Bandwidth', 'Unlimited Email', 'Free SSL', 'cPanel Access', 'Free Domain', 'Priority Support'] },
+  { slug: 'shared-starter', name: 'Starter', monthly: 3.99, yearly: 39, popular: false, features: ['10 GB SSD', '1 Website', 'Unmetered Bandwidth', '10 Email Accounts', 'Free SSL', 'cPanel Access'] },
+  { slug: 'shared-business', name: 'Business', monthly: 7.99, yearly: 79, popular: true, features: ['50 GB SSD', '5 Websites', 'Unmetered Bandwidth', '50 Email Accounts', 'Free SSL', 'cPanel Access', 'Free Domain'] },
+  { slug: 'shared-professional', name: 'Professional', monthly: 14.99, yearly: 149, popular: false, features: ['Unlimited SSD', 'Unlimited Websites', 'Unmetered Bandwidth', 'Unlimited Email', 'Free SSL', 'cPanel Access', 'Free Domain', 'Priority Support'] },
 ];
 const VPS_PLANS = [
-  { name: 'VPS-1', monthly: 12.99, yearly: 129, features: ['1 vCPU Core', '2 GB RAM', '40 GB NVMe', '2 TB Bandwidth', 'Root Access'] },
-  { name: 'VPS-2', monthly: 24.99, yearly: 249, features: ['2 vCPU Cores', '4 GB RAM', '80 GB NVMe', '4 TB Bandwidth', 'Root Access'] },
-  { name: 'VPS-4', monthly: 44.99, yearly: 449, features: ['4 vCPU Cores', '8 GB RAM', '160 GB NVMe', '8 TB Bandwidth', 'Root Access'] },
+  { slug: 'vps-starter', name: 'Starter', monthly: 12.99, yearly: 129, popular: false, features: ['1 vCPU Core', '2 GB RAM', '40 GB NVMe', '2 TB Bandwidth', 'Root Access'] },
+  { slug: 'vps-business', name: 'Business', monthly: 24.99, yearly: 249, popular: true, features: ['2 vCPU Cores', '4 GB RAM', '80 GB NVMe', '4 TB Bandwidth', 'Root Access'] },
+  { slug: 'vps-professional', name: 'Professional', monthly: 44.99, yearly: 449, popular: false, features: ['4 vCPU Cores', '8 GB RAM', '160 GB NVMe', '8 TB Bandwidth', 'Root Access'] },
 ];
+
+const mapApiPlans = (list = []) =>
+  list.map((p) => ({
+    slug: p.slug,
+    name: p.name,
+    monthly: p.monthlyPriceUSD,
+    yearly: p.yearlyPriceUSD,
+    popular: !!p.popular,
+    features: p.features || [],
+    planType: p.planType,
+  }));
 
 const FALLBACK_REGISTER_USD = 20;
 
@@ -429,8 +440,28 @@ export default function DomainHosting() {
   const [priceMap, setPriceMap] = useState({});
   const [pricingRows, setPricingRows] = useState([]);
   const [pricingLoading, setPricingLoading] = useState(true);
-  const plans = tab === 'shared' ? SHARED_PLANS : VPS_PLANS;
+  const [sharedPlans, setSharedPlans] = useState(SHARED_PLANS);
+  const [vpsPlans, setVpsPlans] = useState(VPS_PLANS);
+  const plans = tab === 'shared' ? sharedPlans : vpsPlans;
   const { formatPrice } = useCurrency();
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await getPublicHostingPlans();
+        const list = res?.data || [];
+        if (cancelled || !list.length) return;
+        const shared = mapApiPlans(list.filter((p) => p.planType === 'shared'));
+        const vps = mapApiPlans(list.filter((p) => p.planType === 'vps'));
+        if (shared.length) setSharedPlans(shared);
+        if (vps.length) setVpsPlans(vps);
+      } catch {
+        /* keep fallbacks */
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -523,7 +554,7 @@ export default function DomainHosting() {
 
           <StaggerChildren className="plan-grid">
             {plans.map((plan) => (
-              <StaggerItem key={plan.name}>
+              <StaggerItem key={plan.slug || plan.name}>
                 <motion.div whileHover={{ y: -6 }} transition={{ duration: 0.2 }}
                   className="card-elevated plan-card"
                   style={{ textAlign: 'center', position: 'relative', overflow: 'hidden', border: plan.popular ? '2px solid var(--color-primary)' : undefined, height: '100%' }}>
@@ -543,11 +574,13 @@ export default function DomainHosting() {
                       </div>
                     ))}
                   </div>
-                  <a href={COMPANY.whatsapp} target="_blank" rel="noopener noreferrer"
+                  <Link
+                    to={`/hosting-checkout?plan=${encodeURIComponent(plan.slug)}&billing=${isYearly ? 'yearly' : 'monthly'}`}
                     className={plan.popular ? 'btn btn-primary' : 'btn btn-secondary'}
-                    style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--text-sm)' }}>
+                    style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--text-sm)' }}
+                  >
                     Get Started <ArrowRight size={14} />
-                  </a>
+                  </Link>
                 </motion.div>
               </StaggerItem>
             ))}

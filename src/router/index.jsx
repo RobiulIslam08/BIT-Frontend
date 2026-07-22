@@ -31,8 +31,10 @@ const OnlineMarketing = lazy(() => import('@/pages/Services/OnlineMarketing'));
 const GoogleMyBusiness = lazy(() => import('@/pages/Services/GoogleMyBusiness'));
 const DomainHosting = lazy(() => import('@/pages/Services/DomainHosting'));
 const DomainCheckout = lazy(() => import('@/pages/DomainCheckout'));
+const HostingCheckout = lazy(() => import('@/pages/HostingCheckout'));
 const MyAccount = lazy(() => import('@/pages/MyAccount'));
 const DomainDetails = lazy(() => import('@/pages/DomainDetails'));
+const HostingDetails = lazy(() => import('@/pages/HostingDetails'));
 const TermsAndConditions = lazy(() => import('@/pages/TermsAndConditions'));
 const Portfolio = lazy(() => import('@/pages/Portfolio'));
 const Blog = lazy(() => import('@/pages/Blog'));
@@ -48,6 +50,9 @@ const DashboardOrders = lazy(() => import('@/pages/Dashboard/Orders'));
 const AdminDomainOrders = lazy(() => import('@/pages/Dashboard/DomainOrders'));
 const AdminDomains = lazy(() => import('@/pages/Dashboard/Domains'));
 const AdminDomainPricing = lazy(() => import('@/pages/Dashboard/DomainPricing'));
+const AdminHostings = lazy(() => import('@/pages/Dashboard/Hostings'));
+const AdminHostingOrders = lazy(() => import('@/pages/Dashboard/HostingOrders'));
+const AdminHostingPlans = lazy(() => import('@/pages/Dashboard/HostingPlans'));
 const DashboardUsers = lazy(() => import('@/pages/Dashboard/Users'));
 const DashboardAnalytics = lazy(() => import('@/pages/Dashboard/Analytics'));
 const DashboardSettings = lazy(() => import('@/pages/Dashboard/Settings'));
@@ -84,8 +89,10 @@ export const router = createBrowserRouter([
         element: <ProtectedRoute />,
         children: [
           { path: 'domain-checkout', element: <SuspenseWrap><DomainCheckout /></SuspenseWrap> },
+          { path: 'hosting-checkout', element: <SuspenseWrap><HostingCheckout /></SuspenseWrap> },
           { path: 'my-account', element: <SuspenseWrap><MyAccount /></SuspenseWrap> },
           { path: 'my-account/domains/:id', element: <SuspenseWrap><DomainDetails /></SuspenseWrap> },
+          { path: 'my-account/hosting/:id', element: <SuspenseWrap><HostingDetails /></SuspenseWrap> },
         ],
       },
       { path: '*', element: <SuspenseWrap><NotFound /></SuspenseWrap> },
@@ -122,6 +129,9 @@ export const router = createBrowserRouter([
           { path: 'domain-orders', element: <SuspenseWrap><AdminDomainOrders /></SuspenseWrap> },
           { path: 'domains', element: <SuspenseWrap><AdminDomains /></SuspenseWrap> },
           { path: 'domain-pricing', element: <SuspenseWrap><AdminDomainPricing /></SuspenseWrap> },
+          { path: 'hosting-orders', element: <SuspenseWrap><AdminHostingOrders /></SuspenseWrap> },
+          { path: 'hostings', element: <SuspenseWrap><AdminHostings /></SuspenseWrap> },
+          { path: 'hosting-plans', element: <SuspenseWrap><AdminHostingPlans /></SuspenseWrap> },
           { path: 'users', element: <SuspenseWrap><DashboardUsers /></SuspenseWrap> },
           { path: 'analytics', element: <SuspenseWrap><DashboardAnalytics /></SuspenseWrap> },
           { path: 'settings', element: <SuspenseWrap><DashboardSettings /></SuspenseWrap> },
