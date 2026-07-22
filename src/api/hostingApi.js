@@ -4,7 +4,6 @@
 
 import axiosInstance from './axiosInstance';
 import { ENV } from '@/config/env';
-import { tokenStorage } from '@/utils/tokenStorage';
 
 // ─── USER ───
 
@@ -18,43 +17,29 @@ export const getMyHostingById = async (id) => {
   return res.data;
 };
 
-/** Trigger browser download of the project ZIP (auth via Bearer). */
+/** Trigger browser download of the project ZIP (auth via short-lived token + native stream). */
 export const downloadHostingProject = async (id, fallbackName = 'project.zip') => {
-  const token = tokenStorage.getToken();
-  const base = (ENV.API_URL || '').replace(/\/$/, '');
-  const url = `${base}/hostings/my/${id}/download`;
-
-  const res = await fetch(url, {
-    headers: token ? { Authorization: `Bearer ${token}` } : {},
-  });
-
-  if (!res.ok) {
-    let message = 'Failed to download project file.';
-    try {
-      const data = await res.json();
-      message = data?.message || message;
-    } catch {
-      /* ignore */
-    }
-    throw new Error(message);
+  // 1) Get a short-lived download URL (avoids loading 200–400 MB into JS memory)
+  const tokenRes = await axiosInstance.post(`/hostings/my/${id}/download-token`);
+  const downloadPath = tokenRes?.data?.data?.downloadPath;
+  if (!downloadPath) {
+    throw new Error(tokenRes?.data?.message || 'Failed to create download link.');
   }
 
-  const blob = await res.blob();
-  const disposition = res.headers.get('Content-Disposition') || '';
-  const match = disposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-  let filename = fallbackName;
-  if (match?.[1]) {
-    filename = match[1].replace(/['"]/g, '');
-  }
+  // downloadPath is like /api/v1/hostings/download-file?token=...
+  // ENV.API_URL is usually http://host/api/v1 — strip /api/v1 if path already includes it
+  const apiBase = (ENV.API_BASE_URL || '').replace(/\/$/, '');
+  const url = downloadPath.startsWith('http')
+    ? downloadPath
+    : `${apiBase}${downloadPath.startsWith('/') ? '' : '/'}${downloadPath}`;
 
-  const objectUrl = URL.createObjectURL(blob);
   const a = document.createElement('a');
-  a.href = objectUrl;
-  a.download = filename;
+  a.href = url;
+  a.rel = 'noopener';
+  a.download = fallbackName;
   document.body.appendChild(a);
   a.click();
   a.remove();
-  URL.revokeObjectURL(objectUrl);
 };
 
 // ─── ADMIN ───
@@ -93,9 +78,8 @@ export const uploadHostingProject = async (id, file) => {
   const form = new FormData();
   form.append('projectFile', file);
   const res = await axiosInstance.post(`/hostings/${id}/project`, form, {
-    headers: { 'Content-Type': 'multipart/form-data' },
-    // Large project ZIPs (200–400 MB) need a long timeout + no body size cap
-    timeout: 30 * 60 * 1000, // 30 minutes
+    // Do NOT set Content-Type manually — browser must add multipart boundary
+    timeout: 30 * 60 * 1000, // 30 minutes for large ZIPs
     maxBodyLength: Infinity,
     maxContentLength: Infinity,
   });
