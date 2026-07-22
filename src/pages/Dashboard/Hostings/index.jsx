@@ -165,6 +165,7 @@ function HostingFormModal({ initial, catalog, onClose, onSaved }) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(null); // { percent, loaded, total }
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -241,12 +242,15 @@ function HostingFormModal({ initial, catalog, onClose, onSaved }) {
     }
 
     setUploading(true);
+    setUploadProgress({ percent: 0, loaded: 0, total: file.size });
     try {
-      await uploadHostingProject(initial._id, file);
+      await uploadHostingProject(initial._id, file, (p) => setUploadProgress(p));
       toast.success('Project ZIP uploaded.');
+      setUploadProgress(null);
       onSaved();
     } catch (err) {
       toast.error(err?.response?.data?.message || err?.message || 'Upload failed.');
+      setUploadProgress(null);
     } finally {
       setUploading(false);
       e.target.value = '';
@@ -389,12 +393,35 @@ function HostingFormModal({ initial, catalog, onClose, onSaved }) {
               )}
               <label className="btn btn-secondary btn-sm" style={{ marginTop: '0.5rem', cursor: uploading ? 'wait' : 'pointer' }}>
                 {uploading ? <Loader2 size={14} className="spin" /> : <Upload size={14} />}
-                {uploading ? 'Uploading…' : 'Upload ZIP'}
+                {uploading
+                  ? `Uploading ${uploadProgress?.percent ?? 0}%…`
+                  : 'Upload ZIP'}
                 <input type="file" accept=".zip,.rar,.7z,.tar,.gz" hidden disabled={uploading} onChange={handleUpload} />
               </label>
-              <p style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
-                Max 500 MB · large files may take several minutes
-              </p>
+              {uploading && uploadProgress && (
+                <div style={{ marginTop: '0.65rem' }}>
+                  <div style={{ height: 8, borderRadius: 999, background: 'var(--color-border)', overflow: 'hidden' }}>
+                    <div
+                      style={{
+                        height: '100%',
+                        width: `${uploadProgress.percent}%`,
+                        background: 'var(--color-primary)',
+                        transition: 'width 0.2s ease',
+                      }}
+                    />
+                  </div>
+                  <p style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: '0.35rem' }}>
+                    {formatBytes(uploadProgress.loaded)} / {formatBytes(uploadProgress.total)}
+                    {' · '}
+                    Do not close this tab — 150 MB can take 5–20+ minutes on slow upload speed.
+                  </p>
+                </div>
+              )}
+              {!uploading && (
+                <p style={{ fontSize: 11, color: 'var(--color-text-muted)', marginTop: '0.5rem' }}>
+                  Max 500 MB · large files may take several minutes depending on your internet upload speed
+                </p>
+              )}
             </div>
           )}
 

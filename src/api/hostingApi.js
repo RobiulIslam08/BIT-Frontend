@@ -74,14 +74,23 @@ export const searchHostingUsers = async (search = '') => {
   return res.data;
 };
 
-export const uploadHostingProject = async (id, file) => {
+export const uploadHostingProject = async (id, file, onProgress) => {
   const form = new FormData();
   form.append('projectFile', file);
   const res = await axiosInstance.post(`/hostings/${id}/project`, form, {
     // Do NOT set Content-Type manually — browser must add multipart boundary
-    timeout: 30 * 60 * 1000, // 30 minutes for large ZIPs
+    timeout: 60 * 60 * 1000, // 60 minutes for slow networks / large ZIPs
     maxBodyLength: Infinity,
     maxContentLength: Infinity,
+    onUploadProgress: (event) => {
+      if (!onProgress || !event.total) return;
+      const percent = Math.min(100, Math.round((event.loaded / event.total) * 100));
+      onProgress({
+        percent,
+        loaded: event.loaded,
+        total: event.total,
+      });
+    },
   });
   return res.data;
 };
