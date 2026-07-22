@@ -22,7 +22,7 @@ export default function HostingCheckout() {
   const navigate = useNavigate();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const user = useSelector(selectCurrentUser);
-  const { currency, formatPrice } = useCurrency();
+  const { currency, formatPriceWithCode } = useCurrency();
 
   const planSlug = (searchParams.get('plan') || '').toLowerCase();
   const billingParam = searchParams.get('billing') === 'monthly' ? 'monthly' : 'yearly';
@@ -86,7 +86,7 @@ export default function HostingCheckout() {
   const priceUSD = plan
     ? (billingCycle === 'monthly' ? plan.monthlyPriceUSD : plan.yearlyPriceUSD)
     : 0;
-  const displayPrice = formatPrice(priceUSD);
+  const displayPrice = formatPriceWithCode(priceUSD);
 
   const validateForm = () => {
     const errors = {};
@@ -209,7 +209,7 @@ export default function HostingCheckout() {
                   <div className="summary-right">
                     <div className="price-display-val">{displayPrice}</div>
                     <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                      ${priceUSD} USD/{billingCycle === 'monthly' ? 'mo' : 'yr'}
+                      per {billingCycle === 'monthly' ? 'month' : 'year'} · {currency}
                     </div>
                   </div>
                 </div>

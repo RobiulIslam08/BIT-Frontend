@@ -563,7 +563,7 @@ export default function DomainHosting() {
                   <h3 className="h4" style={{ marginBottom: '0.5rem', fontSize: 'clamp(1.1rem, 4vw, 1.5rem)' }}>{plan.name}</h3>
                   <div style={{ marginBottom: '1.25rem' }}>
                     <span style={{ fontSize: 'clamp(1.75rem, 7vw, 2.25rem)', fontWeight: 800, fontFamily: 'var(--font-display)' }}>
-                      ${isYearly ? plan.yearly : plan.monthly}
+                      {formatPrice(isYearly ? plan.yearly : plan.monthly)}
                     </span>
                     <span style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>/{isYearly ? 'year' : 'month'}</span>
                   </div>

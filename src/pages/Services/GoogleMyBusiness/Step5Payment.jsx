@@ -13,8 +13,9 @@ import {
 import './Step5Payment.css';
 import { toast } from '@/components/common/Toast/Toast';
 import { validateCoupon, createPayPalOrder } from '@/api/gmbOrderApi';
+import { useCurrency } from '@/context/CurrencyContext';
 
-// Pricing constants
+// Pricing constants (canonical amounts in SAR — converted for display)
 const PRICING = {
   NEW_PROFILE: 399,
   RECOVERY_SERVICE: 500,
@@ -152,6 +153,8 @@ function PayPalCheckoutButtons({ finalPrice, serviceType, form, hasExistingProfi
 
 // ─── MAIN COMPONENT ───
 export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
+  const { currency, formatFromSARWithCode, rates } = useCurrency();
+
   // ─── LOCAL STATE ───
   const [hasExistingProfile, setHasExistingProfile] = useState(false);
   const [profileHasIssues, setProfileHasIssues] = useState(null);
@@ -206,6 +209,12 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
   const showCoupon = serviceType !== 'recovery';
   const finalPrice = showCoupon ? Math.max(0, basePrice - couponDiscount) : basePrice;
 
+  // Display amounts in the customer's selected currency (backend still uses SAR)
+  const displayBase = formatFromSARWithCode(basePrice);
+  const displayFinal = formatFromSARWithCode(finalPrice);
+  const displayDiscount = formatFromSARWithCode(couponDiscount);
+  const paypalUsdApprox = parseFloat((finalPrice / (rates.SAR || 3.75)).toFixed(2));
+
   // ─── PayPal Client ID ───
   // Uses real client ID from env if provided, otherwise falls back to 'sb' (sandbox mode)
   const paypalClientId = (() => {
@@ -230,7 +239,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
       if (discount) {
         setCouponDiscount(discount);
         setCouponApplied(true);
-        const msg = `Coupon applied! You save ${discount} SAR.`;
+        const msg = `Coupon applied! You save ${formatFromSARWithCode(discount)}.`;
         setCouponMessage(msg);
         toast.success(msg);
       } else {
@@ -251,7 +260,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
     } finally {
       setCouponLoading(false);
     }
-  }, [couponCode]);
+  }, [couponCode, formatFromSARWithCode]);
 
   const handleRemoveCoupon = () => {
     const wasApplied = couponApplied;
@@ -542,17 +551,17 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
         <div className="gmb-price-display">
           {couponDiscount > 0 && showCoupon ? (
             <>
-              <span className="gmb-price-original has-discount">{basePrice} SAR</span>
-              <span className="gmb-price-final">{finalPrice} SAR</span>
+              <span className="gmb-price-original has-discount">{displayBase}</span>
+              <span className="gmb-price-final">{displayFinal}</span>
             </>
           ) : (
-            <span className="gmb-price-original">{basePrice} SAR</span>
+            <span className="gmb-price-original">{displayBase}</span>
           )}
         </div>
 
         {couponApplied && showCoupon && (
           <div className="gmb-discount-badge">
-            <Tag size={12} /> You save {couponDiscount} SAR with coupon
+            <Tag size={12} /> You save {displayDiscount} with coupon
           </div>
         )}
       </div>
@@ -959,13 +968,13 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
 
         <div className="gmb-summary-row">
           <span className="gmb-summary-label">Original Price</span>
-          <span className="gmb-summary-value">{basePrice} SAR</span>
+          <span className="gmb-summary-value">{displayBase}</span>
         </div>
 
         {couponDiscount > 0 && showCoupon && (
           <div className="gmb-summary-row">
             <span className="gmb-summary-label">Coupon Discount</span>
-            <span className="gmb-summary-value discount">−{couponDiscount} SAR</span>
+            <span className="gmb-summary-value discount">−{displayDiscount}</span>
           </div>
         )}
 
@@ -973,7 +982,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
 
         <div className="gmb-summary-row gmb-summary-total">
           <span className="gmb-summary-label">Final Amount</span>
-          <span className="gmb-summary-value">{finalPrice} SAR</span>
+          <span className="gmb-summary-value">{displayFinal}</span>
         </div>
 
         <hr className="gmb-summary-divider" />
@@ -1024,7 +1033,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
               ) : (
                 <>
                   <Send size={18} />
-                  Submit Order — {finalPrice} SAR
+                  Submit Order — {displayFinal}
                 </>
               )}
             </button>
@@ -1038,9 +1047,13 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
 
             <div className="paypal-checkout-box">
               <div className="paypal-amount-info">
-                <span>Amount for PayPal checkout:</span>
-                <strong>${(finalPrice / 3.75).toFixed(2)} USD</strong>
-                <span className="paypal-sar-note">(= {finalPrice} SAR)</span>
+                <span>Amount due ({currency}):</span>
+                <strong>{displayFinal}</strong>
+                {currency !== 'USD' && (
+                  <span className="paypal-sar-note">
+                    (PayPal charges ≈ ${paypalUsdApprox.toFixed(2)} USD)
+                  </span>
+                )}
               </div>
 
               {!termsAccepted && (

@@ -25,7 +25,7 @@ export default function DomainCheckout() {
   const navigate = useNavigate();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const user = useSelector(selectCurrentUser);
-  const { currency, formatPrice } = useCurrency();
+  const { currency, formatPriceWithCode } = useCurrency();
 
   const domainParam = searchParams.get('domain') || '';
   const dotIdx = domainParam.indexOf('.');
@@ -86,7 +86,7 @@ export default function DomainCheckout() {
     if (!domainParam) navigate('/services/domain-hosting');
   }, [domainParam, navigate]);
 
-  const displayPrice = formatPrice(priceUSD);
+  const displayPrice = formatPriceWithCode(priceUSD);
 
   const validateForm = () => {
     const errors = {};
@@ -199,7 +199,7 @@ export default function DomainCheckout() {
               </div>
               <div className="summary-right">
                 <div className="price-display-val">{priceLoading ? '…' : displayPrice}</div>
-                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>${priceUSD} USD/yr</div>
+                <div style={{ fontSize: '0.72rem', color: 'var(--color-text-muted)', marginTop: '2px' }}>per year · {currency}</div>
               </div>
             </div>
 

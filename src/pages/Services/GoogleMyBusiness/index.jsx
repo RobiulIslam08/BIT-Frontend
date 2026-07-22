@@ -13,6 +13,7 @@ import { SEOHead } from '@/components/common/SEOHead';
 import { FadeInUp } from '@/components/animations/FadeInUp';
 import { toast } from '@/components/common/Toast/Toast';
 import { submitGMBOrder } from '@/api/gmbOrderApi';
+import { useCurrency } from '@/context/CurrencyContext';
 import MapPicker from './MapPicker';
 import Step5Payment from './Step5Payment';
 import './GoogleMyBusiness.css';
@@ -60,6 +61,7 @@ const CATEGORIES = [
 ];
 
 export default function GoogleMyBusiness() {
+  const { formatFromSARWithCode } = useCurrency();
   const [step, setStep] = useState(1);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -302,7 +304,7 @@ export default function GoogleMyBusiness() {
                         <li><strong>Order ID:</strong> #{orderData.orderId}</li>
                       )}
                       <li><strong>Service:</strong> {orderData.serviceType === 'new' ? 'New Profile Creation' : orderData.serviceType === 'recovery' ? 'GMB Recovery' : 'Profile Management'}</li>
-                      <li><strong>Amount Paid:</strong> {orderData.finalAmount} SAR</li>
+                      <li><strong>Amount Paid:</strong> {formatFromSARWithCode(orderData.finalAmount)}</li>
                       <li><strong>Payment Method:</strong> {orderData.paymentMethod === 'paypal' ? 'PayPal' : 'Manual Payment'}</li>
                       <li><strong>Payment Status:</strong> {orderData.paymentStatus === 'paid' ? '✅ Paid' : '⏳ Pending Verification'}</li>
                       <li><strong>Order Status:</strong> 📋 Pending Review</li>

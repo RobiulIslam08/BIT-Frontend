@@ -143,7 +143,9 @@ export default function HostingDetails() {
                     <div style={{ fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--color-primary)', fontSize: 'clamp(1.1rem, 4vw, 1.35rem)' }}>
                       {formatPrice(hosting.amountUSD)}
                     </div>
-                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>Plan amount</div>
+                    <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textTransform: 'capitalize' }}>
+                      {hosting.billingCycle || 'Plan'} amount
+                    </div>
                   </div>
                 )}
               </div>

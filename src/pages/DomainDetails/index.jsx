@@ -51,7 +51,7 @@ function InfoRow({ icon: Icon, label, children }) {
 export default function DomainDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { currency, formatPrice } = useCurrency();
+  const { currency, formatPriceWithCode } = useCurrency();
 
   const [domain, setDomain] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -255,11 +255,11 @@ export default function DomainDetails() {
               <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '0.35rem' }}>
                 <span style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>Renewal fee</span>
                 <span style={{ fontWeight: 800, fontFamily: 'var(--font-display)', fontSize: '1.4rem', color: 'var(--color-primary)' }}>
-                  {renewPrice !== null ? `${formatPrice(renewPrice)}` : '—'}
+                  {renewPrice !== null ? formatPriceWithCode(renewPrice) : '—'}
                 </span>
               </div>
               <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: '1rem' }}>
-                {renewPrice !== null ? `${renewPrice.toFixed(2)} USD / year` : 'Contact support for pricing'}
+                {renewPrice !== null ? `per year · ${currency}` : 'Contact support for pricing'}
               </div>
 
               <AnimatePresence>

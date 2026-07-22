@@ -30,7 +30,6 @@ export function CurrencySelector() {
   }, []);
 
   const handleSelect = (code) => {
-    console.log('[CurrencySelector] Selected currency:', code);
     changeCurrency(code);
     setIsOpen(false);
   };
