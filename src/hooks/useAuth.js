@@ -19,6 +19,7 @@ import {
 } from '@/features/auth/authSlice';
 import { authApi } from '@/api/authApi';
 import { toast } from '@/components/common/Toast/Toast';
+import { trackEvent } from '@/utils/analytics';
 
 export function useAuth() {
   const dispatch = useDispatch();
@@ -73,6 +74,7 @@ export function useAuth() {
       // Backend call fail হলেও local logout করা হবে
     } finally {
       dispatch(logout());
+      trackEvent('logout');
       toast.success('Logged out successfully.');
       navigate('/auth/login');
     }

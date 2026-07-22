@@ -4,6 +4,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Globe, ChevronDown, Check } from 'lucide-react';
 import { useCurrency } from '@/context/CurrencyContext';
+import { trackEvent } from '@/utils/analytics';
 import './CurrencySelector.css';
 
 export function CurrencySelector() {
@@ -32,6 +33,7 @@ export function CurrencySelector() {
   const handleSelect = (code) => {
     changeCurrency(code);
     setIsOpen(false);
+    trackEvent('currency_change', { currency_code: code });
   };
 
   const stopProp = (e) => {

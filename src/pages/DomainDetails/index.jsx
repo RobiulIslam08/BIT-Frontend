@@ -18,6 +18,7 @@ import {
 } from '@/api/domainsApi';
 import { useCurrency } from '@/context/CurrencyContext';
 import { toast } from '@/components/common/Toast/Toast';
+import { trackBeginCheckout, trackPurchase, trackEvent } from '@/utils/analytics';
 
 const statusConfig = {
   active: { label: 'Active', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', icon: CheckCircle2 },
@@ -85,6 +86,7 @@ export default function DomainDetails() {
       const res = await toggleAutoRenew(id, next);
       if (res.success) {
         setDomain((d) => ({ ...d, autoRenew: next }));
+        trackEvent('auto_renew_toggle', { item_name: domain?.domainName, enabled: next });
         if (res.data?.needsPaymentMethod) {
           toast.warning('Auto-renew enabled. Add a saved payment method in Billing to allow automatic charges.');
         } else {
@@ -106,6 +108,17 @@ export default function DomainDetails() {
       if (res.success && res.data?.paypalOrderId) {
         setPaypalOrderId(res.data.paypalOrderId);
         setRenewStep('payment');
+        trackBeginCheckout({
+          currency: 'USD',
+          value: domain?.renewPriceUSD,
+          items: [{
+            item_id: domain?.domainName,
+            item_name: domain?.domainName,
+            item_category: 'domain_renewal',
+            price: domain?.renewPriceUSD,
+            quantity: 1,
+          }],
+        });
       } else {
         setRenewError(res.message || 'Could not start renewal. Please try again.');
       }
@@ -124,6 +137,18 @@ export default function DomainDetails() {
       if (res.success) {
         setRenewStep('success');
         toast.success('Domain renewed successfully!');
+        trackPurchase({
+          transactionId: data.orderID,
+          currency: 'USD',
+          value: domain?.renewPriceUSD,
+          items: [{
+            item_id: domain?.domainName,
+            item_name: domain?.domainName,
+            item_category: 'domain_renewal',
+            price: domain?.renewPriceUSD,
+            quantity: 1,
+          }],
+        });
         fetchDomain();
       } else {
         setRenewError(res.message || 'Renewal failed. Please contact support.');
@@ -133,7 +158,7 @@ export default function DomainDetails() {
       setRenewError(err?.response?.data?.message || 'Renewal failed. If you were charged, a refund will be issued automatically.');
       setRenewStep('payment');
     }
-  }, [fetchDomain]);
+  }, [fetchDomain, domain?.domainName, domain?.renewPriceUSD]);
 
   if (loading) {
     return (

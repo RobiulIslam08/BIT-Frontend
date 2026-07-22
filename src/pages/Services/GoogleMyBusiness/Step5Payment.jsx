@@ -14,6 +14,7 @@ import './Step5Payment.css';
 import { toast } from '@/components/common/Toast/Toast';
 import { validateCoupon, createPayPalOrder } from '@/api/gmbOrderApi';
 import { useCurrency } from '@/context/CurrencyContext';
+import { trackEvent } from '@/utils/analytics';
 
 // Pricing constants (canonical amounts in SAR — converted for display)
 const PRICING = {
@@ -80,6 +81,18 @@ function PayPalCheckoutButtons({ finalPrice, serviceType, form, hasExistingProfi
           if (!res?.data?.paypalOrderId) {
             throw new Error('No PayPal order ID returned from server. Check console for response structure.');
           }
+          trackEvent('add_payment_info', {
+            currency: 'SAR',
+            value: finalPrice,
+            payment_type: 'PayPal',
+            items: [{
+              item_id: `gmb_${serviceType}`,
+              item_name: `Google My Business — ${serviceType}`,
+              item_category: 'gmb_service',
+              price: finalPrice,
+              quantity: 1,
+            }],
+          });
           return res.data.paypalOrderId;
         } catch (err) {
           console.error('Server-side PayPal order creation failed:', err);
@@ -242,6 +255,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
         const msg = `Coupon applied! You save ${formatFromSARWithCode(discount)}.`;
         setCouponMessage(msg);
         toast.success(msg);
+        trackEvent('apply_coupon', { coupon: couponCode, discount, currency: 'SAR' });
       } else {
         setCouponDiscount(0);
         setCouponApplied(false);

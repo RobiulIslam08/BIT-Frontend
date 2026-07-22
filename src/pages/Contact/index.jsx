@@ -9,6 +9,7 @@ import { FadeInUp } from '@/components/animations/FadeInUp';
 import { ScrollBlurReveal } from '@/components/animations/ScrollBlurReveal';
 import { COMPANY } from '@/utils/constants';
 import { toast } from '@/components/common/Toast/Toast';
+import { trackGenerateLead, trackEvent } from '@/utils/analytics';
 
 export default function Contact() {
   const [form, setForm] = useState({ name: '', email: '', phone: '', subject: '', message: '' });
@@ -71,6 +72,11 @@ export default function Contact() {
     }
 
     setSubmitted(true);
+    trackGenerateLead({
+      form_name: 'contact_form',
+      lead_subject: form.subject.trim(),
+      has_phone: Boolean(form.phone.trim()),
+    });
   };
 
   return (
@@ -179,7 +185,7 @@ export default function Contact() {
                 <h2 className="h2 cta-section__title">Prefer a Quick Chat?</h2>
                 <p className="body-lg cta-section__desc">Reach us directly via WhatsApp for instant response during business hours.</p>
                 <div className="cta-section__buttons">
-                  <a href={COMPANY.whatsapp} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg"><MessageCircle size={18} /> WhatsApp Us</a>
+                  <a href={COMPANY.whatsapp} target="_blank" rel="noopener noreferrer" className="btn btn-primary btn-lg" onClick={() => trackEvent('contact_whatsapp_click', { location: 'contact_page' })}><MessageCircle size={18} /> WhatsApp Us</a>
                 </div>
               </div>
             </FadeInUp>

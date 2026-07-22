@@ -13,6 +13,7 @@ import { setCredentials } from '@/features/auth/authSlice';
 import { authApi } from '@/api/authApi';
 import { toast } from '@/components/common/Toast/Toast';
 import { useGoogleLogin } from '@react-oauth/google';
+import { trackSignUp } from '@/utils/analytics';
 
 // SVG Official Icons
 const GoogleIcon = () => (
@@ -62,6 +63,7 @@ export default function Register() {
 
       setSuccess('Account logged in successfully with Google! Redirecting...');
       toast.success('Registration/Login successful! Welcome.');
+      trackSignUp('google');
 
       dispatch(
         setCredentials({
@@ -128,6 +130,7 @@ export default function Register() {
       const successMsg = 'Account created successfully! Redirecting...';
       setSuccess(successMsg);
       toast.success('Registration successful! Welcome.');
+      trackSignUp('email');
 
       // Redux store এবং localStorage এ credentials সেট করা
       dispatch(

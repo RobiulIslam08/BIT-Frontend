@@ -12,6 +12,7 @@ import { checkDomainAvailability } from '@/api/domainApi';
 import { getPublicDomainPricing } from '@/api/domainPricingApi';
 import { getPublicHostingPlans } from '@/api/hostingPlanApi';
 import { useCurrency } from '@/context/CurrencyContext';
+import { trackSearch, trackSelectItem, trackEvent } from '@/utils/analytics';
 
 // ─── Hosting Plans (fallback if API unavailable) ───
 const SHARED_PLANS = [
@@ -240,6 +241,17 @@ function DomainResultCard({ result, isPrimary = false, priceMap = {} }) {
             to={`/domain-checkout?domain=${result.domain}`}
             className={isPrimary ? 'btn btn-primary' : 'btn btn-secondary'}
             style={{ fontSize: '0.72rem', padding: isPrimary ? '0.45rem 0.75rem' : '0.35rem 0.55rem', gap: '0.25rem', whiteSpace: 'nowrap' }}
+            onClick={() => trackSelectItem({
+              listName: 'domain_search_results',
+              item: {
+                item_id: result.domain,
+                item_name: result.domain,
+                item_category: 'domain_registration',
+                item_variant: tld,
+                price: registerUSD,
+                quantity: 1,
+              },
+            })}
           >
             <ShoppingCart size={12} />{isPrimary ? 'Buy Now' : 'Buy'}
           </Link>
@@ -277,10 +289,20 @@ function DomainSearchSection({ priceMap = {} }) {
     const trimmed = query.trim();
     if (!trimmed) { inputRef.current?.focus(); return; }
     setLoading(true); setError(''); setResult(null);
+    trackSearch(trimmed);
     try {
       const data = await checkDomainAvailability(trimmed);
-      if (data?.success && data?.data) setResult(data.data);
-      else setError(data?.message || 'Unexpected response. Please try again.');
+      if (data?.success && data?.data) {
+        setResult(data.data);
+        trackEvent('domain_search_result', {
+          search_term: trimmed,
+          domain: data.data?.primaryResult?.domain,
+          available: Boolean(data.data?.primaryResult?.available),
+          suggestions_count: data.data?.suggestions?.length || 0,
+        });
+      } else {
+        setError(data?.message || 'Unexpected response. Please try again.');
+      }
     } catch (err) {
       setError(err?.response?.data?.message || err.message || 'Failed to check domain. Please try again.');
     } finally {
@@ -578,6 +600,17 @@ export default function DomainHosting() {
                     to={`/hosting-checkout?plan=${encodeURIComponent(plan.slug)}&billing=${isYearly ? 'yearly' : 'monthly'}`}
                     className={plan.popular ? 'btn btn-primary' : 'btn btn-secondary'}
                     style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--text-sm)' }}
+                    onClick={() => trackSelectItem({
+                      listName: `hosting_plans_${tab}`,
+                      item: {
+                        item_id: plan.slug,
+                        item_name: plan.name,
+                        item_category: 'hosting',
+                        item_variant: isYearly ? 'yearly' : 'monthly',
+                        price: isYearly ? plan.yearly : plan.monthly,
+                        quantity: 1,
+                      },
+                    })}
                   >
                     Get Started <ArrowRight size={14} />
                   </Link>

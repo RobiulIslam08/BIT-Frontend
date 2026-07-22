@@ -17,6 +17,7 @@ import { getPublicDomainPricing } from '@/api/domainPricingApi';
 import { useCurrency } from '@/context/CurrencyContext';
 import { toast } from '@/components/common/Toast/Toast';
 import { ENV } from '@/config/env';
+import { trackBeginCheckout, trackPurchase, trackEvent } from '@/utils/analytics';
 
 const FALLBACK_PRICE_USD = 20;
 
@@ -113,6 +114,18 @@ export default function DomainCheckout() {
       if (res.success && res.data?.paypalOrderId) {
         setPaypalOrderId(res.data.paypalOrderId);
         setStep('payment');
+        trackBeginCheckout({
+          currency: 'USD',
+          value: priceUSD,
+          items: [{
+            item_id: domainName,
+            item_name: domainName,
+            item_category: 'domain_registration',
+            item_variant: tld,
+            price: priceUSD,
+            quantity: 1,
+          }],
+        });
       } else {
         setOrderError(res.message || 'Failed to create order. Please try again.');
       }
@@ -131,6 +144,19 @@ export default function DomainCheckout() {
       if (res.success) {
         setStep('success');
         toast.success(`Domain "${domainName}" registered successfully!`);
+        trackPurchase({
+          transactionId: data.orderID,
+          currency: 'USD',
+          value: priceUSD,
+          items: [{
+            item_id: domainName,
+            item_name: domainName,
+            item_category: 'domain_registration',
+            item_variant: tld,
+            price: priceUSD,
+            quantity: 1,
+          }],
+        });
       } else {
         setOrderError(res.message || 'Purchase failed. Please contact support.');
       }
@@ -141,18 +167,20 @@ export default function DomainCheckout() {
     } finally {
       setIsCompleting(false);
     }
-  }, [domainName]);
+  }, [domainName, priceUSD, tld]);
 
   const onPayPalError = useCallback((err) => {
     console.error('PayPal error:', err);
     setOrderError('PayPal encountered an error. Please try again.');
-  }, []);
+    trackEvent('payment_error', { item_name: domainName, item_category: 'domain_registration' });
+  }, [domainName]);
 
   const onPayPalCancel = useCallback(() => {
     toast.info('Payment cancelled. Your domain is still available.');
     setStep('form');
     setPaypalOrderId(null);
-  }, []);
+    trackEvent('payment_cancelled', { item_name: domainName, item_category: 'domain_registration', value: priceUSD, currency: 'USD' });
+  }, [domainName, priceUSD]);
 
   if (!domainParam) return null;
 
@@ -302,9 +330,9 @@ export default function DomainCheckout() {
                   </button>
 
                   {/* bKash placeholder */}
-                  <button type="button" disabled className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center', marginTop: '0.375rem', opacity: 0.4, cursor: 'not-allowed', fontSize: 'var(--text-xs)' }}>
+                  {/* <button type="button" disabled className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center', marginTop: '0.375rem', opacity: 0.4, cursor: 'not-allowed', fontSize: 'var(--text-xs)' }}>
                     🟢 Pay with bKash (Coming Soon)
-                  </button>
+                  </button> */}
                 </div>
               </form>
             </motion.div>

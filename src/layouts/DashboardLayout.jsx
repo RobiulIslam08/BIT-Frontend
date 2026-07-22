@@ -13,6 +13,7 @@ import {
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { useAppDispatch } from '@/app/hooks';
 import { logout } from '@/features/auth/authSlice';
+import { trackEvent } from '@/utils/analytics';
 import './DashboardLayout.css';
 
 const SIDEBAR_ITEMS = [
@@ -41,6 +42,7 @@ export function DashboardLayout() {
 
   const handleLogout = () => {
     dispatch(logout());
+    trackEvent('logout', { source: 'dashboard' });
     navigate('/auth/login');
   };
 

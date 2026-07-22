@@ -13,6 +13,7 @@ import { setCredentials } from '@/features/auth/authSlice';
 import { authApi } from '@/api/authApi';
 import { toast } from '@/components/common/Toast/Toast';
 import { useGoogleLogin } from '@react-oauth/google';
+import { trackLogin } from '@/utils/analytics';
 
 // SVG Official Icons
 const GoogleIcon = () => (
@@ -60,6 +61,7 @@ export default function Login() {
       );
 
       toast.success('Logged in with Google successfully!');
+      trackLogin('google');
 
       const redirectTo = from || (data.user.role === 'admin' ? '/dashboard' : '/');
       navigate(redirectTo, { replace: true });
@@ -100,6 +102,7 @@ export default function Login() {
       );
 
       toast.success('Logged in successfully!');
+      trackLogin('email');
 
       // Role-based redirect
       const redirectTo = from || (data.user.role === 'admin' ? '/dashboard' : '/');

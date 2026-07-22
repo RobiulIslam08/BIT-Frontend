@@ -14,6 +14,7 @@ import { FadeInUp } from '@/components/animations/FadeInUp';
 import { toast } from '@/components/common/Toast/Toast';
 import { submitGMBOrder } from '@/api/gmbOrderApi';
 import { useCurrency } from '@/context/CurrencyContext';
+import { trackEvent, trackPurchase, trackGenerateLead } from '@/utils/analytics';
 import MapPicker from './MapPicker';
 import Step5Payment from './Step5Payment';
 import './GoogleMyBusiness.css';
@@ -234,6 +235,7 @@ export default function GoogleMyBusiness() {
       return;
     }
 
+    trackEvent('gmb_form_step', { step, next_step: step + 1 });
     setStep((prev) => prev + 1);
     setTimeout(() => {
       formTopRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -252,9 +254,38 @@ export default function GoogleMyBusiness() {
     try {
       const result = await submitGMBOrder(orderPayload);
       // Use the returned order data from backend, fallback to local payload
-      setOrderData(result?.data || orderPayload);
+      const finalOrder = result?.data || orderPayload;
+      setOrderData(finalOrder);
       setSubmitted(true);
       toast.success('Order submitted successfully! We will contact you soon.');
+
+      const amount = finalOrder.finalAmount ?? finalOrder.finalPrice;
+      const gmbItem = {
+        item_id: `gmb_${finalOrder.serviceType || 'new'}`,
+        item_name: `Google My Business — ${finalOrder.serviceType || 'new'}`,
+        item_category: 'gmb_service',
+        price: amount,
+        quantity: 1,
+      };
+      // Paid hole purchase, na hole pending lead
+      if (finalOrder.paymentStatus === 'paid') {
+        trackPurchase({
+          transactionId: finalOrder.orderId || finalOrder.paypalOrderId,
+          currency: 'SAR',
+          value: amount,
+          coupon: finalOrder.couponCode || undefined,
+          items: [gmbItem],
+        });
+      } else {
+        trackGenerateLead({
+          currency: 'SAR',
+          value: amount,
+          form_name: 'gmb_order',
+          service_type: finalOrder.serviceType,
+          payment_method: finalOrder.paymentMethod,
+          payment_status: finalOrder.paymentStatus,
+        });
+      }
     } catch (err) {
       const errorMsg =
         err?.response?.data?.message ||

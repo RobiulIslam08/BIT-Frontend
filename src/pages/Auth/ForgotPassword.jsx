@@ -10,6 +10,7 @@ import { Mail, Lock, Eye, EyeOff, Key, ArrowRight, ArrowLeft, AlertCircle, Check
 import { SEOHead } from '@/components/common/SEOHead';
 import { authApi } from '@/api/authApi';
 import { toast } from '@/components/common/Toast/Toast';
+import { trackEvent } from '@/utils/analytics';
 
 export default function ForgotPassword() {
   const [step, setStep] = useState(1); // 1: Send OTP, 2: Reset Password
@@ -35,6 +36,7 @@ export default function ForgotPassword() {
       const successMsg = res.data?.message || 'OTP sent successfully to your email.';
       setSuccess(successMsg);
       toast.success(successMsg);
+      trackEvent('password_reset_request');
       // Move to step 2 after a brief delay
       setTimeout(() => {
         setStep(2);
@@ -78,6 +80,7 @@ export default function ForgotPassword() {
       const successMsg = res.data?.message || 'Password reset successful!';
       setSuccess(successMsg);
       toast.success(successMsg);
+      trackEvent('password_reset_complete');
       
       // Redirect to login page after 2 seconds
       setTimeout(() => {

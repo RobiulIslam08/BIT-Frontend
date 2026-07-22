@@ -16,6 +16,7 @@ import { createHostingPayPalOrder, completeHostingPurchase } from '@/api/hosting
 import { getPublicHostingPlans } from '@/api/hostingPlanApi';
 import { useCurrency } from '@/context/CurrencyContext';
 import { toast } from '@/components/common/Toast/Toast';
+import { trackBeginCheckout, trackPurchase, trackEvent } from '@/utils/analytics';
 
 export default function HostingCheckout() {
   const [searchParams] = useSearchParams();
@@ -115,6 +116,18 @@ export default function HostingCheckout() {
       if (res.success && res.data?.paypalOrderId) {
         setPaypalOrderId(res.data.paypalOrderId);
         setStep('payment');
+        trackBeginCheckout({
+          currency: 'USD',
+          value: priceUSD,
+          items: [{
+            item_id: plan.slug,
+            item_name: plan.name,
+            item_category: 'hosting',
+            item_variant: billingCycle,
+            price: priceUSD,
+            quantity: 1,
+          }],
+        });
       } else {
         setOrderError(res.message || 'Failed to create order. Please try again.');
       }
@@ -133,6 +146,19 @@ export default function HostingCheckout() {
       if (res.success) {
         setStep('success');
         toast.success(`Hosting "${plan?.name}" activated successfully!`);
+        trackPurchase({
+          transactionId: data.orderID,
+          currency: 'USD',
+          value: priceUSD,
+          items: [{
+            item_id: plan?.slug,
+            item_name: plan?.name,
+            item_category: 'hosting',
+            item_variant: billingCycle,
+            price: priceUSD,
+            quantity: 1,
+          }],
+        });
       } else {
         setOrderError(res.message || 'Purchase failed. Please contact support.');
       }
@@ -143,17 +169,19 @@ export default function HostingCheckout() {
     } finally {
       setIsCompleting(false);
     }
-  }, [plan?.name]);
+  }, [plan?.name, plan?.slug, priceUSD, billingCycle]);
 
   const onPayPalError = useCallback(() => {
     setOrderError('PayPal encountered an error. Please try again.');
-  }, []);
+    trackEvent('payment_error', { item_name: plan?.name, item_category: 'hosting' });
+  }, [plan?.name]);
 
   const onPayPalCancel = useCallback(() => {
     toast.info('Payment cancelled.');
     setStep('form');
     setPaypalOrderId(null);
-  }, []);
+    trackEvent('payment_cancelled', { item_name: plan?.name, item_category: 'hosting', value: priceUSD, currency: 'USD' });
+  }, [plan?.name, priceUSD]);
 
   if (!planSlug) return null;
 
