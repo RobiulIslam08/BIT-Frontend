@@ -3,7 +3,7 @@
 // ============================================
 
 import axiosInstance from './axiosInstance';
-import { ENV } from '@/config/env';
+import { toAbsoluteApiUrl } from '@/config/env';
 
 // ─── USER ───
 
@@ -26,12 +26,7 @@ export const downloadHostingProject = async (id, fallbackName = 'project.zip') =
     throw new Error(tokenRes?.data?.message || 'Failed to create download link.');
   }
 
-  // downloadPath is like /api/v1/hostings/download-file?token=...
-  // ENV.API_URL is usually http://host/api/v1 — strip /api/v1 if path already includes it
-  const apiBase = (ENV.API_BASE_URL || '').replace(/\/$/, '');
-  const url = downloadPath.startsWith('http')
-    ? downloadPath
-    : `${apiBase}${downloadPath.startsWith('/') ? '' : '/'}${downloadPath}`;
+  const url = toAbsoluteApiUrl(downloadPath);
 
   const a = document.createElement('a');
   a.href = url;
@@ -49,16 +44,14 @@ export const openCpanelLogin = async (id) => {
 
   try {
     const res = await axiosInstance.post(`/hostings/my/${id}/cpanel-login`);
+    const ssoUrl = res?.data?.data?.ssoUrl;
     const ssoPath = res?.data?.data?.ssoPath;
-    if (!ssoPath) {
+    if (!ssoUrl && !ssoPath) {
       if (popup && !popup.closed) popup.close();
       throw new Error(res?.data?.message || 'Failed to create cPanel login link.');
     }
 
-    const apiBase = (ENV.API_BASE_URL || '').replace(/\/$/, '');
-    const url = ssoPath.startsWith('http')
-      ? ssoPath
-      : `${apiBase}${ssoPath.startsWith('/') ? '' : '/'}${ssoPath}`;
+    const url = toAbsoluteApiUrl(ssoUrl || ssoPath);
 
     if (popup && !popup.closed) {
       popup.opener = null;
