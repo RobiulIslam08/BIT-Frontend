@@ -2,19 +2,22 @@
 // BIT SOFTWARE — My Account (Customer Dashboard)
 // ============================================
 import { useState, useEffect } from 'react';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Globe, User, Settings, RefreshCw, Loader2,
   AlertCircle, CheckCircle2, Clock, XCircle,
-  Calendar, AlertTriangle, ShoppingBag, ChevronRight,
+  Calendar, AlertTriangle, ChevronRight,
   Shield, LayoutDashboard, CreditCard, RotateCw, Server,
+  Wallet, Pencil, Building2, Briefcase, Phone, PhoneCall,
+  MapPin, Mail,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
-import { selectCurrentUser, selectIsAuthenticated, selectIsAdmin } from '@/features/auth/authSlice';
+import { selectCurrentUser, selectIsAuthenticated, selectIsAdmin, updateUser } from '@/features/auth/authSlice';
 import { getMyDomains } from '@/api/domainsApi';
 import { getMyHostings } from '@/api/hostingApi';
+import { getMyProfile } from '@/api/userApi';
 import { useCurrency } from '@/context/CurrencyContext';
 import PaymentMethods from './PaymentMethods';
 import './MyAccount.css';
@@ -63,6 +66,7 @@ const ExpiryBadge = ({ expiresAt }) => {
 
 export default function MyAccount() {
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const isAdmin = useSelector(selectIsAdmin);
@@ -127,6 +131,20 @@ export default function MyAccount() {
 
   useEffect(() => { fetchDomains(); fetchHostings(); }, []);
 
+  // Hydrate the full profile (Namecheap-style fields + account balance) from the server.
+  useEffect(() => {
+    let ignore = false;
+    (async () => {
+      try {
+        const res = await getMyProfile();
+        if (!ignore && res?.success && res.data) dispatch(updateUser(res.data));
+      } catch {
+        // Non-blocking: fall back to the persisted user in Redux.
+      }
+    })();
+    return () => { ignore = true; };
+  }, [dispatch]);
+
   const formatDate = (dateStr) => {
     if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
@@ -148,6 +166,11 @@ export default function MyAccount() {
             <div>
               <div className="myaccount__user-name">{user?.name}</div>
               <div className="myaccount__user-email">{user?.email}</div>
+              {user?.userCode && (
+                <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', color: 'var(--color-primary)', marginTop: '0.2rem' }}>
+                  ID: {user.userCode}
+                </div>
+              )}
             </div>
           </div>
 
@@ -420,36 +443,97 @@ export default function MyAccount() {
               <motion.div key="profile" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
                 <div className="myaccount__section-header">
                   <div>
-                    <h2 className="h4">Profile Settings</h2>
-                    <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginTop: '0.25rem' }}>Manage your account information</p>
+                    <h2 className="h4">Profile</h2>
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginTop: '0.25rem' }}>View your account information and balance</p>
                   </div>
+                  <Link to="/my-account/profile/edit" className="btn btn-primary btn-sm">
+                    <Pencil size={14} /> Edit Profile
+                  </Link>
                 </div>
-                <div className="card-elevated">
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                    {[
-                      { label: 'Full Name', value: user?.name || '—', icon: User },
-                      { label: 'Email Address', value: user?.email || '—', icon: AlertCircle },
-                      { label: 'Phone', value: user?.phone || 'Not set', icon: ShoppingBag },
-                      { label: 'Member Since', value: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : '—', icon: Calendar },
-                    ].map(({ label, value, icon: Icon }) => (
-                      <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '1rem', borderRadius: '10px', background: 'var(--color-bg-secondary)' }}>
-                        <div style={{ width: 38, height: 38, borderRadius: '50%', background: 'var(--color-primary-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                          <Icon size={17} style={{ color: 'var(--color-primary)' }} />
-                        </div>
-                        <div>
-                          <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: '0.15rem' }}>{label}</div>
-                          <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{value}</div>
-                        </div>
+
+                {/* ─── Account Balance card (Namecheap-style) ─── */}
+                <div
+                  className="card-elevated"
+                  style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', background: 'linear-gradient(135deg, var(--color-primary-muted), transparent)' }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                    <div style={{ width: 48, height: 48, borderRadius: '12px', background: 'var(--color-primary-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                      <Wallet size={24} style={{ color: 'var(--color-primary)' }} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: '0.15rem' }}>Account Balance</div>
+                      <div style={{ fontWeight: 800, fontSize: 'clamp(1.3rem, 5vw, 1.75rem)', fontFamily: 'var(--font-display)', color: 'var(--color-primary)' }}>
+                        {formatPrice(user?.accountBalance || 0)}
                       </div>
-                    ))}
+                    </div>
                   </div>
-                  <div style={{ marginTop: '1.25rem', padding: '1rem', borderRadius: '10px', background: 'rgba(99,102,241,0.08)', border: '1px solid rgba(99,102,241,0.2)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
-                    💡 To update your profile information, please contact support at{' '}
-                    <a href="mailto:support@bitsoftwareitsolution.com" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>
-                      support@bitsoftwareitsolution.com
-                    </a>
-                  </div>
+                  <button
+                    className="btn btn-primary btn-sm"
+                    disabled
+                    title="Coming soon"
+                    style={{ opacity: 0.6, cursor: 'not-allowed' }}
+                  >
+                    Add Funds — Coming soon
+                  </button>
                 </div>
+
+                {/* ─── Grouped profile info ─── */}
+                {(() => {
+                  const notSet = 'Not set';
+                  const sections = [
+                    {
+                      title: 'Personal Information',
+                      fields: [
+                        { label: 'Customer ID', value: user?.userCode, icon: Shield },
+                        { label: 'Full Name', value: user?.name, icon: User },
+                        { label: 'First Name', value: user?.firstName, icon: User },
+                        { label: 'Last Name', value: user?.lastName, icon: User },
+                        { label: 'Organization', value: user?.organization, icon: Building2 },
+                        { label: 'Job Title', value: user?.jobTitle, icon: Briefcase },
+                        { label: 'Member Since', value: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : null, icon: Calendar },
+                      ],
+                    },
+                    {
+                      title: 'Contact Information',
+                      fields: [
+                        { label: 'Email Address', value: user?.email, icon: Mail },
+                        { label: 'Phone', value: user?.phone, icon: Phone },
+                        { label: 'Alternate Phone', value: user?.alternatePhone, icon: PhoneCall },
+                      ],
+                    },
+                    {
+                      title: 'Address',
+                      fields: [
+                        { label: 'Address Line 1', value: user?.address1, icon: MapPin },
+                        { label: 'Address Line 2', value: user?.address2, icon: MapPin },
+                        { label: 'City', value: user?.city, icon: MapPin },
+                        { label: 'State / Province', value: user?.stateProvince, icon: MapPin },
+                        { label: 'Zip / Postal Code', value: user?.postalCode, icon: MapPin },
+                        { label: 'Country', value: user?.country, icon: Globe },
+                      ],
+                    },
+                  ];
+                  return sections.map((section) => (
+                    <div key={section.title} className="card-elevated" style={{ marginBottom: '1.25rem' }}>
+                      <h3 className="h5" style={{ marginBottom: '1rem' }}>{section.title}</h3>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
+                        {section.fields.map(({ label, value, icon: Icon }) => (
+                          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.875rem', borderRadius: '10px', background: 'var(--color-bg-secondary)' }}>
+                            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-primary-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <Icon size={16} style={{ color: 'var(--color-primary)' }} />
+                            </div>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: '0.15rem' }}>{label}</div>
+                              <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: value ? undefined : 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {value || notSet}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ));
+                })()}
               </motion.div>
             )}
           </AnimatePresence>

@@ -33,6 +33,7 @@ const DomainHosting = lazy(() => import('@/pages/Services/DomainHosting'));
 const DomainCheckout = lazy(() => import('@/pages/DomainCheckout'));
 const HostingCheckout = lazy(() => import('@/pages/HostingCheckout'));
 const MyAccount = lazy(() => import('@/pages/MyAccount'));
+const ProfileEdit = lazy(() => import('@/pages/ProfileEdit'));
 const DomainDetails = lazy(() => import('@/pages/DomainDetails'));
 const HostingDetails = lazy(() => import('@/pages/HostingDetails'));
 const TermsAndConditions = lazy(() => import('@/pages/TermsAndConditions'));
@@ -54,6 +55,7 @@ const AdminHostings = lazy(() => import('@/pages/Dashboard/Hostings'));
 const AdminHostingOrders = lazy(() => import('@/pages/Dashboard/HostingOrders'));
 const AdminHostingPlans = lazy(() => import('@/pages/Dashboard/HostingPlans'));
 const DashboardUsers = lazy(() => import('@/pages/Dashboard/Users'));
+const DashboardUserDetails = lazy(() => import('@/pages/Dashboard/UserDetails'));
 const DashboardAnalytics = lazy(() => import('@/pages/Dashboard/Analytics'));
 const DashboardSettings = lazy(() => import('@/pages/Dashboard/Settings'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
@@ -91,6 +93,7 @@ export const router = createBrowserRouter([
           { path: 'domain-checkout', element: <SuspenseWrap><DomainCheckout /></SuspenseWrap> },
           { path: 'hosting-checkout', element: <SuspenseWrap><HostingCheckout /></SuspenseWrap> },
           { path: 'my-account', element: <SuspenseWrap><MyAccount /></SuspenseWrap> },
+          { path: 'my-account/profile/edit', element: <SuspenseWrap><ProfileEdit /></SuspenseWrap> },
           { path: 'my-account/domains/:id', element: <SuspenseWrap><DomainDetails /></SuspenseWrap> },
           { path: 'my-account/hosting/:id', element: <SuspenseWrap><HostingDetails /></SuspenseWrap> },
         ],
@@ -133,6 +136,7 @@ export const router = createBrowserRouter([
           { path: 'hostings', element: <SuspenseWrap><AdminHostings /></SuspenseWrap> },
           { path: 'hosting-plans', element: <SuspenseWrap><AdminHostingPlans /></SuspenseWrap> },
           { path: 'users', element: <SuspenseWrap><DashboardUsers /></SuspenseWrap> },
+          { path: 'users/:id', element: <SuspenseWrap><DashboardUserDetails /></SuspenseWrap> },
           { path: 'analytics', element: <SuspenseWrap><DashboardAnalytics /></SuspenseWrap> },
           { path: 'settings', element: <SuspenseWrap><DashboardSettings /></SuspenseWrap> },
         ],
