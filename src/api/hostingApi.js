@@ -42,6 +42,44 @@ export const downloadHostingProject = async (id, fallbackName = 'project.zip') =
   a.remove();
 };
 
+/** Open customer's cPanel via short-lived SSO auto-login (new tab). */
+export const openCpanelLogin = async (id) => {
+  // Open synchronously on user gesture so popup blockers don't kill the tab
+  const popup = window.open('about:blank', '_blank');
+
+  try {
+    const res = await axiosInstance.post(`/hostings/my/${id}/cpanel-login`);
+    const ssoPath = res?.data?.data?.ssoPath;
+    if (!ssoPath) {
+      if (popup && !popup.closed) popup.close();
+      throw new Error(res?.data?.message || 'Failed to create cPanel login link.');
+    }
+
+    const apiBase = (ENV.API_BASE_URL || '').replace(/\/$/, '');
+    const url = ssoPath.startsWith('http')
+      ? ssoPath
+      : `${apiBase}${ssoPath.startsWith('/') ? '' : '/'}${ssoPath}`;
+
+    if (popup && !popup.closed) {
+      popup.opener = null;
+      popup.location.href = url;
+    } else {
+      // Popup blocked — same-tab fallback
+      window.location.href = url;
+    }
+    return res.data;
+  } catch (err) {
+    if (popup && !popup.closed) popup.close();
+    throw err;
+  }
+};
+
+/** Email cPanel credentials (URL, username, password, domain) to the customer. */
+export const sendCpanelAccessEmail = async (id) => {
+  const res = await axiosInstance.post(`/hostings/my/${id}/send-cpanel-access`);
+  return res.data;
+};
+
 // ─── ADMIN ───
 
 export const getAllHostings = async (params = {}) => {

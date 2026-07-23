@@ -39,6 +39,30 @@
   border-top: 1px solid var(--color-border);
 }
 
+.myaccount__cpanel-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.85rem;
+}
+
+.myaccount__cpanel-actions .btn {
+  flex: 1 1 auto;
+  min-width: 140px;
+  justify-content: center;
+}
+
+@media (max-width: 520px) {
+  .myaccount__cpanel-actions {
+    flex-direction: column;
+  }
+
+  .myaccount__cpanel-actions .btn {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
 .myaccount__domain-meta-item {
   display: flex;
   align-items: center;

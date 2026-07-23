@@ -63,6 +63,10 @@ const emptyForm = {
   notes: '',
   internalProvider: '',
   internalServerNote: '',
+  cpanelUrl: '',
+  cpanelUsername: '',
+  cpanelPassword: '',
+  cpanelDomain: '',
 };
 
 function UserPicker({ value, label, onSelect }) {
@@ -160,12 +164,17 @@ function HostingFormModal({ initial, catalog, onClose, onSaved }) {
       notes: initial.notes || '',
       internalProvider: initial.internalProvider || '',
       internalServerNote: initial.internalServerNote || '',
+      cpanelUrl: initial.cpanelUrl || '',
+      cpanelUsername: initial.cpanelUsername || '',
+      cpanelPassword: '', // never prefill; leave blank to keep existing on edit
+      cpanelDomain: initial.cpanelDomain || '',
     };
   });
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState('');
   const [uploading, setUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(null); // { percent, loaded, total }
+  const hasExistingPassword = Boolean(initial?.hasCpanelPassword || initial?.hasCpanelAccess);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
@@ -206,11 +215,19 @@ function HostingFormModal({ initial, catalog, onClose, onSaved }) {
       notes: form.notes.trim() || undefined,
       internalProvider: form.internalProvider.trim() || undefined,
       internalServerNote: form.internalServerNote.trim() || undefined,
+      // Always send strings (including "") so empty values can clear stored credentials
+      cpanelUrl: form.cpanelUrl.trim(),
+      cpanelUsername: form.cpanelUsername.trim(),
+      cpanelDomain: form.cpanelDomain.trim(),
     };
     if (form.startsAt) payload.startsAt = form.startsAt;
     if (form.expiresAt) payload.expiresAt = form.expiresAt;
     if (form.amountUSD !== '' && form.amountUSD !== null) payload.amountUSD = Number(form.amountUSD);
     if (form.renewPriceUSD !== '' && form.renewPriceUSD !== null) payload.renewPriceUSD = Number(form.renewPriceUSD);
+    // Only send password when admin typed a new one (blank on edit = keep existing)
+    if (form.cpanelPassword.trim()) {
+      payload.cpanelPassword = form.cpanelPassword;
+    }
 
     setSaving(true);
     try {
@@ -373,6 +390,56 @@ function HostingFormModal({ initial, catalog, onClose, onSaved }) {
             <div className="domains__field">
               <label>Internal Server Note</label>
               <input className="input" value={form.internalServerNote} onChange={(e) => set('internalServerNote', e.target.value)} />
+            </div>
+          </div>
+
+          <div style={{ marginTop: '1.25rem', padding: '1rem', borderRadius: 12, background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)' }}>
+            <div style={{ fontWeight: 700, fontSize: 'var(--text-sm)', marginBottom: '0.35rem' }}>
+              cPanel Credentials
+            </div>
+            <p style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: '0.85rem' }}>
+              Required for customer “Go to cPanel” and “cPanel Access” email. Password is stored encrypted.
+            </p>
+            <div className="domains__form-grid">
+              <div className="domains__field domains__field--full">
+                <label>cPanel URL</label>
+                <input
+                  className="input"
+                  value={form.cpanelUrl}
+                  onChange={(e) => set('cpanelUrl', e.target.value)}
+                  placeholder="https://server.example.com:2083"
+                />
+              </div>
+              <div className="domains__field">
+                <label>cPanel Username</label>
+                <input
+                  className="input"
+                  value={form.cpanelUsername}
+                  onChange={(e) => set('cpanelUsername', e.target.value)}
+                  placeholder="username"
+                  autoComplete="off"
+                />
+              </div>
+              <div className="domains__field">
+                <label>cPanel Password</label>
+                <input
+                  className="input"
+                  type="password"
+                  value={form.cpanelPassword}
+                  onChange={(e) => set('cpanelPassword', e.target.value)}
+                  placeholder={isEdit && hasExistingPassword ? 'Leave blank to keep current' : 'Password'}
+                  autoComplete="new-password"
+                />
+              </div>
+              <div className="domains__field domains__field--full">
+                <label>cPanel Domain</label>
+                <input
+                  className="input"
+                  value={form.cpanelDomain}
+                  onChange={(e) => set('cpanelDomain', e.target.value)}
+                  placeholder="example.com"
+                />
+              </div>
             </div>
           </div>
 

@@ -11,14 +11,15 @@ import {
   Calendar, AlertTriangle, ChevronRight,
   Shield, CreditCard, RotateCw, Server,
   Wallet, Pencil, Building2, Briefcase, Phone, PhoneCall,
-  MapPin, Mail,
+  MapPin, Mail, ExternalLink, KeyRound,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { selectCurrentUser, selectIsAuthenticated, updateUser } from '@/features/auth/authSlice';
 import { getMyDomains } from '@/api/domainsApi';
-import { getMyHostings } from '@/api/hostingApi';
+import { getMyHostings, openCpanelLogin, sendCpanelAccessEmail } from '@/api/hostingApi';
 import { getMyProfile } from '@/api/userApi';
 import { useCurrency } from '@/context/CurrencyContext';
+import { toast } from '@/components/common/Toast/Toast';
 import PaymentMethods from './PaymentMethods';
 import WalletTab from './Wallet';
 import './MyAccount.css';
@@ -84,6 +85,7 @@ export default function MyAccount() {
   const [hostings, setHostings] = useState([]);
   const [isLoadingHostings, setIsLoadingHostings] = useState(true);
   const [hostingError, setHostingError] = useState('');
+  const [cpanelBusy, setCpanelBusy] = useState({}); // { [id]: 'login' | 'email' }
 
   // Keep tab in sync with ?tab= query (default = profile)
   useEffect(() => {
@@ -130,6 +132,47 @@ export default function MyAccount() {
       setHostingError(err?.response?.data?.message || 'Failed to load hosting.');
     } finally {
       setIsLoadingHostings(false);
+    }
+  };
+
+  const handleGoToCpanel = async (e, hostingId, ready) => {
+    e.stopPropagation();
+    if (!ready) {
+      toast.info('cPanel credentials are not ready yet. Please contact support.');
+      return;
+    }
+    setCpanelBusy((s) => ({ ...s, [hostingId]: 'login' }));
+    try {
+      await openCpanelLogin(hostingId);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to open cPanel.');
+    } finally {
+      setCpanelBusy((s) => {
+        const next = { ...s };
+        delete next[hostingId];
+        return next;
+      });
+    }
+  };
+
+  const handleSendCpanelAccess = async (e, hostingId, ready) => {
+    e.stopPropagation();
+    if (!ready) {
+      toast.info('cPanel credentials are not ready yet. Please contact support.');
+      return;
+    }
+    setCpanelBusy((s) => ({ ...s, [hostingId]: 'email' }));
+    try {
+      const res = await sendCpanelAccessEmail(hostingId);
+      toast.success(res?.message || 'cPanel access details sent to your email.');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to send cPanel access email.');
+    } finally {
+      setCpanelBusy((s) => {
+        const next = { ...s };
+        delete next[hostingId];
+        return next;
+      });
     }
   };
 
@@ -481,6 +524,35 @@ export default function MyAccount() {
                                 Details <ChevronRight size={13} />
                               </div>
                             </div>
+                          </div>
+
+                          <div
+                            className="myaccount__cpanel-actions"
+                            onClick={(e) => e.stopPropagation()}
+                            onKeyDown={(e) => e.stopPropagation()}
+                            role="group"
+                            aria-label="cPanel actions"
+                          >
+                            <button
+                              type="button"
+                              className="btn btn-primary btn-sm"
+                              disabled={!item.hasCpanelAccess || cpanelBusy[item._id] === 'login' || item.status !== 'active'}
+                              onClick={(e) => handleGoToCpanel(e, item._id, item.hasCpanelAccess && item.status === 'active')}
+                              title={item.hasCpanelAccess ? 'Open cPanel' : 'Credentials not ready yet'}
+                            >
+                              {cpanelBusy[item._id] === 'login' ? <Loader2 size={14} className="spin" /> : <ExternalLink size={14} />}
+                              Go to cPanel
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm"
+                              disabled={!item.hasCpanelAccess || cpanelBusy[item._id] === 'email' || item.status !== 'active'}
+                              onClick={(e) => handleSendCpanelAccess(e, item._id, item.hasCpanelAccess && item.status === 'active')}
+                              title={item.hasCpanelAccess ? 'Email login details' : 'Credentials not ready yet'}
+                            >
+                              {cpanelBusy[item._id] === 'email' ? <Loader2 size={14} className="spin" /> : <KeyRound size={14} />}
+                              cPanel Access
+                            </button>
                           </div>
 
                           <div className="myaccount__domain-meta">

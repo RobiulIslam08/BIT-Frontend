@@ -8,12 +8,19 @@ import { motion } from 'motion/react';
 import {
   Server, ArrowLeft, Loader2, AlertCircle, CheckCircle2, Clock,
   XCircle, Calendar, Download, Package, HardDrive, RefreshCw,
+  ExternalLink, KeyRound, Shield,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { selectIsAuthenticated } from '@/features/auth/authSlice';
-import { getMyHostingById, downloadHostingProject } from '@/api/hostingApi';
+import {
+  getMyHostingById,
+  downloadHostingProject,
+  openCpanelLogin,
+  sendCpanelAccessEmail,
+} from '@/api/hostingApi';
 import { useCurrency } from '@/context/CurrencyContext';
 import { toast } from '@/components/common/Toast/Toast';
+import '../MyAccount/MyAccount.css';
 
 const statusConfig = {
   active: { label: 'Active', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', icon: CheckCircle2 },
@@ -40,6 +47,7 @@ export default function HostingDetails() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [downloading, setDownloading] = useState(false);
+  const [cpanelBusy, setCpanelBusy] = useState(''); // '' | 'login' | 'email'
 
   useEffect(() => {
     if (!isAuthenticated) navigate('/auth/login');
@@ -81,6 +89,39 @@ export default function HostingDetails() {
       toast.error(err?.message || 'Download failed.');
     } finally {
       setDownloading(false);
+    }
+  };
+
+  const cpanelReady = Boolean(hosting?.hasCpanelAccess && hosting?.status === 'active');
+
+  const handleGoToCpanel = async () => {
+    if (!cpanelReady) {
+      toast.info('cPanel credentials are not ready yet. Please contact support.');
+      return;
+    }
+    setCpanelBusy('login');
+    try {
+      await openCpanelLogin(id);
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to open cPanel.');
+    } finally {
+      setCpanelBusy('');
+    }
+  };
+
+  const handleSendCpanelAccess = async () => {
+    if (!cpanelReady) {
+      toast.info('cPanel credentials are not ready yet. Please contact support.');
+      return;
+    }
+    setCpanelBusy('email');
+    try {
+      const res = await sendCpanelAccessEmail(id);
+      toast.success(res?.message || 'cPanel access details sent to your email.');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err?.message || 'Failed to send cPanel access email.');
+    } finally {
+      setCpanelBusy('');
     }
   };
 
@@ -177,6 +218,65 @@ export default function HostingDetails() {
                 </div>
                 <div style={{ fontWeight: 600, textTransform: 'capitalize' }}>{hosting.billingCycle}</div>
               </div>
+            </div>
+
+            <div className="card-elevated" style={{ padding: 'clamp(1.1rem, 3vw, 1.5rem)', marginBottom: '1rem' }}>
+              <h2 className="h5" style={{ marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Shield size={18} /> cPanel Access
+              </h2>
+              <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginBottom: '1rem' }}>
+                Open your control panel instantly, or email yourself the login details for later use.
+              </p>
+
+              {hosting.hasCpanelAccess ? (
+                <>
+                  {(hosting.cpanelUsername || hosting.cpanelDomain || hosting.cpanelUrl) && (
+                    <div style={{ display: 'grid', gap: '0.45rem', marginBottom: '1rem', padding: '0.85rem 1rem', borderRadius: 12, background: 'var(--color-bg-secondary)', fontSize: 'var(--text-sm)' }}>
+                      {hosting.cpanelUrl && (
+                        <div><strong style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>URL: </strong>{hosting.cpanelUrl}</div>
+                      )}
+                      {hosting.cpanelUsername && (
+                        <div><strong style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>Username: </strong>{hosting.cpanelUsername}</div>
+                      )}
+                      {hosting.cpanelDomain && (
+                        <div><strong style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-xs)' }}>Domain: </strong>{hosting.cpanelDomain}</div>
+                      )}
+                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>
+                        Password is not shown here — use “cPanel Access” to receive it by email.
+                      </div>
+                    </div>
+                  )}
+                  <div className="myaccount__cpanel-actions" style={{ marginTop: 0 }}>
+                    <button
+                      type="button"
+                      className="btn btn-primary btn-sm"
+                      onClick={handleGoToCpanel}
+                      disabled={!cpanelReady || cpanelBusy === 'login'}
+                    >
+                      {cpanelBusy === 'login' ? <Loader2 size={14} className="spin" /> : <ExternalLink size={14} />}
+                      {cpanelBusy === 'login' ? 'Opening…' : 'Go to cPanel'}
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-ghost btn-sm"
+                      onClick={handleSendCpanelAccess}
+                      disabled={!cpanelReady || cpanelBusy === 'email'}
+                    >
+                      {cpanelBusy === 'email' ? <Loader2 size={14} className="spin" /> : <KeyRound size={14} />}
+                      {cpanelBusy === 'email' ? 'Sending…' : 'cPanel Access'}
+                    </button>
+                  </div>
+                  {hosting.status !== 'active' && (
+                    <p style={{ marginTop: '0.75rem', fontSize: 'var(--text-xs)', color: '#f59e0b' }}>
+                      cPanel actions are available only while this hosting is active.
+                    </p>
+                  )}
+                </>
+              ) : (
+                <div style={{ padding: '1rem', borderRadius: 12, background: 'rgba(99,102,241,0.06)', border: '1px solid rgba(99,102,241,0.15)', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
+                  cPanel credentials are not ready yet. Once our team provisions your account, you can open cPanel and email your login details from here.
+                </div>
+              )}
             </div>
 
             <div className="card-elevated" style={{ padding: 'clamp(1.1rem, 3vw, 1.5rem)', marginBottom: '1rem' }}>
