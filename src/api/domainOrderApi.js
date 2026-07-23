@@ -25,6 +25,16 @@ export const completeDomainPurchase = async (paypalOrderId) => {
 };
 
 /**
+ * Pay for a domain using wallet balance (single step, no PayPal).
+ */
+export const payDomainWithWallet = async ({ domainName, displayCurrency, customerName, customerEmail, customerPhone }) => {
+  const res = await axiosInstance.post('/domain-orders/pay-with-wallet', {
+    domainName, displayCurrency, customerName, customerEmail, customerPhone,
+  });
+  return res.data;
+};
+
+/**
  * Get logged-in user's own domains.
  */
 export const getMyDomains = async () => {

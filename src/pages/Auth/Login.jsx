@@ -42,8 +42,14 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Login এর আগে যে পেইজে ছিল সেখানে রিডাইরেক্ট করবে, না হলে role অনুযায়ী
-  const from = location.state?.from?.pathname;
+  // Login এর আগে যে পেইজে ছিল সেখানে রিডাইরেক্ট (pathname + search + hash), না হলে role অনুযায়ী
+  const fromLocation = location.state?.from;
+  const redirectAfterLogin = (userRole) => {
+    if (fromLocation?.pathname) {
+      return `${fromLocation.pathname}${fromLocation.search || ''}${fromLocation.hash || ''}`;
+    }
+    return userRole === 'admin' ? '/dashboard' : '/';
+  };
 
   const handleGoogleSuccess = async (tokenResponse) => {
     setError('');
@@ -63,7 +69,7 @@ export default function Login() {
       toast.success('Logged in with Google successfully!');
       trackLogin('google');
 
-      const redirectTo = from || (data.user.role === 'admin' ? '/dashboard' : '/');
+      const redirectTo = redirectAfterLogin(data.user.role);
       navigate(redirectTo, { replace: true });
     } catch (err) {
       const message =
@@ -104,8 +110,8 @@ export default function Login() {
       toast.success('Logged in successfully!');
       trackLogin('email');
 
-      // Role-based redirect
-      const redirectTo = from || (data.user.role === 'admin' ? '/dashboard' : '/');
+      // Role-based redirect (preserve query e.g. PayPal ?token= for wallet top-up)
+      const redirectTo = redirectAfterLogin(data.user.role);
       navigate(redirectTo, { replace: true });
     } catch (err) {
       const message =

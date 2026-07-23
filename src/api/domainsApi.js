@@ -37,6 +37,12 @@ export const completeRenew = async (paypalOrderId) => {
   return res.data;
 };
 
+/** Renew a domain instantly using the account balance / wallet. */
+export const renewWithWallet = async (id, displayCurrency) => {
+  const res = await axiosInstance.post(`/domains/my/${id}/renew/wallet`, { displayCurrency });
+  return res.data;
+};
+
 // ─── ADMIN ───
 
 export const getAllDomains = async (params = {}) => {

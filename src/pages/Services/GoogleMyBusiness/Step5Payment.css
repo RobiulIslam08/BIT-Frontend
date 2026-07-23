@@ -345,12 +345,14 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .gmb-payment-card-desc {
   font-size: var(--text-xs);
   color: var(--color-text-muted);
   line-height: 1.5;
+  word-break: break-word;
 }
 
 /* PayPal badge */

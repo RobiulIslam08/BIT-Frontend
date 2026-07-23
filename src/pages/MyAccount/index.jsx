@@ -1,4 +1,4 @@
-// ============================================
+﻿// ============================================
 // BIT SOFTWARE — My Account (Customer Dashboard)
 // ============================================
 import { useState, useEffect } from 'react';
@@ -9,24 +9,26 @@ import {
   Globe, User, Settings, RefreshCw, Loader2,
   AlertCircle, CheckCircle2, Clock, XCircle,
   Calendar, AlertTriangle, ChevronRight,
-  Shield, LayoutDashboard, CreditCard, RotateCw, Server,
+  Shield, CreditCard, RotateCw, Server,
   Wallet, Pencil, Building2, Briefcase, Phone, PhoneCall,
   MapPin, Mail,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
-import { selectCurrentUser, selectIsAuthenticated, selectIsAdmin, updateUser } from '@/features/auth/authSlice';
+import { selectCurrentUser, selectIsAuthenticated, updateUser } from '@/features/auth/authSlice';
 import { getMyDomains } from '@/api/domainsApi';
 import { getMyHostings } from '@/api/hostingApi';
 import { getMyProfile } from '@/api/userApi';
 import { useCurrency } from '@/context/CurrencyContext';
 import PaymentMethods from './PaymentMethods';
+import WalletTab from './Wallet';
 import './MyAccount.css';
 
 const TABS = [
+  { id: 'profile', label: 'Profile', icon: Settings },
   { id: 'domains', label: 'My Domains', icon: Globe },
   { id: 'hosting', label: 'My Hosting', icon: Server },
+  { id: 'wallet', label: 'Wallet', icon: Wallet },
   { id: 'billing', label: 'Billing', icon: CreditCard },
-  { id: 'profile', label: 'Profile', icon: Settings },
 ];
 
 const statusConfig = {
@@ -69,11 +71,12 @@ export default function MyAccount() {
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const isAuthenticated = useSelector(selectIsAuthenticated);
-  const isAdmin = useSelector(selectIsAdmin);
   const user = useSelector(selectCurrentUser);
   const { formatPrice } = useCurrency();
 
-  const initialTab = TABS.some((t) => t.id === searchParams.get('tab')) ? searchParams.get('tab') : 'domains';
+  const initialTab = TABS.some((t) => t.id === searchParams.get('tab'))
+    ? searchParams.get('tab')
+    : 'profile';
   const [activeTab, setActiveTab] = useState(initialTab);
   const [domains, setDomains] = useState([]);
   const [isLoadingDomains, setIsLoadingDomains] = useState(true);
@@ -82,21 +85,22 @@ export default function MyAccount() {
   const [isLoadingHostings, setIsLoadingHostings] = useState(true);
   const [hostingError, setHostingError] = useState('');
 
-  // Keep tab in sync with ?tab= query (e.g. /my-account?tab=billing)
+  // Keep tab in sync with ?tab= query (default = profile)
   useEffect(() => {
     const tab = searchParams.get('tab');
-    if (tab && TABS.some((t) => t.id === tab) && tab !== activeTab) {
-      setActiveTab(tab);
-    }
+    const next = TABS.some((t) => t.id === tab) ? tab : 'profile';
+    if (next !== activeTab) setActiveTab(next);
   }, [searchParams, activeTab]);
 
   const switchTab = (id) => {
     setActiveTab(id);
     const next = new URLSearchParams(searchParams);
-    if (id === 'domains') next.delete('tab');
+    if (id === 'profile') next.delete('tab');
     else next.set('tab', id);
-    // Preserve other params except vault noise is handled in PaymentMethods
-    navigate({ pathname: '/my-account', search: next.toString() ? `?${next.toString()}` : '' }, { replace: true });
+    navigate(
+      { pathname: '/my-account', search: next.toString() ? `?${next.toString()}` : '' },
+      { replace: true },
+    );
   };
 
   useEffect(() => {
@@ -157,46 +161,112 @@ export default function MyAccount() {
       <SEOHead title="My Account" description="Manage your domains and account settings." />
 
       <div className="myaccount">
-        {/* ─── Sidebar ─── */}
-        <aside className="myaccount__sidebar">
-          <div className="myaccount__user-card">
-            <div className="myaccount__avatar">
-              {user?.name?.charAt(0).toUpperCase() || 'U'}
-            </div>
-            <div>
-              <div className="myaccount__user-name">{user?.name}</div>
-              <div className="myaccount__user-email">{user?.email}</div>
-              {user?.userCode && (
-                <div style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', color: 'var(--color-primary)', marginTop: '0.2rem' }}>
-                  ID: {user.userCode}
+        <AnimatePresence mode="wait">
+            {/* ─── PROFILE TAB (default) ─── */}
+            {activeTab === 'profile' && (
+              <motion.div key="profile" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <div className="myaccount__section-header">
+                  <div>
+                    <h2 className="h4">Profile</h2>
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginTop: '0.25rem' }}>View your account information and balance</p>
+                  </div>
+                  <Link to="/my-account/profile/edit" className="btn btn-primary btn-sm">
+                    <Pencil size={14} /> Edit Profile
+                  </Link>
                 </div>
-              )}
-            </div>
-          </div>
 
-          <nav className="myaccount__nav">
-            {TABS.map(({ id, label, icon: Icon }) => (
-              <button
-                key={id}
-                className={`myaccount__nav-item ${activeTab === id ? 'myaccount__nav-item--active' : ''}`}
-                onClick={() => switchTab(id)}
-              >
-                <Icon size={18} />
-                <span>{label}</span>
-              </button>
-            ))}
-            {isAdmin && (
-              <Link to="/dashboard" className="myaccount__nav-item" style={{ marginTop: 'auto' }}>
-                <LayoutDashboard size={18} />
-                <span>Admin Dashboard</span>
-              </Link>
+                {/* ─── Balance cards (Account + Promotional Credit) ─── */}
+                <div className="card-elevated myaccount__balance-summary">
+                  <div className="myaccount__balance-summary__values">
+                    <div className="myaccount__balance-summary__item">
+                      <div className="myaccount__balance-summary__icon">
+                        <Wallet size={24} style={{ color: 'var(--color-primary)' }} />
+                      </div>
+                      <div>
+                        <div className="myaccount__balance-summary__label">Account Balance</div>
+                        <div className="myaccount__balance-summary__value">
+                          {user?.accountBalance != null ? formatPrice(user.accountBalance) : '—'}
+                        </div>
+                      </div>
+                    </div>
+                    <div className="myaccount__balance-summary__item">
+                      <div>
+                        <div className="myaccount__balance-summary__label">Promotional Credit</div>
+                        <div className="myaccount__balance-summary__value myaccount__balance-summary__value--promo">
+                          {user?.promotionalCredit != null ? formatPrice(user.promotionalCredit) : '—'}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-sm"
+                    onClick={() => switchTab('wallet')}
+                  >
+                    <Wallet size={14} /> Manage Wallet
+                  </button>
+                </div>
+
+                {/* ─── Grouped profile info ─── */}
+                {(() => {
+                  const notSet = 'Not set';
+                  const sections = [
+                    {
+                      title: 'Personal Information',
+                      fields: [
+                        { label: 'Customer ID', value: user?.userCode, icon: Shield },
+                        { label: 'Full Name', value: user?.name, icon: User },
+                        { label: 'First Name', value: user?.firstName, icon: User },
+                        { label: 'Last Name', value: user?.lastName, icon: User },
+                        { label: 'Organization', value: user?.organization, icon: Building2 },
+                        { label: 'Job Title', value: user?.jobTitle, icon: Briefcase },
+                        { label: 'Member Since', value: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : null, icon: Calendar },
+                      ],
+                    },
+                    {
+                      title: 'Contact Information',
+                      fields: [
+                        { label: 'Email Address', value: user?.email, icon: Mail },
+                        { label: 'Phone', value: user?.phone, icon: Phone },
+                        { label: 'Alternate Phone', value: user?.alternatePhone, icon: PhoneCall },
+                      ],
+                    },
+                    {
+                      title: 'Address',
+                      fields: [
+                        { label: 'Address Line 1', value: user?.address1, icon: MapPin },
+                        { label: 'Address Line 2', value: user?.address2, icon: MapPin },
+                        { label: 'City', value: user?.city, icon: MapPin },
+                        { label: 'State / Province', value: user?.stateProvince, icon: MapPin },
+                        { label: 'Zip / Postal Code', value: user?.postalCode, icon: MapPin },
+                        { label: 'Country', value: user?.country, icon: Globe },
+                      ],
+                    },
+                  ];
+                  return sections.map((section) => (
+                    <div key={section.title} className="card-elevated" style={{ marginBottom: '1.25rem' }}>
+                      <h3 className="h5" style={{ marginBottom: '1rem' }}>{section.title}</h3>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
+                        {section.fields.map(({ label, value, icon: Icon }) => (
+                          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.875rem', borderRadius: '10px', background: 'var(--color-bg-secondary)' }}>
+                            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-primary-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                              <Icon size={16} style={{ color: 'var(--color-primary)' }} />
+                            </div>
+                            <div style={{ minWidth: 0 }}>
+                              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: '0.15rem' }}>{label}</div>
+                              <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: value ? undefined : 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                {value || notSet}
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ));
+                })()}
+              </motion.div>
             )}
-          </nav>
-        </aside>
 
-        {/* ─── Main Content ─── */}
-        <main className="myaccount__main">
-          <AnimatePresence mode="wait">
             {/* ─── DOMAINS TAB ─── */}
             {activeTab === 'domains' && (
               <motion.div key="domains" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
@@ -207,7 +277,7 @@ export default function MyAccount() {
                       Manage all your registered domains
                     </p>
                   </div>
-                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
                     <button className="btn btn-ghost btn-sm" onClick={fetchDomains} disabled={isLoadingDomains}>
                       <RefreshCw size={14} className={isLoadingDomains ? 'spin' : ''} /> Refresh
                     </button>
@@ -435,109 +505,13 @@ export default function MyAccount() {
               </motion.div>
             )}
 
+            {/* ─── WALLET TAB ─── */}
+            {activeTab === 'wallet' && <WalletTab key="wallet" />}
+
             {/* ─── BILLING TAB ─── */}
             {activeTab === 'billing' && <PaymentMethods key="billing" />}
 
-            {/* ─── PROFILE TAB ─── */}
-            {activeTab === 'profile' && (
-              <motion.div key="profile" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
-                <div className="myaccount__section-header">
-                  <div>
-                    <h2 className="h4">Profile</h2>
-                    <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginTop: '0.25rem' }}>View your account information and balance</p>
-                  </div>
-                  <Link to="/my-account/profile/edit" className="btn btn-primary btn-sm">
-                    <Pencil size={14} /> Edit Profile
-                  </Link>
-                </div>
-
-                {/* ─── Account Balance card (Namecheap-style) ─── */}
-                <div
-                  className="card-elevated"
-                  style={{ marginBottom: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '1rem', background: 'linear-gradient(135deg, var(--color-primary-muted), transparent)' }}
-                >
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                    <div style={{ width: 48, height: 48, borderRadius: '12px', background: 'var(--color-primary-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                      <Wallet size={24} style={{ color: 'var(--color-primary)' }} />
-                    </div>
-                    <div>
-                      <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: '0.15rem' }}>Account Balance</div>
-                      <div style={{ fontWeight: 800, fontSize: 'clamp(1.3rem, 5vw, 1.75rem)', fontFamily: 'var(--font-display)', color: 'var(--color-primary)' }}>
-                        {formatPrice(user?.accountBalance || 0)}
-                      </div>
-                    </div>
-                  </div>
-                  <button
-                    className="btn btn-primary btn-sm"
-                    disabled
-                    title="Coming soon"
-                    style={{ opacity: 0.6, cursor: 'not-allowed' }}
-                  >
-                    Add Funds — Coming soon
-                  </button>
-                </div>
-
-                {/* ─── Grouped profile info ─── */}
-                {(() => {
-                  const notSet = 'Not set';
-                  const sections = [
-                    {
-                      title: 'Personal Information',
-                      fields: [
-                        { label: 'Customer ID', value: user?.userCode, icon: Shield },
-                        { label: 'Full Name', value: user?.name, icon: User },
-                        { label: 'First Name', value: user?.firstName, icon: User },
-                        { label: 'Last Name', value: user?.lastName, icon: User },
-                        { label: 'Organization', value: user?.organization, icon: Building2 },
-                        { label: 'Job Title', value: user?.jobTitle, icon: Briefcase },
-                        { label: 'Member Since', value: user?.createdAt ? new Date(user.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' }) : null, icon: Calendar },
-                      ],
-                    },
-                    {
-                      title: 'Contact Information',
-                      fields: [
-                        { label: 'Email Address', value: user?.email, icon: Mail },
-                        { label: 'Phone', value: user?.phone, icon: Phone },
-                        { label: 'Alternate Phone', value: user?.alternatePhone, icon: PhoneCall },
-                      ],
-                    },
-                    {
-                      title: 'Address',
-                      fields: [
-                        { label: 'Address Line 1', value: user?.address1, icon: MapPin },
-                        { label: 'Address Line 2', value: user?.address2, icon: MapPin },
-                        { label: 'City', value: user?.city, icon: MapPin },
-                        { label: 'State / Province', value: user?.stateProvince, icon: MapPin },
-                        { label: 'Zip / Postal Code', value: user?.postalCode, icon: MapPin },
-                        { label: 'Country', value: user?.country, icon: Globe },
-                      ],
-                    },
-                  ];
-                  return sections.map((section) => (
-                    <div key={section.title} className="card-elevated" style={{ marginBottom: '1.25rem' }}>
-                      <h3 className="h5" style={{ marginBottom: '1rem' }}>{section.title}</h3>
-                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '0.75rem' }}>
-                        {section.fields.map(({ label, value, icon: Icon }) => (
-                          <div key={label} style={{ display: 'flex', alignItems: 'center', gap: '1rem', padding: '0.875rem', borderRadius: '10px', background: 'var(--color-bg-secondary)' }}>
-                            <div style={{ width: 36, height: 36, borderRadius: '50%', background: 'var(--color-primary-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                              <Icon size={16} style={{ color: 'var(--color-primary)' }} />
-                            </div>
-                            <div style={{ minWidth: 0 }}>
-                              <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', marginBottom: '0.15rem' }}>{label}</div>
-                              <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)', color: value ? undefined : 'var(--color-text-muted)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                                {value || notSet}
-                              </div>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-                  ));
-                })()}
-              </motion.div>
-            )}
           </AnimatePresence>
-        </main>
       </div>
     </>
   );

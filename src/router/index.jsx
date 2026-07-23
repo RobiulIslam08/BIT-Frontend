@@ -8,6 +8,7 @@ import { createBrowserRouter } from 'react-router-dom';
 import { MainLayout } from '@/layouts/MainLayout';
 import { AuthLayout } from '@/layouts/AuthLayout';
 import { DashboardLayout } from '@/layouts/DashboardLayout';
+import { AccountLayout } from '@/layouts/AccountLayout';
 import { PageLoader } from '@/components/common/LoadingSpinner';
 import {
   AdminRoute,
@@ -56,6 +57,9 @@ const AdminHostingOrders = lazy(() => import('@/pages/Dashboard/HostingOrders'))
 const AdminHostingPlans = lazy(() => import('@/pages/Dashboard/HostingPlans'));
 const DashboardUsers = lazy(() => import('@/pages/Dashboard/Users'));
 const DashboardUserDetails = lazy(() => import('@/pages/Dashboard/UserDetails'));
+const AdminWalletSettings = lazy(() => import('@/pages/Dashboard/WalletSettings'));
+const AdminWithdrawals = lazy(() => import('@/pages/Dashboard/Withdrawals'));
+const AdminGrantCredit = lazy(() => import('@/pages/Dashboard/GrantCredit'));
 const DashboardAnalytics = lazy(() => import('@/pages/Dashboard/Analytics'));
 const DashboardSettings = lazy(() => import('@/pages/Dashboard/Settings'));
 const NotFound = lazy(() => import('@/pages/NotFound'));
@@ -92,13 +96,25 @@ export const router = createBrowserRouter([
         children: [
           { path: 'domain-checkout', element: <SuspenseWrap><DomainCheckout /></SuspenseWrap> },
           { path: 'hosting-checkout', element: <SuspenseWrap><HostingCheckout /></SuspenseWrap> },
-          { path: 'my-account', element: <SuspenseWrap><MyAccount /></SuspenseWrap> },
-          { path: 'my-account/profile/edit', element: <SuspenseWrap><ProfileEdit /></SuspenseWrap> },
-          { path: 'my-account/domains/:id', element: <SuspenseWrap><DomainDetails /></SuspenseWrap> },
-          { path: 'my-account/hosting/:id', element: <SuspenseWrap><HostingDetails /></SuspenseWrap> },
         ],
       },
       { path: '*', element: <SuspenseWrap><NotFound /></SuspenseWrap> },
+    ],
+  },
+  {
+    // Customer account — dedicated shell (no marketing Navbar)
+    path: '/my-account',
+    element: <ProtectedRoute />,
+    children: [
+      {
+        element: <AccountLayout />,
+        children: [
+          { index: true, element: <SuspenseWrap><MyAccount /></SuspenseWrap> },
+          { path: 'profile/edit', element: <SuspenseWrap><ProfileEdit /></SuspenseWrap> },
+          { path: 'domains/:id', element: <SuspenseWrap><DomainDetails /></SuspenseWrap> },
+          { path: 'hosting/:id', element: <SuspenseWrap><HostingDetails /></SuspenseWrap> },
+        ],
+      },
     ],
   },
   {
@@ -137,6 +153,9 @@ export const router = createBrowserRouter([
           { path: 'hosting-plans', element: <SuspenseWrap><AdminHostingPlans /></SuspenseWrap> },
           { path: 'users', element: <SuspenseWrap><DashboardUsers /></SuspenseWrap> },
           { path: 'users/:id', element: <SuspenseWrap><DashboardUserDetails /></SuspenseWrap> },
+          { path: 'wallet-settings', element: <SuspenseWrap><AdminWalletSettings /></SuspenseWrap> },
+          { path: 'wallet-withdrawals', element: <SuspenseWrap><AdminWithdrawals /></SuspenseWrap> },
+          { path: 'wallet-grant-credit', element: <SuspenseWrap><AdminGrantCredit /></SuspenseWrap> },
           { path: 'analytics', element: <SuspenseWrap><DashboardAnalytics /></SuspenseWrap> },
           { path: 'settings', element: <SuspenseWrap><DashboardSettings /></SuspenseWrap> },
         ],

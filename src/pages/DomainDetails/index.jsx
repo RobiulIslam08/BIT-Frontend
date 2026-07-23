@@ -6,16 +6,20 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useDispatch } from 'react-redux';
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Globe, ArrowLeft, Loader2, AlertCircle, CheckCircle2, XCircle, Clock,
-  Calendar, Shield, RotateCw, Server, RefreshCw, CreditCard, Info, AlertTriangle,
+  Calendar, Shield, RotateCw, Server, RefreshCw, CreditCard, Info, AlertTriangle, Wallet,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import {
-  getMyDomainById, toggleAutoRenew, createRenewOrder, completeRenew,
+  getMyDomainById, toggleAutoRenew, createRenewOrder, completeRenew, renewWithWallet,
 } from '@/api/domainsApi';
+import { getWalletSummary } from '@/api/walletApi';
+import { getMyProfile } from '@/api/userApi';
+import { updateUser } from '@/features/auth/authSlice';
 import { useCurrency } from '@/context/CurrencyContext';
 import { toast } from '@/components/common/Toast/Toast';
 import { trackBeginCheckout, trackPurchase, trackEvent } from '@/utils/analytics';
@@ -52,6 +56,7 @@ function InfoRow({ icon: Icon, label, children }) {
 export default function DomainDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const { currency, formatPriceWithCode } = useCurrency();
 
   const [domain, setDomain] = useState(null);
@@ -64,6 +69,17 @@ export default function DomainDetails() {
   const [paypalOrderId, setPaypalOrderId] = useState(null);
   const [creatingRenew, setCreatingRenew] = useState(false);
   const [renewError, setRenewError] = useState('');
+  const [walletSummary, setWalletSummary] = useState(null);
+  const [payingWallet, setPayingWallet] = useState(false);
+
+  const refreshProfile = useCallback(async () => {
+    try {
+      const res = await getMyProfile();
+      if (res?.success && res.data) dispatch(updateUser(res.data));
+    } catch {
+      /* non-blocking */
+    }
+  }, [dispatch]);
 
   const fetchDomain = useCallback(async () => {
     setLoading(true);
@@ -79,6 +95,17 @@ export default function DomainDetails() {
   }, [id]);
 
   useEffect(() => { fetchDomain(); }, [fetchDomain]);
+
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await getWalletSummary();
+        if (!cancelled && res?.success) setWalletSummary(res.data);
+      } catch { /* wallet optional */ }
+    })();
+    return () => { cancelled = true; };
+  }, []);
 
   const handleToggleAuto = async (next) => {
     setTogglingAuto(true);
@@ -160,6 +187,45 @@ export default function DomainDetails() {
     }
   }, [fetchDomain, domain?.domainName, domain?.renewPriceUSD]);
 
+  const handleWalletRenew = async () => {
+    setPayingWallet(true);
+    setRenewError('');
+    setRenewStep('processing');
+    try {
+      const res = await renewWithWallet(id, currency);
+      if (res.success) {
+        setRenewStep('success');
+        toast.success('Domain renewed successfully!');
+        trackPurchase({
+          transactionId: `wallet_${domain?.domainName}_${Date.now()}`,
+          currency: 'USD',
+          value: domain?.renewPriceUSD,
+          items: [{
+            item_id: domain?.domainName,
+            item_name: domain?.domainName,
+            item_category: 'domain_renewal',
+            price: domain?.renewPriceUSD,
+            quantity: 1,
+          }],
+        });
+        fetchDomain();
+        try {
+          const w = await getWalletSummary();
+          if (w?.success) setWalletSummary(w.data);
+        } catch { /* ignore */ }
+        await refreshProfile();
+      } else {
+        setRenewError(res.message || 'Renewal failed. Please try again.');
+        setRenewStep('idle');
+      }
+    } catch (err) {
+      setRenewError(err?.response?.data?.message || 'Renewal failed. If you were charged, a refund will be issued automatically.');
+      setRenewStep('idle');
+    } finally {
+      setPayingWallet(false);
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', flexDirection: 'column', color: 'var(--color-text-muted)' }}>
@@ -176,7 +242,7 @@ export default function DomainDetails() {
         <div style={{ display: 'flex', gap: '0.5rem', padding: '1rem', borderRadius: '10px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#dc2626', fontSize: 'var(--text-sm)' }}>
           <AlertCircle size={16} /> {error || 'Domain not found.'}
         </div>
-        <Link to="/my-account" className="btn btn-ghost btn-sm" style={{ marginTop: '1rem' }}>
+        <Link to="/my-account?tab=domains" className="btn btn-ghost btn-sm" style={{ marginTop: '1rem' }}>
           <ArrowLeft size={14} /> Back to My Account
         </Link>
       </div>
@@ -188,6 +254,9 @@ export default function DomainDetails() {
   const daysLeft = getDaysUntilExpiry(domain.expiresAt);
   const renewPrice = typeof domain.renewPriceUSD === 'number' ? domain.renewPriceUSD : null;
   const canRenew = ['active', 'expired', 'pending'].includes(domain.status);
+  const walletBalance = walletSummary?.totalBalance;
+  const walletLoaded = walletSummary != null;
+  const walletSufficient = walletLoaded && renewPrice !== null && walletBalance >= renewPrice;
 
   return (
     <PayPalScriptProvider options={{
@@ -197,9 +266,9 @@ export default function DomainDetails() {
     }}>
       <SEOHead title={`${domain.domainName} — Domain Details`} />
 
-      <div style={{ maxWidth: 900, margin: '0 auto', padding: '1.5rem 1rem 3rem' }}>
+      <div style={{ maxWidth: 900 }}>
         {/* Back */}
-        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/my-account')} style={{ marginBottom: '1.25rem' }}>
+        <button className="btn btn-ghost btn-sm" onClick={() => navigate('/my-account?tab=domains')} style={{ marginBottom: '1.25rem' }}>
           <ArrowLeft size={14} /> Back to My Domains
         </button>
 
@@ -320,14 +389,51 @@ export default function DomainDetails() {
                   </button>
                 </div>
               ) : (
-                <button
-                  className="btn btn-primary"
-                  style={{ width: '100%', justifyContent: 'center' }}
-                  onClick={startRenew}
-                  disabled={creatingRenew || !canRenew || renewPrice === null}
-                >
-                  {creatingRenew ? <><Loader2 size={15} className="spin" /> Preparing...</> : <><RefreshCw size={15} /> Renew Now</>}
-                </button>
+                <>
+                  {/* Pay with Account Balance */}
+                  <div className="renew-wallet-box">
+                    <div className="renew-wallet-box__row">
+                      <span className="renew-wallet-box__label">
+                        <Wallet size={14} style={{ color: 'var(--color-primary)' }} /> Account Balance
+                      </span>
+                      <span className="renew-wallet-box__balance">
+                        {walletLoaded ? formatPriceWithCode(walletBalance) : '…'}
+                      </span>
+                    </div>
+                    <button
+                      className="btn btn-primary btn-sm"
+                      style={{ width: '100%', justifyContent: 'center' }}
+                      onClick={handleWalletRenew}
+                      disabled={payingWallet || !canRenew || renewPrice === null || !walletSufficient}
+                    >
+                      {payingWallet ? <><Loader2 size={14} className="spin" /> Processing...</> : <><Wallet size={14} /> Pay with Balance</>}
+                    </button>
+                    {walletLoaded && !walletSufficient && renewPrice !== null && (
+                      <div className="renew-wallet-box__hint">
+                        Insufficient balance.{' '}
+                        <Link to="/my-account?tab=wallet">Add funds</Link>
+                      </div>
+                    )}
+                    {!walletLoaded && (
+                      <div className="renew-wallet-box__hint">
+                        Loading wallet balance…
+                      </div>
+                    )}
+                  </div>
+
+                  <div className="renew-or-divider">
+                    <span /> OR <span />
+                  </div>
+
+                  <button
+                    className="btn btn-secondary"
+                    style={{ width: '100%', justifyContent: 'center' }}
+                    onClick={startRenew}
+                    disabled={creatingRenew || !canRenew || renewPrice === null}
+                  >
+                    {creatingRenew ? <><Loader2 size={15} className="spin" /> Preparing...</> : <><CreditCard size={15} /> Pay with Card / PayPal</>}
+                  </button>
+                </>
               )}
             </div>
 
@@ -381,6 +487,32 @@ export default function DomainDetails() {
         .domains__switch input:checked + .domains__switch-track { background: var(--color-primary); border-color: var(--color-primary); }
         .domains__switch input:checked + .domains__switch-track::after { transform: translate(20px, -50%); }
         .domains__switch input:disabled + .domains__switch-track { opacity: 0.55; cursor: not-allowed; }
+
+        .renew-wallet-box {
+          margin-bottom: 0.6rem; padding: 0.7rem 0.85rem; border-radius: 10px;
+          background: var(--color-bg-tertiary); border: 1px solid var(--color-border);
+        }
+        .renew-wallet-box__row {
+          display: flex; align-items: center; justify-content: space-between;
+          gap: 0.5rem; margin-bottom: 0.5rem; flex-wrap: wrap;
+        }
+        .renew-wallet-box__label {
+          display: inline-flex; align-items: center; gap: 0.4rem;
+          font-size: var(--text-xs); font-weight: 700; color: var(--color-text-secondary);
+        }
+        .renew-wallet-box__balance {
+          font-size: var(--text-xs); font-weight: 700; word-break: break-word;
+        }
+        .renew-wallet-box__hint {
+          margin-top: 0.4rem; font-size: 11px; color: var(--color-text-muted); line-height: 1.4;
+        }
+        .renew-wallet-box__hint a { color: var(--color-primary); font-weight: 700; }
+        .renew-or-divider {
+          display: flex; align-items: center; gap: 0.5rem;
+          margin: 0.4rem 0 0.6rem; color: var(--color-text-muted); font-size: 11px;
+        }
+        .renew-or-divider span { flex: 1; height: 1px; background: var(--color-border); }
+
         @media (max-width: 720px) { .domain-details-grid { grid-template-columns: 1fr !important; } }
       `}</style>
     </PayPalScriptProvider>

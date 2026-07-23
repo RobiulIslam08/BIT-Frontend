@@ -93,7 +93,7 @@ export default function HostingDetails() {
     <>
       <SEOHead title={hosting ? `${hosting.planName} Hosting` : 'Hosting Details'} description="View your hosting plan details and download your project." />
 
-      <div className="myaccount" style={{ maxWidth: 960, margin: '0 auto', padding: '1.25rem clamp(1rem, 4vw, 2rem) 3rem' }}>
+      <div className="myaccount" style={{ maxWidth: 960 }}>
         <button
           type="button"
           className="btn btn-ghost btn-sm"

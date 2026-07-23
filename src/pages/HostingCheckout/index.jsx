@@ -3,17 +3,19 @@
 // ============================================
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams, useNavigate, Link } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSelector, useDispatch } from 'react-redux';
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Server, Shield, CheckCircle2, AlertCircle, Loader2,
-  Lock, ChevronRight, User, Mail, Phone, RefreshCw, Globe,
+  Lock, ChevronRight, User, Mail, Phone, RefreshCw, Globe, Wallet,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
-import { selectCurrentUser, selectIsAuthenticated } from '@/features/auth/authSlice';
-import { createHostingPayPalOrder, completeHostingPurchase } from '@/api/hostingOrderApi';
+import { selectCurrentUser, selectIsAuthenticated, updateUser } from '@/features/auth/authSlice';
+import { createHostingPayPalOrder, completeHostingPurchase, payHostingWithWallet } from '@/api/hostingOrderApi';
 import { getPublicHostingPlans } from '@/api/hostingPlanApi';
+import { getWalletSummary } from '@/api/walletApi';
+import { getMyProfile } from '@/api/userApi';
 import { useCurrency } from '@/context/CurrencyContext';
 import { toast } from '@/components/common/Toast/Toast';
 import { trackBeginCheckout, trackPurchase, trackEvent } from '@/utils/analytics';
@@ -21,6 +23,7 @@ import { trackBeginCheckout, trackPurchase, trackEvent } from '@/utils/analytics
 export default function HostingCheckout() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const user = useSelector(selectCurrentUser);
   const { currency, formatPriceWithCode } = useCurrency();
@@ -45,6 +48,20 @@ export default function HostingCheckout() {
   const [isCompleting, setIsCompleting] = useState(false);
   const [orderError, setOrderError] = useState('');
   const [step, setStep] = useState('form'); // form | payment | success
+  const [payMethod, setPayMethod] = useState('paypal'); // 'paypal' | 'wallet'
+  const [walletSummary, setWalletSummary] = useState(null);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await getWalletSummary();
+        if (!cancelled && res?.success) setWalletSummary(res.data);
+      } catch { /* wallet optional */ }
+    })();
+    return () => { cancelled = true; };
+  }, [isAuthenticated]);
 
   useEffect(() => {
     if (!isAuthenticated) {
@@ -135,6 +152,46 @@ export default function HostingCheckout() {
       setOrderError(err?.response?.data?.message || 'Failed to create order. Please try again.');
     } finally {
       setIsCreatingOrder(false);
+    }
+  };
+
+  const handleWalletPay = async (e) => {
+    e.preventDefault();
+    if (!validateForm() || !plan) return;
+    setIsCompleting(true);
+    setOrderError('');
+    try {
+      const res = await payHostingWithWallet({
+        planSlug: plan.slug,
+        billingCycle,
+        displayCurrency: currency,
+        customerName: form.customerName.trim(),
+        customerEmail: form.customerEmail.trim(),
+        customerPhone: form.customerPhone.trim(),
+        websiteLabel: form.websiteLabel.trim() || undefined,
+      });
+      if (res.success) {
+        setStep('success');
+        toast.success(`Hosting "${plan?.name}" activated successfully!`);
+        try {
+          const profile = await getMyProfile();
+          if (profile?.success && profile.data) dispatch(updateUser(profile.data));
+        } catch { /* non-blocking */ }
+        trackPurchase({
+          transactionId: res.data?.orderId || plan.slug,
+          currency: 'USD',
+          value: priceUSD,
+          items: [{ item_id: plan.slug, item_name: plan.name, item_category: 'hosting', item_variant: billingCycle, price: priceUSD, quantity: 1 }],
+        });
+      } else {
+        setOrderError(res.message || 'Payment failed. Please try again.');
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Wallet payment failed. Please try again.';
+      setOrderError(msg);
+      toast.error(msg);
+    } finally {
+      setIsCompleting(false);
     }
   };
 
@@ -346,22 +403,72 @@ export default function HostingCheckout() {
                     </div>
 
                     <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
+                      {/* ─── Payment method chooser ─── */}
+                      <div className="pay-method-chooser">
+                        <div className="pay-method-chooser__label">Payment Method</div>
+                        <div className="pay-method-chooser__grid">
+                          <button
+                            type="button"
+                            className={`pay-method-btn ${payMethod === 'paypal' ? 'is-active' : ''}`}
+                            onClick={() => setPayMethod('paypal')}
+                          >
+                            PayPal / Card
+                          </button>
+                          <button
+                            type="button"
+                            className={`pay-method-btn ${payMethod === 'wallet' ? 'is-active' : ''}`}
+                            onClick={() => setPayMethod('wallet')}
+                          >
+                            <Wallet size={14} />
+                            Account Balance
+                          </button>
+                        </div>
+                        {payMethod === 'wallet' && walletSummary && (
+                          <div className="pay-method-chooser__hint">
+                            Wallet balance: <strong>{formatPriceWithCode(walletSummary.totalBalance)}</strong>
+                            {walletSummary.totalBalance < priceUSD && (
+                              <span className="pay-method-chooser__error">
+                                Insufficient balance.{' '}
+                                <Link to="/my-account?tab=wallet">Add funds</Link>.
+                              </span>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
                       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.875rem' }}>
                         <span style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>Total</span>
                         <span style={{ fontWeight: 800, fontSize: 'clamp(1.2rem, 5vw, 1.5rem)', fontFamily: 'var(--font-display)', color: 'var(--color-primary)' }}>{displayPrice}</span>
                       </div>
-                      <button
-                        type="submit"
-                        className="btn btn-primary"
-                        disabled={isCreatingOrder}
-                        style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--text-sm)', padding: '0.75rem' }}
-                      >
-                        {isCreatingOrder ? (
-                          <><Loader2 size={16} className="spin" /> Creating Order...</>
-                        ) : (
-                          <>Continue to Payment <ChevronRight size={16} /></>
-                        )}
-                      </button>
+
+                      {payMethod === 'wallet' ? (
+                        <button
+                          type="button"
+                          onClick={handleWalletPay}
+                          className="btn btn-primary"
+                          disabled={isCompleting || !walletSummary || walletSummary.totalBalance < priceUSD}
+                          style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--text-sm)', padding: '0.75rem' }}
+                        >
+                          {isCompleting ? (
+                            <><Loader2 size={16} className="spin" /> Processing...</>
+                          ) : (
+                            <>Pay {displayPrice} from Balance</>
+                          )}
+                        </button>
+                      ) : (
+                        <button
+                          type="submit"
+                          className="btn btn-primary"
+                          disabled={isCreatingOrder}
+                          style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--text-sm)', padding: '0.75rem' }}
+                        >
+                          {isCreatingOrder ? (
+                            <><Loader2 size={16} className="spin" /> Creating Order...</>
+                          ) : (
+                            <>Continue to Payment <ChevronRight size={16} /></>
+                          )}
+                        </button>
+                      )}
                     </div>
                   </form>
                 </motion.div>
@@ -427,6 +534,98 @@ export default function HostingCheckout() {
           )}
         </div>
       </div>
+
+      <style>{`
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .spin { animation: spin 1s linear infinite; }
+
+        .checkout-container {
+          min-height: 100vh;
+          background: var(--color-bg-secondary);
+          padding: 1rem 0.75rem;
+          display: flex;
+          align-items: flex-start;
+          justify-content: center;
+        }
+        @media (min-width: 480px) {
+          .checkout-container { padding: 2rem 1.5rem; }
+        }
+
+        .checkout-card {
+          background: var(--color-surface-elevated);
+          border: 1px solid var(--color-border);
+          border-radius: 12px;
+          padding: 1rem;
+          box-shadow: var(--shadow-md);
+          margin-bottom: 1rem;
+        }
+        @media (min-width: 480px) {
+          .checkout-card { padding: 1.5rem; }
+        }
+
+        .summary-header {
+          display: flex;
+          flex-direction: column;
+          gap: 0.75rem;
+          margin-bottom: 0.875rem;
+        }
+        @media (min-width: 440px) {
+          .summary-header {
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+          }
+        }
+        .summary-left {
+          display: flex;
+          align-items: center;
+          gap: 0.625rem;
+          min-width: 0;
+        }
+        .domain-display-name {
+          font-family: var(--font-display);
+          font-weight: 800;
+          font-size: clamp(1rem, 4vw, 1.25rem);
+          color: var(--color-text-primary);
+          word-break: break-word;
+          line-height: 1.2;
+        }
+
+        .pay-method-chooser { margin-bottom: 1rem; }
+        .pay-method-chooser__label {
+          font-size: var(--text-xs); font-weight: 700; margin-bottom: 0.5rem;
+          color: var(--color-text-secondary);
+        }
+        .pay-method-chooser__grid {
+          display: grid; grid-template-columns: 1fr; gap: 0.5rem;
+        }
+        @media (min-width: 380px) {
+          .pay-method-chooser__grid { grid-template-columns: 1fr 1fr; }
+        }
+        .pay-method-btn {
+          display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
+          min-height: 44px; padding: 0.65rem 0.75rem; border-radius: 10px;
+          border: 1px solid var(--color-border); background: var(--color-bg-secondary);
+          font-weight: 700; font-size: var(--text-xs); cursor: pointer;
+          color: var(--color-text-secondary); line-height: 1.2; text-align: center;
+          transition: border-color .15s ease, background .15s ease, color .15s ease;
+        }
+        .pay-method-btn.is-active {
+          border: 1.5px solid var(--color-primary); background: var(--color-primary-muted);
+          color: var(--color-primary);
+        }
+        .pay-method-chooser__hint {
+          margin-top: 0.55rem; font-size: var(--text-xs); color: var(--color-text-muted); line-height: 1.45;
+        }
+        .pay-method-chooser__hint strong { color: var(--color-text-primary); }
+        .pay-method-chooser__error {
+          color: #dc2626; display: block; margin-top: 0.25rem;
+        }
+        .pay-method-chooser__error a {
+          color: var(--color-primary); font-weight: 700;
+        }
+      `}</style>
     </PayPalScriptProvider>
   );
 }

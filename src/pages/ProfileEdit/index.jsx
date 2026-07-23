@@ -82,7 +82,7 @@ export default function ProfileEdit() {
       if (res?.success) {
         dispatch(updateUser(res.data));
         setSuccess('Profile updated successfully.');
-        setTimeout(() => navigate('/my-account?tab=profile'), 700);
+        setTimeout(() => navigate('/my-account'), 700);
       } else {
         setError(res?.message || 'Failed to update profile.');
       }
@@ -97,9 +97,9 @@ export default function ProfileEdit() {
     <>
       <SEOHead title="Edit Profile" description="Add and update your account information." />
 
-      <div style={{ maxWidth: '860px', margin: '0 auto', padding: 'clamp(1.25rem, 4vw, 2.5rem) 1rem' }}>
+      <div style={{ maxWidth: '860px' }}>
         <Link
-          to="/my-account?tab=profile"
+          to="/my-account"
           className="btn btn-ghost btn-sm"
           style={{ marginBottom: '1rem' }}
         >
@@ -190,7 +190,7 @@ export default function ProfileEdit() {
           </div>
 
           <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
-            <Link to="/my-account?tab=profile" className="btn btn-ghost">Cancel</Link>
+            <Link to="/my-account" className="btn btn-ghost">Cancel</Link>
             <button type="submit" className="btn btn-primary" disabled={isSaving}>
               {isSaving ? <Loader2 size={16} className="spin" /> : <Save size={16} />}
               {isSaving ? 'Saving...' : 'Save Changes'}

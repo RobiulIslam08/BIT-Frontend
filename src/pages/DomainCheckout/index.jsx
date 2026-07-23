@@ -2,18 +2,20 @@
 // BIT SOFTWARE — Domain Checkout Page
 // ============================================
 import { useState, useEffect, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
-import { useSelector } from 'react-redux';
+import { useSearchParams, useNavigate, Link } from 'react-router-dom';
+import { useSelector, useDispatch } from 'react-redux';
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Globe, Shield, CheckCircle2, AlertCircle, Loader2,
-  Lock, ChevronRight, User, Mail, Phone, RefreshCw,
+  Lock, ChevronRight, User, Mail, Phone, RefreshCw, Wallet,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
-import { selectCurrentUser, selectIsAuthenticated } from '@/features/auth/authSlice';
-import { createDomainPayPalOrder, completeDomainPurchase } from '@/api/domainOrderApi';
+import { selectCurrentUser, selectIsAuthenticated, updateUser } from '@/features/auth/authSlice';
+import { createDomainPayPalOrder, completeDomainPurchase, payDomainWithWallet } from '@/api/domainOrderApi';
 import { getPublicDomainPricing } from '@/api/domainPricingApi';
+import { getWalletSummary } from '@/api/walletApi';
+import { getMyProfile } from '@/api/userApi';
 import { useCurrency } from '@/context/CurrencyContext';
 import { toast } from '@/components/common/Toast/Toast';
 import { ENV } from '@/config/env';
@@ -24,6 +26,7 @@ const FALLBACK_PRICE_USD = 20;
 export default function DomainCheckout() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const user = useSelector(selectCurrentUser);
   const { currency, formatPriceWithCode } = useCurrency();
@@ -34,7 +37,8 @@ export default function DomainCheckout() {
   const tld = dotIdx > 0 ? domainParam.substring(dotIdx + 1) : 'com';
   const domainName = `${sld}.${tld}`.toLowerCase();
 
-  const [priceUSD, setPriceUSD] = useState(FALLBACK_PRICE_USD);
+  const [priceUSD, setPriceUSD] = useState(null);
+  const [priceReady, setPriceReady] = useState(false);
   const [priceLoading, setPriceLoading] = useState(true);
 
   const [form, setForm] = useState({
@@ -48,25 +52,47 @@ export default function DomainCheckout() {
   const [isCompleting, setIsCompleting] = useState(false);
   const [orderError, setOrderError] = useState('');
   const [step, setStep] = useState('form'); // 'form' | 'payment' | 'success'
+  const [payMethod, setPayMethod] = useState('paypal'); // 'paypal' | 'wallet'
+  const [walletSummary, setWalletSummary] = useState(null);
+
+  // Load wallet balance (for the "Pay with Account Balance" option)
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await getWalletSummary();
+        if (!cancelled && res?.success) setWalletSummary(res.data);
+      } catch { /* wallet optional */ }
+    })();
+    return () => { cancelled = true; };
+  }, [isAuthenticated]);
 
   // Load live sell price from admin-maintainable pricing API
   useEffect(() => {
     let cancelled = false;
     (async () => {
       setPriceLoading(true);
+      setPriceReady(false);
       try {
         const res = await getPublicDomainPricing();
         const list = res?.data || [];
         const match = list.find((p) => p.tld === tld.toLowerCase());
         if (!cancelled) {
-          setPriceUSD(
-            match && typeof match.registerPriceUSD === 'number'
-              ? match.registerPriceUSD
-              : FALLBACK_PRICE_USD,
-          );
+          if (match && typeof match.registerPriceUSD === 'number') {
+            setPriceUSD(match.registerPriceUSD);
+            setPriceReady(true);
+          } else {
+            // Display estimate only — do not gate wallet affordability on fallback.
+            setPriceUSD(FALLBACK_PRICE_USD);
+            setPriceReady(false);
+          }
         }
       } catch {
-        if (!cancelled) setPriceUSD(FALLBACK_PRICE_USD);
+        if (!cancelled) {
+          setPriceUSD(FALLBACK_PRICE_USD);
+          setPriceReady(false);
+        }
       } finally {
         if (!cancelled) setPriceLoading(false);
       }
@@ -87,7 +113,9 @@ export default function DomainCheckout() {
     if (!domainParam) navigate('/services/domain-hosting');
   }, [domainParam, navigate]);
 
-  const displayPrice = formatPriceWithCode(priceUSD);
+  const displayPrice = priceUSD == null
+    ? '…'
+    : formatPriceWithCode(priceUSD);
 
   const validateForm = () => {
     const errors = {};
@@ -133,6 +161,48 @@ export default function DomainCheckout() {
       setOrderError(err?.response?.data?.message || 'Failed to create order. Please try again.');
     } finally {
       setIsCreatingOrder(false);
+    }
+  };
+
+  const handleWalletPay = async (e) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+    if (!priceReady || priceUSD == null) {
+      toast.warning('Live domain price is unavailable. Please refresh and try again.');
+      return;
+    }
+    setIsCompleting(true);
+    setOrderError('');
+    try {
+      const res = await payDomainWithWallet({
+        domainName,
+        displayCurrency: currency,
+        customerName: form.customerName.trim(),
+        customerEmail: form.customerEmail.trim(),
+        customerPhone: form.customerPhone.trim(),
+      });
+      if (res.success) {
+        setStep('success');
+        toast.success(`Domain "${domainName}" registered successfully!`);
+        try {
+          const profile = await getMyProfile();
+          if (profile?.success && profile.data) dispatch(updateUser(profile.data));
+        } catch { /* non-blocking */ }
+        trackPurchase({
+          transactionId: res.data?.orderId || domainName,
+          currency: 'USD',
+          value: priceUSD,
+          items: [{ item_id: domainName, item_name: domainName, item_category: 'domain_registration', item_variant: tld, price: priceUSD, quantity: 1 }],
+        });
+      } else {
+        setOrderError(res.message || 'Payment failed. Please try again.');
+      }
+    } catch (err) {
+      const msg = err?.response?.data?.message || 'Wallet payment failed. Please try again.';
+      setOrderError(msg);
+      toast.error(msg);
+    } finally {
+      setIsCompleting(false);
     }
   };
 
@@ -312,27 +382,83 @@ export default function DomainCheckout() {
                 </div>
 
                 <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
+                  {/* ─── Payment method chooser ─── */}
+                  <div className="pay-method-chooser">
+                    <div className="pay-method-chooser__label">Payment Method</div>
+                    <div className="pay-method-chooser__grid">
+                      <button
+                        type="button"
+                        className={`pay-method-btn ${payMethod === 'paypal' ? 'is-active' : ''}`}
+                        onClick={() => setPayMethod('paypal')}
+                      >
+                        PayPal / Card
+                      </button>
+                      <button
+                        type="button"
+                        className={`pay-method-btn ${payMethod === 'wallet' ? 'is-active' : ''}`}
+                        onClick={() => setPayMethod('wallet')}
+                      >
+                        <Wallet size={14} />
+                        Account Balance
+                      </button>
+                    </div>
+                    {payMethod === 'wallet' && walletSummary && (
+                      <div className="pay-method-chooser__hint">
+                        Wallet balance: <strong>{formatPriceWithCode(walletSummary.totalBalance)}</strong>
+                        {!priceReady && !priceLoading && (
+                          <span className="pay-method-chooser__warn">
+                            Live domain price unavailable — wallet pay is disabled until pricing loads.
+                          </span>
+                        )}
+                        {priceReady && priceUSD != null && walletSummary.totalBalance < priceUSD && (
+                          <span className="pay-method-chooser__error">
+                            Insufficient balance.{' '}
+                            <Link to="/my-account?tab=wallet">Add funds</Link>.
+                          </span>
+                        )}
+                      </div>
+                    )}
+                  </div>
+
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.875rem' }}>
                     <span style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>Total</span>
                     <span style={{ fontWeight: 800, fontSize: 'clamp(1.2rem, 5vw, 1.5rem)', fontFamily: 'var(--font-display)', color: 'var(--color-primary)' }}>{displayPrice}</span>
                   </div>
-                  <button
-                    type="submit"
-                    className="btn btn-primary"
-                    disabled={isCreatingOrder}
-                    style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--text-sm)', padding: '0.75rem' }}
-                  >
-                    {isCreatingOrder ? (
-                      <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Creating Order...</>
-                    ) : (
-                      <>Continue to Payment <ChevronRight size={16} /></>
-                    )}
-                  </button>
 
-                  {/* bKash placeholder */}
-                  {/* <button type="button" disabled className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center', marginTop: '0.375rem', opacity: 0.4, cursor: 'not-allowed', fontSize: 'var(--text-xs)' }}>
-                    🟢 Pay with bKash (Coming Soon)
-                  </button> */}
+                  {payMethod === 'wallet' ? (
+                    <button
+                      type="button"
+                      onClick={handleWalletPay}
+                      className="btn btn-primary"
+                      disabled={
+                        isCompleting
+                        || !walletSummary
+                        || !priceReady
+                        || priceUSD == null
+                        || walletSummary.totalBalance < priceUSD
+                      }
+                      style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--text-sm)', padding: '0.75rem' }}
+                    >
+                      {isCompleting ? (
+                        <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Processing...</>
+                      ) : (
+                        <>Pay {displayPrice} from Balance</>
+                      )}
+                    </button>
+                  ) : (
+                    <button
+                      type="submit"
+                      className="btn btn-primary"
+                      disabled={isCreatingOrder}
+                      style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--text-sm)', padding: '0.75rem' }}
+                    >
+                      {isCreatingOrder ? (
+                        <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Creating Order...</>
+                      ) : (
+                        <>Continue to Payment <ChevronRight size={16} /></>
+                      )}
+                    </button>
+                  )}
                 </div>
               </form>
             </motion.div>
@@ -401,7 +527,7 @@ export default function DomainCheckout() {
                 A confirmation email has been sent to <strong>{form.customerEmail}</strong>
               </p>
               <div className="success-button-group">
-                <button className="btn btn-primary" style={{ fontSize: 'var(--text-xs)', padding: '0.6rem 1rem' }} onClick={() => navigate('/my-account')}>
+                <button className="btn btn-primary" style={{ fontSize: 'var(--text-xs)', padding: '0.6rem 1rem' }} onClick={() => navigate('/my-account?tab=domains')}>
                   View My Domains
                 </button>
                 <button className="btn btn-ghost" style={{ fontSize: 'var(--text-xs)', padding: '0.6rem 1rem' }} onClick={() => navigate('/services/domain-hosting')}>
@@ -508,6 +634,43 @@ export default function DomainCheckout() {
                 justify-content: center;
                 gap: 0.75rem;
               }
+            }
+
+            .pay-method-chooser { margin-bottom: 1rem; }
+            .pay-method-chooser__label {
+              font-size: var(--text-xs); font-weight: 700; margin-bottom: 0.5rem;
+              color: var(--color-text-secondary);
+            }
+            .pay-method-chooser__grid {
+              display: grid; grid-template-columns: 1fr; gap: 0.5rem;
+            }
+            @media (min-width: 380px) {
+              .pay-method-chooser__grid { grid-template-columns: 1fr 1fr; }
+            }
+            .pay-method-btn {
+              display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
+              min-height: 44px; padding: 0.65rem 0.75rem; border-radius: 10px;
+              border: 1px solid var(--color-border); background: var(--color-bg-secondary);
+              font-weight: 700; font-size: var(--text-xs); cursor: pointer;
+              color: var(--color-text-secondary); line-height: 1.2; text-align: center;
+              transition: border-color .15s ease, background .15s ease, color .15s ease;
+            }
+            .pay-method-btn.is-active {
+              border: 1.5px solid var(--color-primary); background: var(--color-primary-muted);
+              color: var(--color-primary);
+            }
+            .pay-method-chooser__hint {
+              margin-top: 0.55rem; font-size: var(--text-xs); color: var(--color-text-muted); line-height: 1.45;
+            }
+            .pay-method-chooser__hint strong { color: var(--color-text-primary); }
+            .pay-method-chooser__warn {
+              color: #d97706; display: block; margin-top: 0.25rem;
+            }
+            .pay-method-chooser__error {
+              color: #dc2626; display: block; margin-top: 0.25rem;
+            }
+            .pay-method-chooser__error a {
+              color: var(--color-primary); font-weight: 700;
             }
           `}</style>
         </div>

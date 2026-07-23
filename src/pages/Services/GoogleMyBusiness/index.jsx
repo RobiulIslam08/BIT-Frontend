@@ -12,7 +12,7 @@ import {
 import { SEOHead } from '@/components/common/SEOHead';
 import { FadeInUp } from '@/components/animations/FadeInUp';
 import { toast } from '@/components/common/Toast/Toast';
-import { submitGMBOrder } from '@/api/gmbOrderApi';
+import { submitGMBOrder, payGMBWithWallet } from '@/api/gmbOrderApi';
 import { useCurrency } from '@/context/CurrencyContext';
 import { trackEvent, trackPurchase, trackGenerateLead } from '@/utils/analytics';
 import MapPicker from './MapPicker';
@@ -252,7 +252,9 @@ export default function GoogleMyBusiness() {
   const handleSubmit = async (orderPayload) => {
     setIsSubmitting(true);
     try {
-      const result = await submitGMBOrder(orderPayload);
+      const result = orderPayload.paymentMethod === 'wallet'
+        ? await payGMBWithWallet(orderPayload)
+        : await submitGMBOrder(orderPayload);
       // Use the returned order data from backend, fallback to local payload
       const finalOrder = result?.data || orderPayload;
       setOrderData(finalOrder);
@@ -336,7 +338,7 @@ export default function GoogleMyBusiness() {
                       )}
                       <li><strong>Service:</strong> {orderData.serviceType === 'new' ? 'New Profile Creation' : orderData.serviceType === 'recovery' ? 'GMB Recovery' : 'Profile Management'}</li>
                       <li><strong>Amount Paid:</strong> {formatFromSARWithCode(orderData.finalAmount)}</li>
-                      <li><strong>Payment Method:</strong> {orderData.paymentMethod === 'paypal' ? 'PayPal' : 'Manual Payment'}</li>
+                      <li><strong>Payment Method:</strong> {orderData.paymentMethod === 'paypal' ? 'PayPal' : orderData.paymentMethod === 'wallet' ? 'Account Balance' : 'Manual Payment'}</li>
                       <li><strong>Payment Status:</strong> {orderData.paymentStatus === 'paid' ? '✅ Paid' : '⏳ Pending Verification'}</li>
                       <li><strong>Order Status:</strong> 📋 Pending Review</li>
                     </>

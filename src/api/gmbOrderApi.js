@@ -36,6 +36,15 @@ export const submitGMBOrder = async (orderData) => {
 };
 
 /**
+ * Pay for a GMB order using wallet balance (authenticated customers only).
+ * Sends JSON (no file upload needed for wallet payments).
+ */
+export const payGMBWithWallet = async (orderData) => {
+  const response = await axiosInstance.post('/gmb-orders/pay-with-wallet', orderData);
+  return response.data;
+};
+
+/**
  * Validate a coupon code for GMB services.
  */
 export const validateCoupon = async (couponCode) => {

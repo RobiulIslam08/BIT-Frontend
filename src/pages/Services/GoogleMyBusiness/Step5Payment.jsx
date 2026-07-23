@@ -2,17 +2,20 @@
 // BIT SOFTWARE — GMB Step 5: Service Selection & Payment
 // ============================================
 
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
 import {
   CreditCard, Upload, CheckCircle2, AlertCircle, Tag, Shield,
   FileText, ArrowLeft, Send, Loader2, X, Image as ImageIcon,
-  ShieldAlert, Banknote, Receipt, Copy, Check, Landmark
+  ShieldAlert, Banknote, Receipt, Copy, Check, Landmark, Wallet
 } from 'lucide-react';
 import './Step5Payment.css';
 import { toast } from '@/components/common/Toast/Toast';
 import { validateCoupon, createPayPalOrder } from '@/api/gmbOrderApi';
+import { getWalletSummary } from '@/api/walletApi';
+import { selectIsAuthenticated } from '@/features/auth/authSlice';
 import { useCurrency } from '@/context/CurrencyContext';
 import { trackEvent } from '@/utils/analytics';
 
@@ -166,7 +169,21 @@ function PayPalCheckoutButtons({ finalPrice, serviceType, form, hasExistingProfi
 
 // ─── MAIN COMPONENT ───
 export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
-  const { currency, formatFromSARWithCode, rates } = useCurrency();
+  const { currency, formatFromSARWithCode, formatPriceWithCode, rates } = useCurrency();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const [walletSummary, setWalletSummary] = useState(null);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const res = await getWalletSummary();
+        if (!cancelled && res?.success) setWalletSummary(res.data);
+      } catch { /* wallet optional */ }
+    })();
+    return () => { cancelled = true; };
+  }, [isAuthenticated]);
 
   // ─── LOCAL STATE ───
   const [hasExistingProfile, setHasExistingProfile] = useState(false);
@@ -227,6 +244,11 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
   const displayFinal = formatFromSARWithCode(finalPrice);
   const displayDiscount = formatFromSARWithCode(couponDiscount);
   const paypalUsdApprox = parseFloat((finalPrice / (rates.SAR || 3.75)).toFixed(2));
+  // Wallet is charged in USD at the backend's fixed SAR→USD rate (3.75).
+  const walletNeededUSD = parseFloat((finalPrice / 3.75).toFixed(2));
+  const walletLoaded = walletSummary != null;
+  const walletBalance = walletSummary?.totalBalance ?? 0;
+  const walletSufficient = isAuthenticated && walletLoaded && walletBalance >= walletNeededUSD;
 
   // ─── PayPal Client ID ───
   // Uses real client ID from env if provided, otherwise falls back to 'sb' (sandbox mode)
@@ -344,6 +366,21 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
     if (!paymentMethod) {
       newErrors.paymentMethod = true;
       missingFieldLabels.push('Payment Method Selection');
+    }
+
+    if (paymentMethod === 'wallet') {
+      if (!isAuthenticated) {
+        const msg = 'Please log in to pay with your account balance.';
+        setValidationError(msg);
+        toast.warning(msg);
+        return;
+      }
+      if (!walletSufficient) {
+        const msg = 'Insufficient wallet balance. Please add funds or choose another method.';
+        setValidationError(msg);
+        toast.warning(msg);
+        return;
+      }
     }
 
     if (paymentMethod === 'manual') {
@@ -654,7 +691,36 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
           </div>
         </label>
 
-        {/* Option 2: Manual Payment */}
+        {/* Option 2: Account Balance (Wallet) */}
+        <label className={`gmb-payment-card ${paymentMethod === 'wallet' ? 'active' : ''}`}>
+          <input
+            type="radio"
+            name="paymentMethod"
+            value="wallet"
+            checked={paymentMethod === 'wallet'}
+            onChange={() => setPaymentMethod('wallet')}
+          />
+          <div className="gmb-payment-card-body">
+            <div className="gmb-payment-card-title">
+              <Wallet size={16} /> Pay with Account Balance
+            </div>
+            <span className="gmb-payment-card-desc">
+              {!isAuthenticated ? (
+                <>Please <Link to="/auth/login">log in</Link> to pay instantly from your wallet balance.</>
+              ) : !walletLoaded ? (
+                <>Loading wallet balance…</>
+              ) : (
+                <>Instant payment from your wallet. Balance: <strong>{formatPriceWithCode(walletBalance)}</strong>
+                  {!walletSufficient && (
+                    <> — <span style={{ color: '#dc2626' }}>insufficient. <Link to="/my-account?tab=wallet">Add funds</Link></span></>
+                  )}
+                </>
+              )}
+            </span>
+          </div>
+        </label>
+
+        {/* Option 3: Manual Payment */}
         <label className={`gmb-payment-card ${paymentMethod === 'manual' ? 'active' : ''}`}>
           <input
             type="radio"
@@ -1004,7 +1070,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
         <div className="gmb-summary-row">
           <span className="gmb-summary-label">Payment Method</span>
           <span className="gmb-summary-value">
-            {paymentMethod === 'paypal' ? 'PayPal' : paymentMethod === 'manual' ? 'Manual Payment' : '— Not selected'}
+            {paymentMethod === 'paypal' ? 'PayPal' : paymentMethod === 'manual' ? 'Manual Payment' : paymentMethod === 'wallet' ? 'Account Balance' : '— Not selected'}
           </span>
         </div>
 

@@ -14,6 +14,12 @@ export const completeHostingPurchase = async (paypalOrderId) => {
   return res.data;
 };
 
+/** Pay for a hosting plan using wallet balance (single step, no PayPal). */
+export const payHostingWithWallet = async (payload) => {
+  const res = await axiosInstance.post('/hosting-orders/pay-with-wallet', payload);
+  return res.data;
+};
+
 export const getMyHostingOrders = async () => {
   const res = await axiosInstance.get('/hosting-orders/my');
   return res.data;
