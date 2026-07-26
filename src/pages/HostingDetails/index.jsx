@@ -323,7 +323,7 @@ export default function HostingDetails() {
                     style={{ flexShrink: 0 }}
                   >
                     {downloading ? <Loader2 size={14} className="spin" /> : <Download size={14} />}
-                    {downloading ? 'Downloading...' : 'Download ZIP'}
+                    {downloading ? 'Downloading...' : 'Download (Backup Project)'}
                   </button>
                 </div>
               ) : (

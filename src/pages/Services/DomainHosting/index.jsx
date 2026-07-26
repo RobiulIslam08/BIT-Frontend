@@ -114,6 +114,124 @@ const DOMAIN_SEARCH_STYLES = `
   }
 }
 
+/* --- Domain Result Cards --- */
+.domain-result-card {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+.domain-result-card.is-primary {
+  padding: 1rem 1.125rem;
+  border-radius: 16px;
+}
+.domain-result-card.is-primary.is-available {
+  border: 2px solid #22c55e;
+  background: linear-gradient(135deg, rgba(34,197,94,0.07) 0%, rgba(16,185,129,0.04) 100%);
+  box-shadow: 0 4px 20px rgba(34,197,94,0.08);
+}
+.domain-result-card.is-primary.is-unavailable {
+  border: 2px solid #ef4444;
+  background: linear-gradient(135deg, rgba(239,68,68,0.07) 0%, rgba(220,38,38,0.04) 100%);
+}
+
+.domain-result-main {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.625rem;
+  flex: 1;
+  min-width: 0;
+}
+.domain-result-icon {
+  margin-top: 2px;
+  flex-shrink: 0;
+}
+.domain-result-info {
+  flex: 1;
+  min-width: 0;
+}
+.domain-result-title {
+  font-family: var(--font-display);
+  font-weight: 700;
+  color: var(--color-text-primary);
+  word-break: break-all;
+  overflow-wrap: break-word;
+  line-height: 1.35;
+}
+.domain-result-card.is-primary .domain-result-title {
+  font-size: clamp(1rem, 4vw, 1.25rem);
+}
+.domain-result-card:not(.is-primary) .domain-result-title {
+  font-size: clamp(0.85rem, 3.2vw, 0.98rem);
+}
+.domain-result-status {
+  font-size: 0.7rem;
+  font-weight: 600;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.domain-result-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding-top: 0.625rem;
+  border-top: 1px dashed var(--color-border);
+}
+.domain-result-price-box {
+  text-align: left;
+}
+.domain-result-price {
+  font-weight: 800;
+  font-family: var(--font-display);
+  color: var(--color-primary);
+  line-height: 1.2;
+}
+.domain-result-card.is-primary .domain-result-price {
+  font-size: clamp(1.1rem, 4vw, 1.35rem);
+}
+.domain-result-card:not(.is-primary) .domain-result-price {
+  font-size: clamp(0.9rem, 3.2vw, 1.05rem);
+}
+.domain-result-subtext {
+  font-size: 0.65rem;
+  color: var(--color-text-muted);
+}
+.domain-result-buy-btn {
+  white-space: nowrap;
+  gap: 0.35rem;
+  border-radius: 10px;
+  font-weight: 600;
+}
+
+@media (min-width: 540px) {
+  .domain-result-card {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.875rem;
+  }
+  .domain-result-actions {
+    width: auto;
+    padding-top: 0;
+    border-top: none;
+    justify-content: flex-end;
+    flex-shrink: 0;
+  }
+  .domain-result-price-box {
+    text-align: right;
+  }
+}
+
 .plan-grid {
   display: grid;
   grid-template-columns: 1fr;
@@ -180,57 +298,43 @@ function DomainResultCard({ result, isPrimary = false, priceMap = {} }) {
   const displayRegister = formatPrice(registerUSD);
   const displayRenew = renewUSD != null ? formatPrice(renewUSD) : null;
 
+  const cardClasses = [
+    'domain-result-card',
+    isPrimary ? 'is-primary' : '',
+    result.available ? 'is-available' : 'is-unavailable',
+  ].filter(Boolean).join(' ');
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 10 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.3 }}
-      style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        gap: '0.625rem',
-        padding: isPrimary ? '0.875rem 1rem' : '0.75rem 0.875rem',
-        borderRadius: isPrimary ? '14px' : '10px',
-        border: isPrimary
-          ? result.available ? '2px solid #22c55e' : '2px solid #ef4444'
-          : '1px solid var(--color-border)',
-        background: isPrimary
-          ? result.available
-            ? 'linear-gradient(135deg,rgba(34,197,94,0.07) 0%,rgba(16,185,129,0.04) 100%)'
-            : 'linear-gradient(135deg,rgba(239,68,68,0.07) 0%,rgba(220,38,38,0.04) 100%)'
-          : 'var(--color-bg-secondary)',
-        flexWrap: 'wrap',
-      }}
+      transition={{ duration: 0.25 }}
+      className={cardClasses}
     >
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flex: 1, minWidth: 0 }}>
+      <div className="domain-result-main">
         {result.available
-          ? <CheckCircle2 size={isPrimary ? 19 : 15} style={{ color: '#22c55e', flexShrink: 0 }} />
-          : <XCircle size={isPrimary ? 19 : 15} style={{ color: '#ef4444', flexShrink: 0 }} />}
-        <div style={{ minWidth: 0 }}>
-          <div style={{
-            fontFamily: 'var(--font-display)', fontWeight: 700,
-            fontSize: isPrimary ? 'clamp(0.9rem, 3.5vw, 1.2rem)' : 'clamp(0.78rem, 3vw, 0.95rem)',
-            color: 'var(--color-text-primary)', whiteSpace: 'nowrap',
-            overflow: 'hidden', textOverflow: 'ellipsis',
-          }}>{result.domain}</div>
-          <div style={{ fontSize: '0.68rem', color: result.available ? '#16a34a' : '#dc2626', fontWeight: 600, marginTop: '1px' }}>
-            {result.available ? '✓ Available' : '✗ Unavailable'}
-            {result.isPremium && result.available && <span style={{ marginLeft: '0.3rem', color: '#f59e0b' }}>⭐ Premium</span>}
+          ? <CheckCircle2 size={isPrimary ? 20 : 16} className="domain-result-icon" style={{ color: '#22c55e' }} />
+          : <XCircle size={isPrimary ? 20 : 16} className="domain-result-icon" style={{ color: '#ef4444' }} />}
+        <div className="domain-result-info">
+          <div className="domain-result-title">{result.domain}</div>
+          <div className="domain-result-status" style={{ color: result.available ? '#16a34a' : '#dc2626' }}>
+            <span>{result.available ? 'Available' : 'Unavailable'}</span>
+            {result.isPremium && result.available && (
+              <span style={{ color: '#f59e0b', background: 'rgba(245,158,11,0.12)', padding: '0.1rem 0.4rem', borderRadius: '6px', fontSize: '0.62rem' }}>
+                ⭐ Premium
+              </span>
+            )}
           </div>
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexShrink: 0 }}>
+
+      <div className="domain-result-actions">
         {result.available && (
-          <div style={{ textAlign: 'right' }}>
-            <div style={{
-              fontWeight: 800,
-              fontSize: isPrimary ? 'clamp(1rem, 4vw, 1.4rem)' : 'clamp(0.85rem, 3vw, 1rem)',
-              fontFamily: 'var(--font-display)', color: 'var(--color-primary)',
-            }}>{displayRegister}</div>
-            <div style={{ fontSize: '0.65rem', color: 'var(--color-text-muted)' }}>Register / 1st year</div>
+          <div className="domain-result-price-box">
+            <div className="domain-result-price">{displayRegister}</div>
+            <div className="domain-result-subtext">Register / 1st yr</div>
             {displayRenew && (
-              <div style={{ fontSize: '0.65rem', color: 'var(--color-text-secondary)', marginTop: '2px' }}>
+              <div className="domain-result-subtext" style={{ color: 'var(--color-text-secondary)', marginTop: '1px' }}>
                 Renews at {displayRenew}/yr
               </div>
             )}
@@ -239,8 +343,8 @@ function DomainResultCard({ result, isPrimary = false, priceMap = {} }) {
         {result.available ? (
           <Link
             to={`/domain-checkout?domain=${result.domain}`}
-            className={isPrimary ? 'btn btn-primary' : 'btn btn-secondary'}
-            style={{ fontSize: '0.72rem', padding: isPrimary ? '0.45rem 0.75rem' : '0.35rem 0.55rem', gap: '0.25rem', whiteSpace: 'nowrap' }}
+            className={`${isPrimary ? 'btn btn-primary' : 'btn btn-secondary'} domain-result-buy-btn`}
+            style={{ fontSize: isPrimary ? '0.8rem' : '0.75rem', padding: isPrimary ? '0.55rem 1rem' : '0.4rem 0.75rem' }}
             onClick={() => trackSelectItem({
               listName: 'domain_search_results',
               item: {
@@ -253,7 +357,7 @@ function DomainResultCard({ result, isPrimary = false, priceMap = {} }) {
               },
             })}
           >
-            <ShoppingCart size={12} />{isPrimary ? 'Buy Now' : 'Buy'}
+            <ShoppingCart size={13} />{isPrimary ? 'Buy Now' : 'Buy'}
           </Link>
         ) : (
           <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Taken</span>
