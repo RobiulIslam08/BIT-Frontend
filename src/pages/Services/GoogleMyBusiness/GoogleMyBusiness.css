@@ -454,10 +454,86 @@
 
 .search-bar-mock span {
   font-weight: 400;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.mock-search-tabs {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0 1.25rem 0.5rem;
+  background: #F8F9FA;
+  border-bottom: 1px solid #DADCE0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.mock-search-tabs::-webkit-scrollbar {
+  display: none;
+}
+.mock-search-tabs .tab-item {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #5F6368;
+  padding-bottom: 0.35rem;
+  white-space: nowrap;
+}
+.mock-search-tabs .tab-item.is-active {
+  color: #1A73E8;
+  font-weight: 700;
+  border-bottom: 2px solid #1A73E8;
 }
 
 .mock-business-card {
   padding: 1.5rem;
+}
+
+.mock-map-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  margin-bottom: 1rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.map-zoom-btn-group {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.map-zoom-btn {
+  width: 32px;
+  height: 32px;
+  background: #FFFFFF;
+  border: none;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #3C4043;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.15s ease, color 0.15s ease;
+  line-height: 1;
+  user-select: none;
+}
+
+.map-zoom-btn:hover {
+  background: #F1F3F4;
+  color: #1A73E8;
+}
+
+.map-zoom-btn:first-child {
+  border-bottom: 1px solid #E8EAED;
 }
 
 .mock-business-title {
@@ -757,9 +833,48 @@
     margin-bottom: 1rem;
   }
 
-  /* Hide preview card on mobile — too much space */
+  /* Realtime Google Profile Preview on mobile */
   .gmb-preview-sticky {
-    display: none;
+    display: flex;
+    position: static;
+    order: 1;
+    margin-top: 1.5rem;
+    width: 100%;
+  }
+
+  .gmb-mock-card {
+    border-radius: 16px;
+    border: 1px solid #DADCE0;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  }
+
+  .mock-business-card {
+    padding: 1.125rem 1rem;
+  }
+
+  .mock-business-title {
+    font-size: 1.15rem;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .mock-detail-item span {
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+
+  .mock-actions-row {
+    margin: 1rem 0;
+    gap: 0.25rem;
+  }
+
+  .mock-action-btn .icon-circle {
+    width: 34px;
+    height: 34px;
+  }
+
+  .mock-action-btn span {
+    font-size: 0.62rem;
   }
 
   /* Workspace tighter */

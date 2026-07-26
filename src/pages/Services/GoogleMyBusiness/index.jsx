@@ -64,6 +64,7 @@ const CATEGORIES = [
 export default function GoogleMyBusiness() {
   const { formatFromSARWithCode } = useCurrency();
   const [step, setStep] = useState(1);
+  const [mapZoom, setMapZoom] = useState(15);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderData, setOrderData] = useState(null);
@@ -797,17 +798,47 @@ export default function GoogleMyBusiness() {
                 </div>
               </div>
 
+              {/* Google Search Navigation Tabs */}
+              <div className="mock-search-tabs">
+                <span className="tab-item is-active">Overview</span>
+                <span className="tab-item">Services</span>
+                <span className="tab-item">Reviews</span>
+                <span className="tab-item">About</span>
+              </div>
+
               {/* Business Overview Card */}
               <div className="mock-business-card">
                 {form.hasPhysicalLocation === 'yes' && (
                   <div className="mock-map-widget">
-                    <iframe
-                      title="Google Maps Location Preview"
-                      width="100%"
-                      height="150"
-                      style={{ border: 0, borderRadius: '12px', marginBottom: '1.25rem', display: 'block' }}
-                      src={`https://www.openstreetmap.org/export/embed.html?bbox=${form.longitude - 0.008}%2C${form.latitude - 0.004}%2C${form.longitude + 0.008}%2C${form.latitude + 0.004}&layer=mapnik&marker=${form.latitude}%2C${form.longitude}`}
-                    />
+                    <div className="mock-map-container">
+                      <iframe
+                        title="Google Maps Location Preview"
+                        width="100%"
+                        height="170"
+                        style={{ border: 0, borderRadius: '12px', display: 'block' }}
+                        src={`https://maps.google.com/maps?q=${form.latitude},${form.longitude}&z=${mapZoom}&output=embed`}
+                      />
+                      <div className="map-zoom-btn-group">
+                        <button
+                          type="button"
+                          onClick={() => setMapZoom((z) => Math.min(z + 1, 20))}
+                          className="map-zoom-btn"
+                          title="Zoom In"
+                          aria-label="Zoom In"
+                        >
+                          +
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setMapZoom((z) => Math.max(z - 1, 1))}
+                          className="map-zoom-btn"
+                          title="Zoom Out"
+                          aria-label="Zoom Out"
+                        >
+                          −
+                        </button>
+                      </div>
+                    </div>
                     <div className="map-badge-coords">
                       <span>Coordinates: {form.latitude.toFixed(5)}, {form.longitude.toFixed(5)}</span>
                     </div>
