@@ -78,7 +78,7 @@ export function Footer() {
         <div className="container">
           <div className="footer__bottom-inner">
             <p>&copy; {currentYear} {COMPANY.name}. All rights reserved.</p>
-            <div className="footer__bottom-links"><Link to="/privacy">Privacy Policy</Link><Link to="/terms">Terms of Service</Link></div>
+            <div className="footer__bottom-links"><Link to="/privacy">Our Policy</Link><Link to="/terms">Terms of Service</Link></div>
           </div>
         </div>
       </div>

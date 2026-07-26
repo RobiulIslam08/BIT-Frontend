@@ -1,59 +1,40 @@
 // ============================================
-// BIT SOFTWARE — Terms & Conditions Page
+// BIT SOFTWARE — Terms of Service (Site-wide)
 // ============================================
 
-import { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { motion } from 'motion/react';
 import {
-  Shield, FileText, CreditCard, RefreshCw, AlertTriangle,
-  CheckCircle2, XCircle, ChevronDown, ArrowLeft, Info,
-  Clock, HelpCircle, Scale, Banknote, ShieldCheck,
-  BookOpen, MessageCircle, Calendar
+  Shield, FileText, CreditCard, AlertTriangle,
+  CheckCircle2, XCircle, ArrowLeft, Info, Clock, Scale, Banknote,
+  ShieldCheck, BookOpen, MessageCircle, Calendar, User,
+  Globe, Server, Wallet, Ban, Gavel,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { FadeInUp } from '@/components/animations/FadeInUp';
 import { COMPANY } from '@/utils/constants';
 import './TermsAndConditions.css';
 
-const FAQS = [
-  {
-    q: 'How long does the service take to complete?',
-    a: 'For new Google Business Profile creation, setup typically takes 3–7 business days including Google verification. For recovery/issue resolution, the timeline varies between 5–15 business days depending on the complexity of the suspension or restriction.',
-  },
-  {
-    q: 'What happens if Google rejects my profile?',
-    a: 'If Google rejects the initial profile submission, we will work on your behalf to resolve the issue at no additional cost. If we are ultimately unable to create or recover your profile, you are entitled to a full 100% refund.',
-  },
-  {
-    q: 'Can I cancel my order after submission?',
-    a: 'You can request cancellation before work has started. Once our team begins working on your profile setup or recovery, cancellation may not be possible. Please contact our support team immediately if you wish to cancel.',
-  },
-  {
-    q: 'Do you guarantee placement in the Google Maps 3-Pack?',
-    a: 'We optimize your profile to maximize your chances, but Google ranking depends on many factors including competition, location, and review count. We guarantee profile creation/recovery, not specific rankings.',
-  },
-  {
-    q: 'How will I know my payment is confirmed?',
-    a: 'For PayPal payments, confirmation is instant. For manual payments, our team verifies your transaction within 24 hours and sends a confirmation email to your registered address.',
-  },
-  {
-    q: 'Is my personal information secure?',
-    a: 'Yes. We use industry-standard encryption and security practices. Your personal and business data is never shared with third parties and is only used for the purpose of your service delivery.',
-  },
+const NAV_LINKS = [
+  { href: '#overview', icon: BookOpen, label: 'Overview' },
+  { href: '#account', icon: User, label: 'Account' },
+  { href: '#services', icon: ShieldCheck, label: 'Services' },
+  { href: '#domains', icon: Globe, label: 'Domains' },
+  { href: '#hosting', icon: Server, label: 'Hosting' },
+  { href: '#gmb', icon: Shield, label: 'GMB Services' },
+  { href: '#payments', icon: Banknote, label: 'Payments' },
+  { href: '#acceptable-use', icon: Ban, label: 'Acceptable Use' },
+  { href: '#liability', icon: Gavel, label: 'Liability' },
+  { href: '#contact', icon: MessageCircle, label: 'Contact' },
 ];
 
 export default function TermsAndConditions() {
-  const [openFaq, setOpenFaq] = useState(null);
-
   return (
     <>
       <SEOHead
-        title="Terms of Service & Refund Policy — BIT Software"
-        description="Read the terms of service, refund policy, and privacy information for BIT Software's Google Business Profile services."
+        title="Terms of Service — BIT Software"
+        description="Terms of Service for BIT Software & IT Solution covering accounts, domains, hosting, wallet, payments, and Google Business Profile services."
       />
 
-      {/* ─── HERO ─── */}
       <section className="terms-hero">
         <div className="terms-hero__bg">
           <div className="terms-orb terms-orb-1" />
@@ -66,333 +47,389 @@ export default function TermsAndConditions() {
                 <Scale size={14} /> Legal Documentation
               </div>
               <h1 className="h1 terms-hero__title">
-                Terms of Service & <span className="text-gradient">Refund Policy</span>
+                Terms of <span className="text-gradient">Service</span>
               </h1>
               <p className="terms-hero__desc">
-                Please review our terms carefully before purchasing any Google Business Profile services.
-                We believe in full transparency and fair practices.
+                These terms govern your use of {COMPANY.name} websites, accounts, and paid services.
+                Please read them carefully before registering or placing an order.
               </p>
               <div className="terms-meta">
-                <span><Calendar size={12} /> Last Updated: June 2026</span>
-                <span><Clock size={12} /> ~5 min read</span>
+                <span><Calendar size={12} /> Last Updated: July 2026</span>
+                <span><Clock size={12} /> ~8 min read</span>
               </div>
             </div>
           </FadeInUp>
         </div>
       </section>
 
-      {/* ─── MAIN CONTENT ─── */}
       <section className="terms-content-section">
         <div className="container terms-layout">
-          {/* Sidebar Navigation */}
           <aside className="terms-sidebar">
             <nav className="terms-nav">
               <div className="terms-nav-title">Quick Navigation</div>
               <ul className="terms-nav-links">
-                <li><a href="#overview" className="terms-nav-link"><BookOpen size={14} /> Overview</a></li>
-                <li><a href="#services" className="terms-nav-link"><ShieldCheck size={14} /> Services</a></li>
-                <li><a href="#pricing" className="terms-nav-link"><Banknote size={14} /> Pricing & Payment</a></li>
-                <li><a href="#refund" className="terms-nav-link"><RefreshCw size={14} /> Refund Policy</a></li>
-                <li><a href="#obligations" className="terms-nav-link"><FileText size={14} /> Client Obligations</a></li>
-                <li><a href="#privacy" className="terms-nav-link"><Shield size={14} /> Privacy</a></li>
-                <li><a href="#faq" className="terms-nav-link"><HelpCircle size={14} /> FAQ</a></li>
+                {NAV_LINKS.map(({ href, icon: Icon, label }) => (
+                  <li key={href}>
+                    <a href={href} className="terms-nav-link"><Icon size={14} /> {label}</a>
+                  </li>
+                ))}
               </ul>
             </nav>
           </aside>
 
-          {/* Content Body */}
           <div className="terms-body">
-
-            {/* SECTION 1: Overview */}
             <FadeInUp>
               <div id="overview" className="terms-section">
                 <div className="terms-section-header">
                   <div className="terms-section-icon blue"><BookOpen size={20} /></div>
-                  <h2 className="terms-section-title">Overview</h2>
+                  <h2 className="terms-section-title">Overview & Acceptance</h2>
                 </div>
                 <p className="terms-text">
-                  These Terms of Service ("Terms") govern your use of Google Business Profile services
-                  provided by <strong>{COMPANY.name}</strong> ("Company", "we", "us"). By placing an order
-                  for any service, you agree to be bound by these Terms.
+                  These Terms of Service (&quot;Terms&quot;) are a binding agreement between you and{' '}
+                  <strong>{COMPANY.name}</strong> (&quot;Company&quot;, &quot;we&quot;, &quot;us&quot;), based in {COMPANY.address}.
+                  By creating an account, browsing our website, or purchasing any product or service,
+                  you agree to these Terms and our{' '}
+                  <Link to="/privacy" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Our Policy</Link>{' '}
+                  page (privacy, transactions, wallet, and refunds).
                 </p>
                 <p className="terms-text">
-                  Our services include but are not limited to: Google Business Profile creation,
-                  optimization, recovery from suspension, and ongoing management. All services are
-                  performed in compliance with Google's official guidelines and policies.
+                  If you do not agree, do not use our services. We may update these Terms from time to time;
+                  the &quot;Last Updated&quot; date above reflects the current version. Continued use after changes
+                  constitutes acceptance of the revised Terms.
                 </p>
                 <div className="terms-highlight info">
                   <Info size={18} />
                   <span>
-                    These terms apply specifically to Google Business Profile services. For other services,
-                    please refer to our general terms available on the main website.
+                    Detailed payment, wallet, refund, and data practices are described on Our Policy.
+                    These Terms cover service eligibility, account rules, and service-specific conditions.
                   </span>
                 </div>
               </div>
             </FadeInUp>
 
-            {/* SECTION 2: Services Description */}
             <FadeInUp>
-              <div id="services" className="terms-section">
+              <div id="account" className="terms-section">
                 <div className="terms-section-header">
-                  <div className="terms-section-icon green"><ShieldCheck size={20} /></div>
-                  <h2 className="terms-section-title">Service Description</h2>
+                  <div className="terms-section-icon purple"><User size={20} /></div>
+                  <h2 className="terms-section-title">Account Registration</h2>
                 </div>
-                <p className="terms-text">We offer the following Google Business Profile services:</p>
+                <p className="terms-text">
+                  Certain features (domain/hosting checkout, wallet, My Account) require a registered account.
+                  You agree to:
+                </p>
                 <ul className="terms-list">
                   <li>
-                    <CheckCircle2 size={16} style={{ color: '#34A853' }} />
-                    <span><strong>New Profile Creation (399 SAR)</strong> — Complete setup of a new Google Business Profile including verification, optimization, and category configuration.</span>
+                    <CheckCircle2 size={16} style={{ color: '#a855f7' }} />
+                    <span>Provide accurate, current registration and profile information.</span>
                   </li>
                   <li>
-                    <CheckCircle2 size={16} style={{ color: '#34A853' }} />
-                    <span><strong>Recovery / Issue Resolution (500 SAR)</strong> — Resolution of suspended, disabled, or restricted Google Business Profiles including reinstatement requests and compliance corrections.</span>
+                    <CheckCircle2 size={16} style={{ color: '#a855f7' }} />
+                    <span>Keep your login credentials confidential and notify us of unauthorized access.</span>
                   </li>
                   <li>
-                    <CheckCircle2 size={16} style={{ color: '#34A853' }} />
-                    <span><strong>Profile Optimization</strong> — Enhancement of existing profiles with keyword targeting, review strategy, NAP consistency, and local SEO best practices.</span>
+                    <CheckCircle2 size={16} style={{ color: '#a855f7' }} />
+                    <span>Be responsible for all activity under your account.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#a855f7' }} />
+                    <span>Use the platform only for lawful business or personal purposes.</span>
                   </li>
                 </ul>
                 <div className="terms-highlight warning">
                   <AlertTriangle size={18} />
                   <span>
-                    Service delivery depends on Google's approval and verification processes, which are
-                    outside our direct control. We commit to making every effort to ensure successful delivery.
+                    We may suspend or terminate accounts that provide false information, abuse services,
+                    or violate these Terms or applicable law.
                   </span>
                 </div>
               </div>
             </FadeInUp>
 
-            {/* SECTION 3: Pricing & Payment */}
             <FadeInUp>
-              <div id="pricing" className="terms-section">
+              <div id="services" className="terms-section">
                 <div className="terms-section-header">
-                  <div className="terms-section-icon yellow"><Banknote size={20} /></div>
-                  <h2 className="terms-section-title">Pricing & Payment</h2>
+                  <div className="terms-section-icon green"><ShieldCheck size={20} /></div>
+                  <h2 className="terms-section-title">Services Covered</h2>
                 </div>
                 <p className="terms-text">
-                  All prices are displayed in Saudi Riyal (SAR) and are final unless a valid coupon
-                  code is applied at the time of checkout. Prices are subject to change without prior notice,
-                  but confirmed orders will be honored at the price displayed at the time of purchase.
+                  These Terms apply to services offered through our website and customer portal, including:
+                </p>
+                <ul className="terms-list">
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#34A853' }} />
+                    <span><strong>IT & software services</strong> — consulting, custom development, ERP, mobile apps, and related project work as described on each service page.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#34A853' }} />
+                    <span><strong>Design & marketing</strong> — logo, graphics, social media, and online marketing services.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#34A853' }} />
+                    <span><strong>Domain registration</strong> — search, register, renew, and transfer via our checkout and My Account area.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#34A853' }} />
+                    <span><strong>Web hosting</strong> — hosting plans, renewals, and panel access where provided.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#34A853' }} />
+                    <span><strong>Google Business Profile (GMB)</strong> — creation, recovery, and related local listing services.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#34A853' }} />
+                    <span><strong>Wallet</strong> — account balance, promotional credit, top-ups, and withdrawals (subject to Our Policy).</span>
+                  </li>
+                </ul>
+                <p className="terms-text">
+                  Project-based IT and design work may also be governed by a separate quote, proposal, or
+                  written statement of work. Where a written agreement conflicts with these Terms for a
+                  specific project, that agreement controls for that project only.
+                </p>
+              </div>
+            </FadeInUp>
+
+            <FadeInUp>
+              <div id="domains" className="terms-section">
+                <div className="terms-section-header">
+                  <div className="terms-section-icon cyan"><Globe size={20} /></div>
+                  <h2 className="terms-section-title">Domain Registration Terms</h2>
+                </div>
+                <p className="terms-text">
+                  Domain names are registered through our platform and upstream registries/registrars.
+                  By ordering a domain you acknowledge that:
+                </p>
+                <ul className="terms-list">
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: 'var(--color-primary)' }} />
+                    <span>Registration, renewal, and transfer are subject to registry rules and ICANN (or local equivalent) policies.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: 'var(--color-primary)' }} />
+                    <span>You must provide accurate WHOIS / registrant contact data. False data may lead to suspension or loss of the domain.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: 'var(--color-primary)' }} />
+                    <span>WHOIS privacy (where offered) hides public contact details but does not remove your obligation to keep valid contact information with us.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: 'var(--color-primary)' }} />
+                    <span>Auto-renew, if enabled, will attempt to charge your selected payment method or wallet before expiry. You remain responsible for ensuring successful renewal.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: 'var(--color-primary)' }} />
+                    <span>Once a domain is successfully registered or renewed with the registry, fees are generally non-refundable (see Our Policy).</span>
+                  </li>
+                </ul>
+              </div>
+            </FadeInUp>
+
+            <FadeInUp>
+              <div id="hosting" className="terms-section">
+                <div className="terms-section-header">
+                  <div className="terms-section-icon yellow"><Server size={20} /></div>
+                  <h2 className="terms-section-title">Hosting Terms</h2>
+                </div>
+                <p className="terms-text">
+                  Hosting plans are provided according to the package you purchase (resources, term, and features shown at checkout).
+                </p>
+                <ul className="terms-list">
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#FBBC05' }} />
+                    <span>You are responsible for the content, software, and data you store or run on your hosting account.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#FBBC05' }} />
+                    <span>cPanel or other control-panel credentials (when provided) must be kept secure. Misuse that compromises the server may result in suspension.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#FBBC05' }} />
+                    <span>We may suspend or terminate hosting for non-payment, abuse, malware, spam, illegal content, or excessive resource usage that harms other customers.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#FBBC05' }} />
+                    <span>Renewals must be completed before the end of the billing period to avoid interruption. Data after cancellation or long suspension may be removed.</span>
+                  </li>
+                </ul>
+                <div className="terms-highlight warning">
+                  <AlertTriangle size={18} />
+                  <span>
+                    Hosting is not a backup service unless explicitly purchased. Maintain your own backups
+                    of critical websites and databases.
+                  </span>
+                </div>
+              </div>
+            </FadeInUp>
+
+            <FadeInUp>
+              <div id="gmb" className="terms-section">
+                <div className="terms-section-header">
+                  <div className="terms-section-icon green"><Shield size={20} /></div>
+                  <h2 className="terms-section-title">Google Business Profile (GMB) Terms</h2>
+                </div>
+                <p className="terms-text">
+                  GMB creation, optimization, and recovery services are performed in line with Google&apos;s
+                  guidelines. Delivery depends in part on Google&apos;s verification and review processes,
+                  which are outside our direct control.
+                </p>
+                <ul className="terms-list">
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#34A853' }} />
+                    <span>You must provide accurate business information and cooperate with verification (email, phone, postcard, or video as required).</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#34A853' }} />
+                    <span>You must not request fake reviews, duplicate listings, or other policy violations.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#34A853' }} />
+                    <span>We optimize for visibility but do not guarantee Google Maps 3-Pack ranking or specific search positions.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#34A853' }} />
+                    <span>If we cannot create or recover a profile after reasonable effort, refund eligibility is described in Our Policy.</span>
+                  </li>
+                </ul>
+              </div>
+            </FadeInUp>
+
+            <FadeInUp>
+              <div id="payments" className="terms-section">
+                <div className="terms-section-header">
+                  <div className="terms-section-icon yellow"><Banknote size={20} /></div>
+                  <h2 className="terms-section-title">Payments & Billing</h2>
+                </div>
+                <p className="terms-text">
+                  Prices are shown at checkout in the currency displayed for that product (for example SAR
+                  for certain GMB packages, or USD for wallet-related amounts). Confirmed orders are honored
+                  at the price displayed when you complete payment.
                 </p>
                 <ul className="terms-list">
                   <li>
                     <CreditCard size={16} style={{ color: '#4285F4' }} />
-                    <span><strong>PayPal</strong> — Instant secure payment processed through PayPal's platform.</span>
+                    <span><strong>PayPal</strong> — Primary online payment method for many checkouts and wallet top-ups. Confirmation is typically instant after successful authorization.</span>
+                  </li>
+                  <li>
+                    <Wallet size={16} style={{ color: '#4285F4' }} />
+                    <span><strong>Wallet balance</strong> — Where enabled, you may pay using Account Balance and/or Promotional Credit according to Our Policy.</span>
                   </li>
                   <li>
                     <Banknote size={16} style={{ color: '#4285F4' }} />
-                    <span><strong>Manual Payment</strong> — Bank transfer, mobile banking, or other approved methods. Requires verification via payment screenshot or transaction details.</span>
+                    <span><strong>Manual / offline payment</strong> — Where offered, orders may remain pending until our team verifies your transfer (typically within 24 hours).</span>
                   </li>
                 </ul>
                 <div className="terms-highlight info">
                   <Info size={18} />
                   <span>
-                    Coupon codes are only applicable to new profile creation services.
-                    Recovery and issue resolution services are not eligible for coupon discounts.
+                    We do not store full card numbers on our servers. Card and PayPal data are handled by
+                    the payment provider. Transaction fees, promotional credit rules, and refunds are
+                    detailed on the Our Policy page.
                   </span>
                 </div>
               </div>
             </FadeInUp>
 
-            {/* SECTION 4: Refund Policy (HIGH VISIBILITY) */}
             <FadeInUp>
-              <div id="refund" className="terms-section">
+              <div id="acceptable-use" className="terms-section">
                 <div className="terms-section-header">
-                  <div className="terms-section-icon red"><RefreshCw size={20} /></div>
-                  <h2 className="terms-section-title">Refund Policy</h2>
+                  <div className="terms-section-icon red"><Ban size={20} /></div>
+                  <h2 className="terms-section-title">Intellectual Property & Acceptable Use</h2>
                 </div>
                 <p className="terms-text">
-                  We stand behind our service quality. Our refund policy is designed to be fair and transparent.
-                  Please review both scenarios carefully:
+                  Our website content, branding, logos, and software interfaces are owned by {COMPANY.name}
+                  or our licensors. You may not copy, scrape, reverse engineer, or resell our platform
+                  without written permission.
                 </p>
-
-                <div className="refund-cards">
-                  {/* Eligible for Refund */}
-                  <div className="refund-card eligible">
-                    <div className="refund-card-header">
-                      <div className="refund-card-badge">
-                        <CheckCircle2 size={12} /> Eligible for Full Refund
-                      </div>
-                    </div>
-                    <div className="refund-card-title">100% Refund Guaranteed</div>
-                    <ul className="refund-card-list">
-                      <li><CheckCircle2 size={14} /> We fail to create the Google Business Profile.</li>
-                      <li><CheckCircle2 size={14} /> We fail to recover the suspended profile.</li>
-                      <li><CheckCircle2 size={14} /> The requested service cannot be delivered.</li>
-                      <li><CheckCircle2 size={14} /> The service remains incomplete due to our inability to fulfill the order.</li>
-                    </ul>
-                    <div className="refund-amount-badge">
-                      Refund Amount: 100%
-                    </div>
-                  </div>
-
-                  {/* Not Eligible for Refund */}
-                  <div className="refund-card ineligible">
-                    <div className="refund-card-header">
-                      <div className="refund-card-badge">
-                        <XCircle size={12} /> Non-Refundable
-                      </div>
-                    </div>
-                    <div className="refund-card-title">After Successful Delivery</div>
-                    <ul className="refund-card-list">
-                      <li><XCircle size={14} /> New GMB Profile Created Successfully.</li>
-                      <li><XCircle size={14} /> Suspended Profile Recovered Successfully.</li>
-                      <li><XCircle size={14} /> Reported Issue Successfully Resolved.</li>
-                    </ul>
-                    <div className="refund-amount-badge">
-                      Refund: Not Available
-                    </div>
-                  </div>
-                </div>
-
-                <div className="terms-highlight warning" style={{ marginTop: '1.5rem' }}>
-                  <AlertTriangle size={18} />
-                  <span>
-                    By proceeding with payment, you acknowledge that you have read and understood this
-                    refund policy. Once a service is delivered successfully, no refund will be processed.
-                  </span>
-                </div>
-              </div>
-            </FadeInUp>
-
-            {/* SECTION 5: Client Obligations */}
-            <FadeInUp>
-              <div id="obligations" className="terms-section">
-                <div className="terms-section-header">
-                  <div className="terms-section-icon purple"><FileText size={20} /></div>
-                  <h2 className="terms-section-title">Client Obligations</h2>
-                </div>
-                <p className="terms-text">
-                  To ensure smooth and timely service delivery, clients are expected to:
+                <p className="terms-text">Deliverables you purchase (for example custom design or code) are licensed
+                  or assigned as stated in the relevant proposal. Until full payment is received, we retain
+                  all rights in unfinished work.
                 </p>
+                <p className="terms-text">You must not use our services to:</p>
                 <ul className="terms-list">
                   <li>
-                    <CheckCircle2 size={16} style={{ color: '#a855f7' }} />
-                    <span>Provide accurate and truthful business information as required in the order form.</span>
+                    <XCircle size={16} style={{ color: '#EA4335' }} />
+                    <span>Host or distribute malware, phishing, spam, or illegal content.</span>
                   </li>
                   <li>
-                    <CheckCircle2 size={16} style={{ color: '#a855f7' }} />
-                    <span>Respond to verification requests (email, phone, or postcard) from Google in a timely manner.</span>
+                    <XCircle size={16} style={{ color: '#EA4335' }} />
+                    <span>Infringe intellectual property, privacy, or publicity rights of others.</span>
                   </li>
                   <li>
-                    <CheckCircle2 size={16} style={{ color: '#a855f7' }} />
-                    <span>Grant necessary access to Google accounts when required for profile setup or recovery.</span>
+                    <XCircle size={16} style={{ color: '#EA4335' }} />
+                    <span>Attack, overload, or probe our systems or other customers&apos; systems.</span>
                   </li>
                   <li>
-                    <CheckCircle2 size={16} style={{ color: '#a855f7' }} />
-                    <span>Comply with Google's Terms of Service and Business Profile guidelines.</span>
-                  </li>
-                  <li>
-                    <CheckCircle2 size={16} style={{ color: '#a855f7' }} />
-                    <span>Not attempt to manipulate reviews, create fake listings, or violate Google policies.</span>
+                    <XCircle size={16} style={{ color: '#EA4335' }} />
+                    <span>Circumvent billing, fraud checks, or account security controls.</span>
                   </li>
                 </ul>
-                <div className="terms-highlight info">
-                  <Info size={18} />
-                  <span>
-                    Failure to cooperate with verification processes may result in delays. We are not
-                    responsible for delays caused by client non-responsiveness.
-                  </span>
-                </div>
               </div>
             </FadeInUp>
 
-            {/* SECTION 6: Privacy & Security */}
             <FadeInUp>
-              <div id="privacy" className="terms-section">
+              <div id="liability" className="terms-section">
                 <div className="terms-section-header">
-                  <div className="terms-section-icon cyan"><Shield size={20} /></div>
-                  <h2 className="terms-section-title">Privacy & Data Security</h2>
+                  <div className="terms-section-icon red"><Gavel size={20} /></div>
+                  <h2 className="terms-section-title">Limitation of Liability & Termination</h2>
                 </div>
                 <p className="terms-text">
-                  We take your privacy seriously. All personal and business information collected during
-                  the order process is:
+                  Services are provided on a commercially reasonable basis. To the maximum extent permitted
+                  by applicable law in Saudi Arabia and other jurisdictions where we operate:
                 </p>
                 <ul className="terms-list">
                   <li>
-                    <Shield size={16} style={{ color: 'var(--color-primary)' }} />
-                    <span>Encrypted in transit and at rest using industry-standard protocols.</span>
+                    <FileText size={16} style={{ color: '#EA4335' }} />
+                    <span>We are not liable for indirect, incidental, special, or consequential damages (lost profits, data loss, business interruption) arising from use of our services.</span>
                   </li>
                   <li>
-                    <Shield size={16} style={{ color: 'var(--color-primary)' }} />
-                    <span>Used exclusively for the purpose of delivering your requested service.</span>
+                    <FileText size={16} style={{ color: '#EA4335' }} />
+                    <span>Our aggregate liability for a claim related to a paid order is limited to the fees you paid for that specific order.</span>
                   </li>
                   <li>
-                    <Shield size={16} style={{ color: 'var(--color-primary)' }} />
-                    <span>Never sold, shared, or disclosed to unauthorized third parties.</span>
+                    <FileText size={16} style={{ color: '#EA4335' }} />
+                    <span>We are not responsible for third-party platforms (Google, PayPal, registries, DNS, or app stores) beyond our contracted scope of work.</span>
+                  </li>
+                </ul>
+                <p className="terms-text">
+                  Either party may terminate an ongoing service relationship for material breach if not
+                  cured within a reasonable period after notice. We may immediately suspend service for
+                  security risk, illegal use, or non-payment. Sections that by nature should survive
+                  (IP, liability limits, accrued payment obligations) continue after termination.
+                </p>
+              </div>
+            </FadeInUp>
+
+            <FadeInUp>
+              <div id="contact" className="terms-section">
+                <div className="terms-section-header">
+                  <div className="terms-section-icon blue"><MessageCircle size={20} /></div>
+                  <h2 className="terms-section-title">Contact & Governing Context</h2>
+                </div>
+                <p className="terms-text">
+                  {COMPANY.name} operates from {COMPANY.address}. For questions about these Terms,
+                  disputes related to orders, or account issues, contact:
+                </p>
+                <ul className="terms-list">
+                  <li>
+                    <MessageCircle size={16} style={{ color: '#4285F4' }} />
+                    <span><strong>Email:</strong> {COMPANY.email}</span>
                   </li>
                   <li>
-                    <Shield size={16} style={{ color: 'var(--color-primary)' }} />
-                    <span>Retained only for as long as necessary to fulfill legal and operational requirements.</span>
+                    <MessageCircle size={16} style={{ color: '#4285F4' }} />
+                    <span><strong>Phone:</strong> {COMPANY.phone}</span>
                   </li>
                 </ul>
                 <div className="terms-highlight success">
                   <ShieldCheck size={18} />
                   <span>
-                    Payment information is processed securely through PayPal or verified manually by our
-                    finance team. We never store credit card details on our servers.
+                    For privacy, wallet rules, transaction flow, and refunds, please read{' '}
+                    <Link to="/privacy" style={{ color: 'var(--color-primary)', fontWeight: 700 }}>Our Policy</Link>.
                   </span>
                 </div>
+
+                <Link to="/contact" className="terms-back-link">
+                  <ArrowLeft size={16} /> Contact Support
+                </Link>
               </div>
-            </FadeInUp>
-
-            {/* SECTION 7: FAQ */}
-            <FadeInUp>
-              <div id="faq" className="terms-section">
-                <div className="terms-section-header">
-                  <div className="terms-section-icon blue"><HelpCircle size={20} /></div>
-                  <h2 className="terms-section-title">Frequently Asked Questions</h2>
-                </div>
-                <p className="terms-text">
-                  Find answers to common questions about our services, payment, and refund process.
-                </p>
-
-                <div className="terms-faq-list">
-                  {FAQS.map((faq, i) => (
-                    <div key={i} className="terms-faq-item">
-                      <button
-                        type="button"
-                        className="terms-faq-btn"
-                        onClick={() => setOpenFaq(openFaq === i ? null : i)}
-                      >
-                        <span>{faq.q}</span>
-                        <motion.div
-                          animate={{ rotate: openFaq === i ? 180 : 0 }}
-                          transition={{ duration: 0.2 }}
-                        >
-                          <ChevronDown size={16} />
-                        </motion.div>
-                      </button>
-                      <motion.div
-                        initial={false}
-                        animate={{
-                          height: openFaq === i ? 'auto' : 0,
-                          opacity: openFaq === i ? 1 : 0,
-                        }}
-                        transition={{ duration: 0.25 }}
-                        style={{ overflow: 'hidden' }}
-                      >
-                        <p className="terms-faq-answer">{faq.a}</p>
-                      </motion.div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </FadeInUp>
-
-            {/* ─── CONTACT & BACK LINK ─── */}
-            <FadeInUp>
-              <div className="terms-highlight info">
-                <MessageCircle size={18} />
-                <span>
-                  Have questions about these terms? Contact us at <strong>{COMPANY.email}</strong> or
-                  call <strong>{COMPANY.phone}</strong>. We're happy to help.
-                </span>
-              </div>
-
-              <Link to="/services/google-my-business" className="terms-back-link">
-                <ArrowLeft size={16} /> Back to Google Business Profile Service
-              </Link>
             </FadeInUp>
           </div>
         </div>
