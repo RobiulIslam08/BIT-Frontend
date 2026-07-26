@@ -44,6 +44,16 @@ export const getMyWithdrawals = async (params = {}) => {
   return res.data;
 };
 
+/** Instant P2P transfer from Account Balance (not promotional credit). */
+export const sendMoney = async ({ amountUSD, recipient, note }) => {
+  const res = await axiosInstance.post('/wallet/send-money', {
+    amountUSD,
+    recipient,
+    ...(note ? { note } : {}),
+  });
+  return res.data;
+};
+
 // ─── Admin ───
 
 export const getWalletSettings = async () => {
@@ -95,6 +105,7 @@ export const walletApi = {
   completeTopup,
   createWithdrawal,
   getMyWithdrawals,
+  sendMoney,
   getWalletSettings,
   updateWalletSettings,
   grantCredit,

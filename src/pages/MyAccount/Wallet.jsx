@@ -8,11 +8,11 @@ import { motion } from 'motion/react';
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
 import {
   Wallet as WalletIcon, Gift, Plus, ArrowUpRight, RefreshCw, Loader2,
-  X, ArrowUpCircle, ArrowDownCircle, Info, Eye, ChevronRight,
+  X, ArrowUpCircle, ArrowDownCircle, Info, Eye, ChevronRight, SendHorizontal,
 } from 'lucide-react';
 import {
   getWalletSummary, getWalletTransactions, createTopupOrder, completeTopup,
-  createWithdrawal, getMyWithdrawals,
+  createWithdrawal, getMyWithdrawals, sendMoney,
 } from '@/api/walletApi';
 import { getMyProfile } from '@/api/userApi';
 import { updateUser } from '@/features/auth/authSlice';
@@ -26,8 +26,10 @@ const txnMeta = {
   refund: { label: 'Refund', icon: ArrowDownCircle, color: '#16a34a', sign: '+' },
   bonus_credit: { label: 'Promotional Credit', icon: Gift, color: '#7c3aed', sign: '+' },
   withdrawal_reversal: { label: 'Withdrawal Reversed', icon: ArrowDownCircle, color: '#16a34a', sign: '+' },
+  transfer_in: { label: 'Money Received', icon: ArrowDownCircle, color: '#16a34a', sign: '+' },
   purchase: { label: 'Purchase', icon: ArrowUpCircle, color: '#dc2626', sign: '-' },
   withdrawal: { label: 'Withdrawal', icon: ArrowUpCircle, color: '#dc2626', sign: '-' },
+  transfer_out: { label: 'Money Sent', icon: SendHorizontal, color: '#2563eb', sign: '-' },
   adjustment: { label: 'Adjustment', icon: Info, color: '#2563eb', sign: '' },
 };
 
@@ -57,6 +59,7 @@ export default function Wallet() {
 
   const [showTopup, setShowTopup] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
+  const [showSendMoney, setShowSendMoney] = useState(false);
   const [selectedTxn, setSelectedTxn] = useState(null);
 
   /** Prevents auto-complete from re-firing for the same token on every render. */
@@ -142,11 +145,18 @@ export default function Wallet() {
     setShowWithdraw(false);
     await Promise.all([loadAll(), refreshProfile()]);
   };
+  const onSendMoneyDone = async () => {
+    setShowSendMoney(false);
+    await Promise.all([loadAll(), refreshProfile()]);
+  };
 
   const account = summary != null ? Number(summary.accountBalance || 0) : null;
   const promo = summary != null ? Number(summary.promotionalCredit || 0) : null;
   const total = summary != null ? Number(summary.totalBalance || 0) : null;
   const withdrawable = summary != null ? Number(summary.withdrawableWholeUSD || 0) : 0;
+  const sendable = summary != null
+    ? Number(summary.sendableWholeUSD ?? Math.floor(account || 0))
+    : 0;
   const returnToken = searchParams.get('token');
 
   return (
@@ -212,10 +222,30 @@ export default function Wallet() {
           </div>
           <div className="wallet-card__hint">
             Withdrawable (fee applies) · max payout ${withdrawable}
+            {' · '}Sendable (no fee) · max ${sendable}
           </div>
           <div className="wallet-card__actions">
             <button className="btn btn-primary btn-sm" onClick={() => setShowTopup(true)}>
               <Plus size={14} /> Add Funds
+            </button>
+            <button
+              className="btn btn-ghost btn-sm"
+              type="button"
+              onClick={() => {
+                if (summary == null) {
+                  toast.warning('Wallet is still loading. Please wait a moment.');
+                  return;
+                }
+                if (sendable < 1) {
+                  toast.warning(
+                    'You need at least $1 in Account Balance to send money. Promotional credit cannot be sent.',
+                  );
+                  return;
+                }
+                setShowSendMoney(true);
+              }}
+            >
+              <SendHorizontal size={14} /> Send Money
             </button>
             <button
               className="btn btn-ghost btn-sm"
@@ -349,6 +379,9 @@ export default function Wallet() {
       )}
       {showWithdraw && (
         <WithdrawModal summary={summary} onClose={() => setShowWithdraw(false)} onDone={onWithdrawDone} formatPrice={formatPrice} />
+      )}
+      {showSendMoney && (
+        <SendMoneyModal summary={summary} onClose={() => setShowSendMoney(false)} onDone={onSendMoneyDone} formatPrice={formatPrice} />
       )}
       {selectedTxn && (
         <TransactionDetailModal txn={selectedTxn} onClose={() => setSelectedTxn(null)} formatPrice={formatPrice} />
@@ -711,6 +744,166 @@ function WithdrawModal({ summary, onClose, onDone, formatPrice }) {
 }
 
 // ============================================
+// SEND MONEY MODAL (P2P — account balance only)
+// ============================================
+function SendMoneyModal({ summary, onClose, onDone, formatPrice }) {
+  const max = Number(summary?.sendableWholeUSD ?? Math.floor(Number(summary?.accountBalance || 0))) || 0;
+  const [recipient, setRecipient] = useState('');
+  const [amount, setAmount] = useState(max >= 1 ? String(Math.min(max, 1)) : '');
+  const [note, setNote] = useState('');
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState('');
+
+  const amt = parseInt(amount, 10) || 0;
+
+  const validateLocal = () => {
+    const to = recipient.trim();
+    if (!to) return 'Enter the recipient email or user code.';
+    if (to.includes('@') && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(to)) {
+      return 'Enter a valid recipient email address.';
+    }
+    if (!to.includes('@') && !/^\d{6}$/.test(to)) {
+      return 'User code must be a 6-digit number, or enter a valid email.';
+    }
+    if (!Number.isInteger(amt) || amt < 1) {
+      return 'Enter a whole amount of at least $1.';
+    }
+    if (amt > max) {
+      return max < 1
+        ? 'Insufficient Account Balance. Promotional credit cannot be sent.'
+        : `You can send at most $${max} from your Account Balance.`;
+    }
+    if (note.trim().length > 200) {
+      return 'Note must be 200 characters or less.';
+    }
+    return '';
+  };
+
+  const submit = async () => {
+    setError('');
+    const localErr = validateLocal();
+    if (localErr) {
+      setError(localErr);
+      toast.warning(localErr);
+      return;
+    }
+
+    setBusy(true);
+    try {
+      const trimmedNote = note.trim();
+      const res = await sendMoney({
+        amountUSD: amt,
+        recipient: recipient.trim(),
+        ...(trimmedNote ? { note: trimmedNote } : {}),
+      });
+      if (res?.success) {
+        const r = res.data?.recipient;
+        const who = r?.userCode
+          ? `${r.name || 'customer'} (#${r.userCode})`
+          : (r?.name || r?.emailMasked || 'customer');
+        toast.success(`Sent ${formatPrice(amt)} to ${who}.`);
+        onDone();
+      } else {
+        setError(res?.message || 'Failed to send money.');
+      }
+    } catch (err) {
+      setError(apiErrorMessage(err, 'Failed to send money.'));
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  return (
+    <ModalShell title="Send Money" onClose={onClose}>
+      <p className="wallet-note" style={{ marginTop: 0 }}>
+        <Info size={12} /> Transfer whole-dollar amounts from your <strong>Account Balance</strong> to
+        another registered customer. Instant, no fee. Promotional credit cannot be sent.
+        Max: <strong>${max}</strong>.
+      </p>
+
+      {max < 1 ? (
+        <div className="wallet-error">
+          You need at least $1 in Account Balance to send money.
+        </div>
+      ) : (
+        <>
+          <label className="wallet-label">Recipient (email or user code)</label>
+          <input
+            className="input"
+            value={recipient}
+            onChange={(e) => setRecipient(e.target.value)}
+            placeholder="email@example.com or 125425"
+            autoComplete="off"
+            autoFocus
+            style={{ width: '100%' }}
+          />
+
+          <label className="wallet-label">Amount (whole USD)</label>
+          <div className="wallet-amount-input">
+            <span>$</span>
+            <input
+              type="number"
+              min="1"
+              max={max}
+              step="1"
+              inputMode="numeric"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value.replace(/[^\d]/g, ''))}
+              placeholder={`Max ${max}`}
+            />
+          </div>
+          <div className="wallet-quick">
+            {[1, 5, 10, 25, 50].filter((v) => v <= max).map((v) => (
+              <button key={v} type="button" onClick={() => setAmount(String(v))} className="wallet-quick__btn">
+                ${v}
+              </button>
+            ))}
+            {max >= 1 && (
+              <button type="button" onClick={() => setAmount(String(max))} className="wallet-quick__btn">
+                Max ${max}
+              </button>
+            )}
+          </div>
+
+          {amt > 0 && (
+            <div className="wallet-breakdown">
+              <div><span>You send</span><strong>${amt.toFixed(2)}</strong></div>
+              <div><span>Fee</span><strong>$0.00</strong></div>
+              <div className="wallet-breakdown__net"><span>Total deducted</span><strong>${amt.toFixed(2)}</strong></div>
+            </div>
+          )}
+          {amt > 0 && (
+            <p className="wallet-note">
+              <Info size={12} /> ≈ {formatPrice(amt)} will leave your Account Balance instantly.
+            </p>
+          )}
+
+          <label className="wallet-label">Note (optional)</label>
+          <input
+            className="input"
+            value={note}
+            onChange={(e) => setNote(e.target.value.slice(0, 200))}
+            placeholder="e.g. Thanks for helping"
+            maxLength={200}
+            style={{ width: '100%' }}
+          />
+
+          {error && <div className="wallet-error">{error}</div>}
+          <button
+            className="btn btn-primary wallet-withdraw-submit"
+            type="button"
+            onClick={submit}
+            disabled={busy}
+          >
+            {busy ? <><Loader2 size={16} className="spin" /> Sending...</> : 'Send Money'}
+          </button>
+        </>
+      )}
+    </ModalShell>
+  );
+}
+
+// ============================================
 // SHARED MODAL SHELL
 // ============================================
 function ModalShell({ title, onClose, children }) {
@@ -754,6 +947,11 @@ function TransactionDetailModal({ txn, onClose, formatPrice }) {
   const sign = signedNet !== 0 ? (signedNet >= 0 ? '+' : '-') : (meta.sign || '');
 
   const isWithdrawTxn = txn.type === 'withdrawal' || txn.type === 'withdrawal_reversal';
+  const isTransferTxn = txn.type === 'transfer_out' || txn.type === 'transfer_in';
+  const transferRefId =
+    txn.reference && typeof txn.reference === 'object'
+      ? safeStr(txn.reference.id)
+      : '';
   const rows = [
     txn.grossUSD != null && {
       label: isWithdrawTxn ? 'Total Held / Returned' : 'Gross Amount',
@@ -765,7 +963,11 @@ function TransactionDetailModal({ txn, onClose, formatPrice }) {
       muted: true,
     },
     txn.netUSD != null && {
-      label: isWithdrawTxn ? 'Payout Amount' : 'Net Amount',
+      label: isWithdrawTxn
+        ? 'Payout Amount'
+        : isTransferTxn
+          ? (txn.type === 'transfer_out' ? 'Amount Sent' : 'Amount Received')
+          : 'Net Amount',
       value: `$${Number(txn.netUSD).toFixed(2)}`,
       strong: true,
     },
@@ -782,6 +984,11 @@ function TransactionDetailModal({ txn, onClose, formatPrice }) {
     { label: 'Date & Time', value: new Date(txn.createdAt).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' }) },
     txn.note && { label: 'Note', value: safeStr(txn.note) },
     txn.paypalOrderId && { label: 'PayPal Order ID', value: safeStr(txn.paypalOrderId), mono: true },
+    isTransferTxn && transferRefId && {
+      label: 'Transfer ID',
+      value: transferRefId,
+      mono: true,
+    },
     (txn.reference && typeof txn.reference === 'string') && { label: 'Reference', value: txn.reference, mono: true },
     { label: 'Transaction ID', value: safeStr(txn._id), mono: true },
   ].filter(Boolean);
@@ -844,7 +1051,7 @@ function WalletStyles() {
       .wallet-card__value { font-size: clamp(1.4rem, 6vw, 2rem); font-weight: 800; font-family: var(--font-display); color: var(--color-primary); line-height: 1.2; margin: 0.15rem 0; word-break: break-word; }
       .wallet-card__hint { font-size: var(--text-xs); color: var(--color-text-muted); line-height: 1.4; }
       .wallet-card__actions { display: flex; gap: 0.5rem; margin-top: 1rem; flex-wrap: wrap; }
-      .wallet-card__actions .btn { flex: 1 1 auto; min-width: 7.5rem; justify-content: center; }
+      .wallet-card__actions .btn { flex: 1 1 auto; min-width: 6.5rem; min-height: 40px; justify-content: center; }
       .wallet-card__combined { margin-top: 1rem; font-size: var(--text-sm); color: var(--color-text-secondary); line-height: 1.4; }
 
       .wallet-row {
@@ -903,6 +1110,9 @@ function WalletStyles() {
       @media (max-width: 480px) {
         .wallet-row { padding: 0.65rem 0.7rem; gap: 0.5rem; }
         .wallet-card__actions .btn { min-width: 0; flex: 1 1 calc(50% - 0.25rem); }
+      }
+      @media (max-width: 360px) {
+        .wallet-card__actions .btn { flex: 1 1 100%; }
       }
 
       /* ─── Details button ─── */

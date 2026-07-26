@@ -73,19 +73,21 @@ export default function WhyChooseUs() {
                   </div>
                   <div className="why-us__card-number">{diff.number}</div>
                 </div>
-                <h3 className="h4 why-us__card-title">{diff.title}</h3>
-                <p className="why-us__card-desc">{diff.desc}</p>
-                
-                <ul className="why-us__card-highlights">
-                  {diff.highlights.map((highlight, index) => (
-                    <li key={index} className="why-us__card-highlight">
-                      <span className="why-us__highlight-bullet">
-                        <Check size={10} strokeWidth={3} />
-                      </span>
-                      <span>{highlight}</span>
-                    </li>
-                  ))}
-                </ul>
+                <div className="why-us__card-content">
+                  <h3 className="h4 why-us__card-title">{diff.title}</h3>
+                  <p className="why-us__card-desc">{diff.desc}</p>
+                  
+                  <ul className="why-us__card-highlights">
+                    {diff.highlights.map((highlight, index) => (
+                      <li key={index} className="why-us__card-highlight">
+                        <span className="why-us__highlight-bullet">
+                          <Check size={10} strokeWidth={3} />
+                        </span>
+                        <span>{highlight}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
             );
           })}
