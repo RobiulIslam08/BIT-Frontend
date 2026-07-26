@@ -40,6 +40,17 @@ export function trackSelectItem({ item, listName } = {}) {
   });
 }
 
+// Add to cart
+export function trackAddToCart({ currency, value, items } = {}) {
+  if (!isReady()) return;
+  window.gtag('event', 'add_to_cart', {
+    send_to: GA_MEASUREMENT_ID,
+    currency,
+    value,
+    items: items || [],
+  });
+}
+
 // Checkout shuru hole (contact info submit / checkout page load)
 export function trackBeginCheckout({ currency, value, items } = {}) {
   if (!isReady()) return;

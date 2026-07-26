@@ -1,9 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { Link } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   CheckCircle2, XCircle, ArrowRight, Search,
-  Globe, ShoppingCart, Loader2, AlertCircle, Sparkles,
+  Globe, ShoppingCart, Loader2, AlertCircle, Sparkles, X,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { FadeInUp } from '@/components/animations/FadeInUp';
@@ -12,7 +13,9 @@ import { checkDomainAvailability } from '@/api/domainApi';
 import { getPublicDomainPricing } from '@/api/domainPricingApi';
 import { getPublicHostingPlans } from '@/api/hostingPlanApi';
 import { useCurrency } from '@/context/CurrencyContext';
-import { trackSearch, trackSelectItem, trackEvent } from '@/utils/analytics';
+import { addToCart, cartItemKey, selectCartItems } from '@/features/cart/cartSlice';
+import { toast } from '@/components/common/Toast/Toast';
+import { trackSearch, trackSelectItem, trackEvent, trackAddToCart } from '@/utils/analytics';
 
 // ─── Hosting Plans (fallback if API unavailable) ───
 const SHARED_PLANS = [
@@ -283,6 +286,8 @@ const DOMAIN_SEARCH_STYLES = `
 `;
 
 function DomainResultCard({ result, isPrimary = false, priceMap = {} }) {
+  const dispatch = useDispatch();
+  const cartItems = useSelector(selectCartItems);
   const { formatPrice } = useCurrency();
   const parts = result.domain.split('.');
   const tld = parts.length > 1 ? parts.slice(1).join('.').toLowerCase() : 'com';
@@ -297,12 +302,39 @@ function DomainResultCard({ result, isPrimary = false, priceMap = {} }) {
       : (fromMap?.renew ?? null);
   const displayRegister = formatPrice(registerUSD);
   const displayRenew = renewUSD != null ? formatPrice(renewUSD) : null;
+  const inCart = cartItems.some(
+    (i) => cartItemKey(i) === `domain:${String(result.domain).toLowerCase()}`,
+  );
 
   const cardClasses = [
     'domain-result-card',
     isPrimary ? 'is-primary' : '',
     result.available ? 'is-available' : 'is-unavailable',
   ].filter(Boolean).join(' ');
+
+  const gaItem = {
+    item_id: result.domain,
+    item_name: result.domain,
+    item_category: 'domain_registration',
+    item_variant: tld,
+    price: registerUSD,
+    quantity: 1,
+  };
+
+  const handleAddToCart = () => {
+    if (inCart) {
+      toast.info(`${result.domain} is already in your cart.`);
+      return;
+    }
+    dispatch(addToCart({
+      type: 'domain',
+      domainName: result.domain,
+      priceUSD: registerUSD,
+      label: result.domain,
+    }));
+    trackAddToCart({ currency: 'USD', value: registerUSD, items: [gaItem] });
+    toast.success(`${result.domain} added to cart.`);
+  };
 
   return (
     <motion.div
@@ -341,28 +373,165 @@ function DomainResultCard({ result, isPrimary = false, priceMap = {} }) {
           </div>
         )}
         {result.available ? (
-          <Link
-            to={`/domain-checkout?domain=${result.domain}`}
-            className={`${isPrimary ? 'btn btn-primary' : 'btn btn-secondary'} domain-result-buy-btn`}
-            style={{ fontSize: isPrimary ? '0.8rem' : '0.75rem', padding: isPrimary ? '0.55rem 1rem' : '0.4rem 0.75rem' }}
-            onClick={() => trackSelectItem({
-              listName: 'domain_search_results',
-              item: {
-                item_id: result.domain,
-                item_name: result.domain,
-                item_category: 'domain_registration',
-                item_variant: tld,
-                price: registerUSD,
-                quantity: 1,
-              },
-            })}
-          >
-            <ShoppingCart size={13} />{isPrimary ? 'Buy Now' : 'Buy'}
-          </Link>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', alignItems: 'stretch' }}>
+            <button
+              type="button"
+              className={`${isPrimary ? 'btn btn-primary' : 'btn btn-secondary'} domain-result-buy-btn`}
+              style={{ fontSize: isPrimary ? '0.8rem' : '0.75rem', padding: isPrimary ? '0.55rem 1rem' : '0.4rem 0.75rem' }}
+              onClick={handleAddToCart}
+              disabled={inCart}
+            >
+              <ShoppingCart size={13} />{inCart ? 'In Cart' : 'Add to Cart'}
+            </button>
+            <Link
+              to={`/domain-checkout?domain=${result.domain}`}
+              className="btn btn-ghost domain-result-buy-btn"
+              style={{ fontSize: '0.72rem', padding: '0.35rem 0.65rem', justifyContent: 'center' }}
+              onClick={() => trackSelectItem({ listName: 'domain_search_results', item: gaItem })}
+            >
+              Buy Now
+            </Link>
+          </div>
         ) : (
           <span style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', fontStyle: 'italic' }}>Taken</span>
         )}
       </div>
+    </motion.div>
+  );
+}
+
+function HostingDomainPrompt({ plan, billingCycle, priceUSD, onClose, onAdded }) {
+  const dispatch = useDispatch();
+  const [step, setStep] = useState('ask'); // ask | has-domain
+  const [domainInput, setDomainInput] = useState('');
+
+  const addHosting = (attachedDomain) => {
+    dispatch(addToCart({
+      type: 'hosting',
+      planSlug: plan.slug,
+      planName: plan.name,
+      planType: plan.planType || 'shared',
+      billingCycle,
+      priceUSD,
+      label: `${plan.name} (${billingCycle})`,
+      attachedDomain: attachedDomain || undefined,
+      websiteLabel: attachedDomain || undefined,
+    }));
+    trackAddToCart({
+      currency: 'USD',
+      value: priceUSD,
+      items: [{
+        item_id: plan.slug,
+        item_name: plan.name,
+        item_category: 'hosting',
+        item_variant: billingCycle,
+        price: priceUSD,
+        quantity: 1,
+      }],
+    });
+    toast.success(`${plan.name} added to cart.`);
+    onAdded?.();
+    onClose();
+  };
+
+  const scrollToDomainSearch = () => {
+    onClose();
+    setTimeout(() => {
+      document.getElementById('domain-search-section')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      document.getElementById('domain-search-input')?.focus();
+    }, 50);
+    toast.info('Search for a domain, add it to cart, then add hosting again — or skip and add hosting without a domain.');
+  };
+
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      style={{
+        position: 'fixed', inset: 0, zIndex: 1200,
+        background: 'rgba(15, 23, 42, 0.55)',
+        display: 'flex', alignItems: 'center', justifyContent: 'center',
+        padding: '1rem',
+      }}
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 16, scale: 0.98 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 12 }}
+        onClick={(e) => e.stopPropagation()}
+        style={{
+          width: '100%', maxWidth: 420,
+          background: 'var(--color-bg-card, #fff)',
+          borderRadius: 16,
+          border: '1px solid var(--color-border)',
+          padding: '1.25rem 1.35rem',
+          boxShadow: '0 20px 50px rgba(0,0,0,0.18)',
+        }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '0.75rem', marginBottom: '0.85rem' }}>
+          <div>
+            <div style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.06em' }}>
+              Optional
+            </div>
+            <h3 className="h5" style={{ margin: '0.2rem 0 0', fontSize: '1.1rem' }}>Do you have a domain?</h3>
+            <p style={{ margin: '0.35rem 0 0', fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', lineHeight: 1.45 }}>
+              Adding <strong>{plan.name}</strong> hosting. Attach an existing domain, buy a new one, or skip.
+            </p>
+          </div>
+          <button type="button" onClick={onClose} aria-label="Close" className="btn btn-ghost" style={{ padding: '0.35rem', minWidth: 0 }}>
+            <X size={18} />
+          </button>
+        </div>
+
+        {step === 'ask' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <button type="button" className="btn btn-primary" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setStep('has-domain')}>
+              Yes, I have a domain
+            </button>
+            <button type="button" className="btn btn-secondary" style={{ width: '100%', justifyContent: 'center' }} onClick={scrollToDomainSearch}>
+              No — find a domain to buy
+            </button>
+            <button type="button" className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center' }} onClick={() => addHosting()}>
+              Skip for now
+            </button>
+          </div>
+        )}
+
+        {step === 'has-domain' && (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+            <label style={{ fontSize: 'var(--text-xs)', fontWeight: 700, color: 'var(--color-text-secondary)' }}>
+              Your domain name
+              <input
+                type="text"
+                value={domainInput}
+                onChange={(e) => setDomainInput(e.target.value)}
+                placeholder="example.com"
+                style={{
+                  display: 'block', width: '100%', marginTop: '0.35rem',
+                  padding: '0.65rem 0.75rem', borderRadius: 10,
+                  border: '1px solid var(--color-border)',
+                  background: 'var(--color-bg-secondary)',
+                  color: 'var(--color-text-primary)', fontSize: 'var(--text-sm)',
+                }}
+              />
+            </label>
+            <button
+              type="button"
+              className="btn btn-primary"
+              style={{ width: '100%', justifyContent: 'center' }}
+              disabled={!domainInput.trim() || !domainInput.includes('.')}
+              onClick={() => addHosting(domainInput.trim().toLowerCase())}
+            >
+              Add hosting with this domain
+            </button>
+            <button type="button" className="btn btn-ghost" style={{ width: '100%', justifyContent: 'center' }} onClick={() => setStep('ask')}>
+              Back
+            </button>
+          </div>
+        )}
+      </motion.div>
     </motion.div>
   );
 }
@@ -418,7 +587,7 @@ function DomainSearchSection({ priceMap = {} }) {
   const unavailableSuggestions = result?.suggestions?.filter((s) => !s.available) ?? [];
 
   return (
-    <section className="section" style={{ background: 'linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-bg-primary) 100%)', paddingTop: '0' }}>
+    <section id="domain-search-section" className="section" style={{ background: 'linear-gradient(135deg, var(--color-bg-secondary) 0%, var(--color-bg-primary) 100%)', paddingTop: '0' }}>
       <div className="container" style={{ maxWidth: '860px' }}>
         <FadeInUp>
           <div className="section-header" style={{ marginBottom: '1.75rem' }}>
@@ -561,6 +730,7 @@ function DomainPricingTable({ formatPrice, rows = [], loading = false }) {
 }
 
 export default function DomainHosting() {
+  const cartItems = useSelector(selectCartItems);
   const [tab, setTab] = useState('shared');
   const [isYearly, setIsYearly] = useState(true);
   const [priceMap, setPriceMap] = useState({});
@@ -568,6 +738,7 @@ export default function DomainHosting() {
   const [pricingLoading, setPricingLoading] = useState(true);
   const [sharedPlans, setSharedPlans] = useState(SHARED_PLANS);
   const [vpsPlans, setVpsPlans] = useState(VPS_PLANS);
+  const [hostingPrompt, setHostingPrompt] = useState(null); // { plan, billingCycle, priceUSD }
   const plans = tab === 'shared' ? sharedPlans : vpsPlans;
   const { formatPrice } = useCurrency();
 
@@ -700,24 +871,50 @@ export default function DomainHosting() {
                       </div>
                     ))}
                   </div>
-                  <Link
-                    to={`/hosting-checkout?plan=${encodeURIComponent(plan.slug)}&billing=${isYearly ? 'yearly' : 'monthly'}`}
-                    className={plan.popular ? 'btn btn-primary' : 'btn btn-secondary'}
-                    style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--text-sm)' }}
-                    onClick={() => trackSelectItem({
-                      listName: `hosting_plans_${tab}`,
-                      item: {
-                        item_id: plan.slug,
-                        item_name: plan.name,
-                        item_category: 'hosting',
-                        item_variant: isYearly ? 'yearly' : 'monthly',
-                        price: isYearly ? plan.yearly : plan.monthly,
-                        quantity: 1,
-                      },
-                    })}
-                  >
-                    Get Started <ArrowRight size={14} />
-                  </Link>
+                  {(() => {
+                    const billingCycle = isYearly ? 'yearly' : 'monthly';
+                    const priceUSD = isYearly ? plan.yearly : plan.monthly;
+                    const inCart = cartItems.some(
+                      (i) => cartItemKey(i) === `hosting:${plan.slug}:${billingCycle}`,
+                    );
+                    return (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                        <button
+                          type="button"
+                          className={plan.popular ? 'btn btn-primary' : 'btn btn-secondary'}
+                          style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--text-sm)' }}
+                          disabled={inCart}
+                          onClick={() => {
+                            if (inCart) {
+                              toast.info('This hosting plan is already in your cart.');
+                              return;
+                            }
+                            setHostingPrompt({ plan, billingCycle, priceUSD });
+                          }}
+                        >
+                          <ShoppingCart size={14} /> {inCart ? 'In Cart' : 'Add to Cart'}
+                        </button>
+                        <Link
+                          to={`/hosting-checkout?plan=${encodeURIComponent(plan.slug)}&billing=${billingCycle}`}
+                          className="btn btn-ghost"
+                          style={{ width: '100%', justifyContent: 'center', fontSize: 'var(--text-sm)' }}
+                          onClick={() => trackSelectItem({
+                            listName: `hosting_plans_${tab}`,
+                            item: {
+                              item_id: plan.slug,
+                              item_name: plan.name,
+                              item_category: 'hosting',
+                              item_variant: billingCycle,
+                              price: priceUSD,
+                              quantity: 1,
+                            },
+                          })}
+                        >
+                          Buy Now <ArrowRight size={14} />
+                        </Link>
+                      </div>
+                    );
+                  })()}
                 </motion.div>
               </StaggerItem>
             ))}
@@ -740,6 +937,17 @@ export default function DomainHosting() {
           </FadeInUp>
         </div>
       </section>
+
+      <AnimatePresence>
+        {hostingPrompt && (
+          <HostingDomainPrompt
+            plan={hostingPrompt.plan}
+            billingCycle={hostingPrompt.billingCycle}
+            priceUSD={hostingPrompt.priceUSD}
+            onClose={() => setHostingPrompt(null)}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }

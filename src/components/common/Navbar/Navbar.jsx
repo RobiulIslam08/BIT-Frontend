@@ -5,10 +5,11 @@
 import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Menu, X, ChevronDown, Phone, Mail, Globe, AtSign, Users, MessageCircle } from 'lucide-react';
+import { Menu, X, ChevronDown, Phone, Mail, Globe, AtSign, Users, MessageCircle, ShoppingCart } from 'lucide-react';
 import { ThemeToggle } from '../ThemeToggle';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { toggleMobileMenu, closeMobileMenu } from '@/features/ui/uiSlice';
+import { selectCartCount } from '@/features/cart/cartSlice';
 import { NAV_ITEMS, COMPANY, SOCIALS } from '@/utils/constants';
 import { useAuth } from '@/hooks/useAuth';
 import { getImageUrl } from '@/config/env';
@@ -23,6 +24,7 @@ export function Navbar() {
   const location = useLocation();
   const dispatch = useAppDispatch();
   const isMobileMenuOpen = useAppSelector((state) => state.ui.isMobileMenuOpen);
+  const cartCount = useAppSelector(selectCartCount);
 
   const toggleMobileItem = (key) => {
     setMobileExpandedItems((prev) => ({
@@ -159,6 +161,47 @@ export function Navbar() {
 
             {/* Right Section */}
             <div className="navbar__actions" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+              <Link
+                to="/cart"
+                className="navbar__cart-link"
+                aria-label={`Shopping cart${cartCount ? `, ${cartCount} items` : ''}`}
+                style={{
+                  position: 'relative',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  color: 'inherit',
+                  textDecoration: 'none',
+                }}
+              >
+                <ShoppingCart size={18} />
+                {cartCount > 0 && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: 2,
+                      right: 2,
+                      minWidth: 16,
+                      height: 16,
+                      padding: '0 4px',
+                      borderRadius: 999,
+                      background: 'var(--color-primary)',
+                      color: '#fff',
+                      fontSize: 10,
+                      fontWeight: 800,
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      lineHeight: 1,
+                    }}
+                  >
+                    {cartCount > 99 ? '99+' : cartCount}
+                  </span>
+                )}
+              </Link>
               <CurrencySelector />
               <ThemeToggle />
 
@@ -326,18 +369,58 @@ export function Navbar() {
                 <Link to="/" className="navbar__logo" aria-label="BIT Software Home">
                   <img src="/bit-logo.png" alt="BIT Software Logo" style={{ height: '36px', width: 'auto' }} />
                 </Link>
-                <button
-                  onClick={() => dispatch(closeMobileMenu())}
-                  aria-label="Close menu"
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    color: 'var(--color-text-primary)',
-                    cursor: 'pointer',
-                  }}
-                >
-                  <X size={24} />
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Link
+                    to="/cart"
+                    onClick={() => dispatch(closeMobileMenu())}
+                    aria-label={`Shopping cart${cartCount ? `, ${cartCount} items` : ''}`}
+                    style={{
+                      position: 'relative',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      width: 36,
+                      height: 36,
+                      color: 'var(--color-text-primary)',
+                    }}
+                  >
+                    <ShoppingCart size={20} />
+                    {cartCount > 0 && (
+                      <span
+                        style={{
+                          position: 'absolute',
+                          top: 2,
+                          right: 2,
+                          minWidth: 16,
+                          height: 16,
+                          padding: '0 4px',
+                          borderRadius: 999,
+                          background: 'var(--color-primary)',
+                          color: '#fff',
+                          fontSize: 10,
+                          fontWeight: 800,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {cartCount > 99 ? '99+' : cartCount}
+                      </span>
+                    )}
+                  </Link>
+                  <button
+                    onClick={() => dispatch(closeMobileMenu())}
+                    aria-label="Close menu"
+                    style={{
+                      background: 'none',
+                      border: 'none',
+                      color: 'var(--color-text-primary)',
+                      cursor: 'pointer',
+                    }}
+                  >
+                    <X size={24} />
+                  </button>
+                </div>
               </div>
 
               <nav className="navbar__mobile-nav">

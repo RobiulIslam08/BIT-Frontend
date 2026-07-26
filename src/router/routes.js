@@ -48,6 +48,8 @@ export const ROUTES = {
   DASHBOARD_SETTINGS: '/dashboard/settings',
   DOMAIN_CHECKOUT: '/domain-checkout',
   HOSTING_CHECKOUT: '/hosting-checkout',
+  CART: '/cart',
+  CART_CHECKOUT: '/cart-checkout',
   MY_ACCOUNT: '/my-account',
   PROFILE_EDIT: '/my-account/profile/edit',
   DOMAIN_DETAILS: '/my-account/domains/:id',

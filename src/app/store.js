@@ -7,6 +7,7 @@ import themeReducer from '../features/theme/themeSlice';
 import authReducer from '../features/auth/authSlice';
 import uiReducer from '../features/ui/uiSlice';
 import currencyReducer from '../features/currency/currencySlice';
+import cartReducer from '../features/cart/cartSlice';
 
 export const store = configureStore({
   reducer: {
@@ -14,6 +15,7 @@ export const store = configureStore({
     auth: authReducer,
     ui: uiReducer,
     currency: currencyReducer,
+    cart: cartReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({

@@ -33,6 +33,8 @@ const GoogleMyBusiness = lazy(() => import('@/pages/Services/GoogleMyBusiness'))
 const DomainHosting = lazy(() => import('@/pages/Services/DomainHosting'));
 const DomainCheckout = lazy(() => import('@/pages/DomainCheckout'));
 const HostingCheckout = lazy(() => import('@/pages/HostingCheckout'));
+const CartPage = lazy(() => import('@/pages/Cart'));
+const CartCheckout = lazy(() => import('@/pages/CartCheckout'));
 const MyAccount = lazy(() => import('@/pages/MyAccount'));
 const ProfileEdit = lazy(() => import('@/pages/ProfileEdit'));
 const DomainDetails = lazy(() => import('@/pages/DomainDetails'));
@@ -88,6 +90,7 @@ export const router = createBrowserRouter([
       { path: 'services/online-marketing', element: <SuspenseWrap><OnlineMarketing /></SuspenseWrap> },
       { path: 'services/google-my-business', element: <SuspenseWrap><GoogleMyBusiness /></SuspenseWrap> },
       { path: 'services/domain-hosting', element: <SuspenseWrap><DomainHosting /></SuspenseWrap> },
+      { path: 'cart', element: <SuspenseWrap><CartPage /></SuspenseWrap> },
       { path: 'terms-and-conditions', element: <SuspenseWrap><TermsAndConditions /></SuspenseWrap> },
       { path: 'terms', element: <SuspenseWrap><TermsAndConditions /></SuspenseWrap> },
       { path: 'privacy', element: <SuspenseWrap><OurPolicy /></SuspenseWrap> },
@@ -99,6 +102,7 @@ export const router = createBrowserRouter([
         children: [
           { path: 'domain-checkout', element: <SuspenseWrap><DomainCheckout /></SuspenseWrap> },
           { path: 'hosting-checkout', element: <SuspenseWrap><HostingCheckout /></SuspenseWrap> },
+          { path: 'cart-checkout', element: <SuspenseWrap><CartCheckout /></SuspenseWrap> },
         ],
       },
       { path: '*', element: <SuspenseWrap><NotFound /></SuspenseWrap> },
