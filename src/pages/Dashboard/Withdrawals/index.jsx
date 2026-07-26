@@ -1,9 +1,9 @@
 // ============================================
 // BIT SOFTWARE — Admin Withdrawals Management
 // ============================================
-// Review customer withdrawal requests. Funds are already held on the account
-// when a request is created. "Complete" marks it paid; "Reject" returns the
-// held funds to the customer's account balance.
+// Review customer withdrawal requests. Payout + fee are already held on the
+// account when a request is created. "Complete" marks it paid; "Reject"
+// returns the held payout and fee to the customer's account balance.
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'motion/react';
@@ -60,7 +60,11 @@ function WithdrawalModal({ item, onClose, onDone }) {
     try {
       const res = await processWithdrawal(item._id, { action, payoutRef: payoutRef.trim() || undefined, adminNote: adminNote.trim() || undefined });
       if (res.success) {
-        toast.success(action === 'complete' ? 'Withdrawal marked as paid.' : 'Withdrawal rejected and funds returned.');
+        toast.success(
+          action === 'complete'
+            ? 'Withdrawal marked as paid.'
+            : 'Withdrawal rejected — payout and fee returned.',
+        );
         onDone();
         onClose();
       }
@@ -80,7 +84,15 @@ function WithdrawalModal({ item, onClose, onDone }) {
         </div>
 
         <div className="wd-modal__body">
-          <DetailRow label="Amount" value={`$${item.amountUSD} USD`} />
+          <DetailRow label="Payout" value={`$${Number(item.amountUSD).toFixed(2)} USD`} />
+          <DetailRow
+            label={`Fee${item.feePercent != null ? ` (${item.feePercent}%)` : ''}`}
+            value={`$${Number(item.feeUSD || 0).toFixed(2)} USD`}
+          />
+          <DetailRow
+            label="Total held"
+            value={`$${(Number(item.amountUSD || 0) + Number(item.feeUSD || 0)).toFixed(2)} USD`}
+          />
           <DetailRow label="Customer" value={user ? `${user.name || '—'} (${user.email || '—'})` : String(item.userId)} />
           <DetailRow label="Method" value={METHOD_LABELS[item.method] || item.method} />
           <DetailRow label="Status" value={statusConfig[item.status]?.label || item.status} />
@@ -121,7 +133,7 @@ function WithdrawalModal({ item, onClose, onDone }) {
                 onClick={() => handleAction('reject')}
                 disabled={!!busy}
               >
-                {busy === 'reject' ? <><Loader2 size={14} className="spin" /> Rejecting...</> : 'Reject & Refund'}
+                {busy === 'reject' ? <><Loader2 size={14} className="spin" /> Rejecting...</> : 'Reject & Refund All'}
               </button>
             </div>
           </div>
@@ -212,7 +224,8 @@ export default function AdminWithdrawals() {
                 <thead>
                   <tr>
                     <th>Customer</th>
-                    <th>Amount</th>
+                    <th>Payout</th>
+                    <th className="wd-col-fee">Fee</th>
                     <th>Method</th>
                     <th>Status</th>
                     <th>Requested</th>
@@ -222,13 +235,22 @@ export default function AdminWithdrawals() {
                 <tbody>
                   {items.map((item, idx) => {
                     const user = item.userId && typeof item.userId === 'object' ? item.userId : null;
+                    const fee = Number(item.feeUSD || 0);
                     return (
                       <motion.tr key={item._id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.04 }}>
                         <td>
                           <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{user?.name || '—'}</div>
                           <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{user?.email || String(item.userId)}</div>
                         </td>
-                        <td style={{ fontWeight: 700, fontFamily: 'var(--font-display)' }}>${item.amountUSD}</td>
+                        <td>
+                          <div style={{ fontWeight: 700, fontFamily: 'var(--font-display)' }}>${Number(item.amountUSD).toFixed(2)}</div>
+                          <div className="wd-fee-mobile" style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                            Fee ${fee.toFixed(2)}
+                          </div>
+                        </td>
+                        <td className="wd-col-fee" style={{ fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}>
+                          ${fee.toFixed(2)}
+                        </td>
                         <td style={{ fontSize: 'var(--text-sm)' }}>{METHOD_LABELS[item.method] || item.method}</td>
                         <td><StatusBadge status={item.status} /></td>
                         <td style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)' }}>{formatDate(item.createdAt)}</td>
@@ -334,6 +356,11 @@ export default function AdminWithdrawals() {
           border: 1px solid rgba(239,68,68,0.25); justify-content: center;
         }
 
+        .wd-fee-mobile { display: none; }
+        @media (max-width: 720px) {
+          .wd-col-fee { display: none; }
+          .wd-fee-mobile { display: block; }
+        }
         @media (max-width: 640px) {
           .wallet-admin__table thead th,
           .wallet-admin__table tbody td { padding: 0.7rem 0.75rem; }

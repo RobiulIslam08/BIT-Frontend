@@ -210,7 +210,9 @@ export default function Wallet() {
           <div className="wallet-card__value">
             {loading && summary == null ? <Loader2 size={22} className="spin" /> : formatBalance(formatPrice, account)}
           </div>
-          <div className="wallet-card__hint">Withdrawable · usable on all services</div>
+          <div className="wallet-card__hint">
+            Withdrawable (fee applies) · max payout ${withdrawable}
+          </div>
           <div className="wallet-card__actions">
             <button className="btn btn-primary btn-sm" onClick={() => setShowTopup(true)}>
               <Plus size={14} /> Add Funds
@@ -227,7 +229,7 @@ export default function Wallet() {
                   toast.warning(
                     (account || 0) < 1
                       ? 'You need at least $1 in Account Balance to withdraw. Promotional credit cannot be withdrawn.'
-                      : 'Only whole-dollar amounts can be withdrawn. Add funds until you have at least $1.',
+                      : 'Not enough balance to cover a $1 payout plus the withdrawal fee. Add more funds to withdraw.',
                   );
                   return;
                 }
@@ -263,12 +265,14 @@ export default function Wallet() {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
             {withdrawals.map((w) => {
               const st = statusPill[w.status] || statusPill.pending;
+              const fee = Number(w.feeUSD || 0);
               return (
                 <div key={w._id} className="wallet-row">
-                  <div style={{ minWidth: 0 }}>
-                    <div style={{ fontWeight: 700 }}>{formatPrice(w.amountUSD)}</div>
+                  <div style={{ minWidth: 0, flex: 1 }}>
+                    <div style={{ fontWeight: 700 }}>{formatPrice(w.amountUSD)} payout</div>
                     <div style={{ fontSize: 'var(--text-xs)', color: 'var(--color-text-muted)', textTransform: 'capitalize' }}>
                       {w.method} · {new Date(w.createdAt).toLocaleDateString()}
+                      {fee > 0 ? ` · Fee $${fee.toFixed(2)}` : ''}
                     </div>
                   </div>
                   <span className="wallet-pill" style={{ color: st.color, background: st.bg }}>{st.label}</span>
@@ -494,6 +498,7 @@ function TopupModal({ summary, onClose, onDone, formatPrice }) {
 // ============================================
 function WithdrawModal({ summary, onClose, onDone, formatPrice }) {
   const max = summary?.withdrawableWholeUSD || 0;
+  const feePercent = Number(summary?.withdrawFeePercent ?? 0);
   const [amount, setAmount] = useState(max >= 1 ? String(Math.min(max, 1)) : '');
   const [method, setMethod] = useState('bank');
   const [details, setDetails] = useState({
@@ -508,6 +513,9 @@ function WithdrawModal({ summary, onClose, onDone, formatPrice }) {
   const [error, setError] = useState('');
 
   const amt = parseInt(amount, 10) || 0;
+  const fee = Math.round(amt * feePercent * 100) / 10000;
+  const feeRounded = Math.round(fee * 100) / 100;
+  const totalDebit = Math.round((amt + feeRounded) * 100) / 100;
   const setD = (k, v) => setDetails((d) => ({ ...d, [k]: v }));
 
   const changeMethod = (id) => {
@@ -535,7 +543,9 @@ function WithdrawModal({ summary, onClose, onDone, formatPrice }) {
       return 'Enter a whole amount of at least $1.';
     }
     if (amt > max) {
-      return `You can withdraw at most $${max}.`;
+      return max < 1
+        ? 'Insufficient balance to withdraw (including the withdrawal fee).'
+        : `You can withdraw at most $${max} after the ${feePercent}% fee.`;
     }
     if (method === 'bank') {
       if (!details.bankName.trim() || !details.accountName.trim() || !details.accountNumber.trim()) {
@@ -587,16 +597,17 @@ function WithdrawModal({ summary, onClose, onDone, formatPrice }) {
     <ModalShell title="Withdraw Funds" onClose={onClose}>
       <p className="wallet-note" style={{ marginTop: 0 }}>
         <Info size={12} /> Only whole-dollar amounts of your <strong>Account Balance</strong> can be withdrawn.
-        Promotional credit and fractional cents stay in your wallet. Available: <strong>${max}</strong>.
+        A <strong>{feePercent}%</strong> fee is held from your remaining balance in addition to the payout.
+        Promotional credit stays in your wallet. Max payout: <strong>${max}</strong>.
       </p>
 
       {max < 1 ? (
         <div className="wallet-error">
-          You need at least $1 in Account Balance to request a withdrawal.
+          You need enough Account Balance to cover at least $1 payout plus the {feePercent}% fee.
         </div>
       ) : (
         <>
-          <label className="wallet-label">Amount (whole USD)</label>
+          <label className="wallet-label">Amount you receive (whole USD)</label>
           <div className="wallet-amount-input">
             <span>$</span>
             <input
@@ -623,7 +634,19 @@ function WithdrawModal({ summary, onClose, onDone, formatPrice }) {
               </button>
             )}
           </div>
-          {amt > 0 && <p className="wallet-note">≈ {formatPrice(amt)}</p>}
+
+          {amt > 0 && (
+            <div className="wallet-breakdown">
+              <div><span>You receive</span><strong>${amt.toFixed(2)}</strong></div>
+              <div><span>Fee ({feePercent}%)</span><strong>- ${feeRounded.toFixed(2)}</strong></div>
+              <div className="wallet-breakdown__net"><span>Total deducted</span><strong>${totalDebit.toFixed(2)}</strong></div>
+            </div>
+          )}
+          {amt > 0 && (
+            <p className="wallet-note">
+              <Info size={12} /> ≈ {formatPrice(amt)} will be paid out; {formatPrice(totalDebit)} held from your balance.
+            </p>
+          )}
 
           <label className="wallet-label">Withdrawal Method</label>
           <div className="wallet-method-tabs">
@@ -644,7 +667,7 @@ function WithdrawModal({ summary, onClose, onDone, formatPrice }) {
             ))}
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginTop: '0.75rem' }}>
+          <div className="wallet-withdraw-fields">
             {method === 'bank' && (
               <>
                 <input className="input" value={details.bankName} placeholder="Bank name *" onChange={(e) => setD('bankName', e.target.value)} />
@@ -674,9 +697,8 @@ function WithdrawModal({ summary, onClose, onDone, formatPrice }) {
 
           {error && <div className="wallet-error">{error}</div>}
           <button
-            className="btn btn-primary"
+            className="btn btn-primary wallet-withdraw-submit"
             type="button"
-            style={{ width: '100%', justifyContent: 'center', marginTop: '0.75rem' }}
             onClick={submit}
             disabled={busy}
           >
@@ -731,10 +753,22 @@ function TransactionDetailModal({ txn, onClose, formatPrice }) {
     : Number(txn.netUSD || txn.grossUSD || txn.amount || 0);
   const sign = signedNet !== 0 ? (signedNet >= 0 ? '+' : '-') : (meta.sign || '');
 
+  const isWithdrawTxn = txn.type === 'withdrawal' || txn.type === 'withdrawal_reversal';
   const rows = [
-    txn.grossUSD != null && { label: 'Gross Amount', value: `$${Number(txn.grossUSD).toFixed(2)}` },
-    txn.feeUSD != null && Number(txn.feeUSD) > 0 && { label: 'Processing Fee', value: `- $${Number(txn.feeUSD).toFixed(2)}`, muted: true },
-    txn.netUSD != null && { label: 'Net Amount', value: `$${Number(txn.netUSD).toFixed(2)}`, strong: true },
+    txn.grossUSD != null && {
+      label: isWithdrawTxn ? 'Total Held / Returned' : 'Gross Amount',
+      value: `$${Number(txn.grossUSD).toFixed(2)}`,
+    },
+    txn.feeUSD != null && Number(txn.feeUSD) > 0 && {
+      label: isWithdrawTxn ? 'Withdrawal Fee' : 'Processing Fee',
+      value: `- $${Number(txn.feeUSD).toFixed(2)}`,
+      muted: true,
+    },
+    txn.netUSD != null && {
+      label: isWithdrawTxn ? 'Payout Amount' : 'Net Amount',
+      value: `$${Number(txn.netUSD).toFixed(2)}`,
+      strong: true,
+    },
     txn.accountAmount != null && {
       label: 'Account Balance',
       value: `${Number(txn.accountAmount) >= 0 ? '+' : '-'} ${formatPrice(Math.abs(Number(txn.accountAmount)))}`,
@@ -847,7 +881,7 @@ function WalletStyles() {
       .wallet-amount-input span { color: var(--color-text-muted); }
       .wallet-amount-input input { border: none; outline: none; width: 100%; min-width: 0; font-size: 1.25rem; font-weight: 700; background: transparent; color: var(--color-text-primary); }
       .wallet-quick { display: flex; gap: 0.4rem; margin-top: 0.6rem; flex-wrap: wrap; }
-      .wallet-quick__btn { flex: 1 1 calc(25% - 0.4rem); min-width: 4.25rem; padding: 0.5rem 0.4rem; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-bg-secondary); font-weight: 700; cursor: pointer; color: var(--color-text-secondary); }
+      .wallet-quick__btn { flex: 1 1 calc(25% - 0.4rem); min-width: 4.25rem; min-height: 40px; padding: 0.5rem 0.4rem; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-bg-secondary); font-weight: 700; cursor: pointer; color: var(--color-text-secondary); }
       .wallet-quick__btn:hover { border-color: var(--color-primary); color: var(--color-primary); }
 
       .wallet-breakdown { margin-top: 1rem; border: 1px solid var(--color-border); border-radius: 10px; padding: 0.75rem 1rem; display: flex; flex-direction: column; gap: 0.4rem; font-size: var(--text-sm); }
@@ -860,8 +894,11 @@ function WalletStyles() {
 
       .wallet-method-tabs { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0.4rem; }
       @media (min-width: 420px) { .wallet-method-tabs { grid-template-columns: repeat(4, 1fr); } }
-      .wallet-method-tab { padding: 0.55rem 0.4rem; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-bg-secondary); font-weight: 700; font-size: var(--text-xs); cursor: pointer; color: var(--color-text-secondary); min-height: 40px; }
+      .wallet-method-tab { padding: 0.55rem 0.4rem; border-radius: 8px; border: 1px solid var(--color-border); background: var(--color-bg-secondary); font-weight: 700; font-size: var(--text-xs); cursor: pointer; color: var(--color-text-secondary); min-height: 44px; }
       .wallet-method-tab.active { border-color: var(--color-primary); background: var(--color-primary-muted); color: var(--color-primary); }
+      .wallet-withdraw-fields { display: flex; flex-direction: column; gap: 0.6rem; margin-top: 0.75rem; }
+      .wallet-withdraw-fields .input { width: 100%; min-width: 0; }
+      .wallet-withdraw-submit { width: 100%; justify-content: center; margin-top: 0.75rem; min-height: 44px; }
 
       @media (max-width: 480px) {
         .wallet-row { padding: 0.65rem 0.7rem; gap: 0.5rem; }

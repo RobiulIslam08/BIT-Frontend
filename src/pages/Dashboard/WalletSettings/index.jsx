@@ -15,7 +15,7 @@ export default function AdminWalletSettings() {
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
-  const [form, setForm] = useState({ topupFeePercent: '', minTopupUSD: '' });
+  const [form, setForm] = useState({ topupFeePercent: '', withdrawFeePercent: '', minTopupUSD: '' });
 
   const fetchSettings = useCallback(async () => {
     setIsLoading(true);
@@ -25,6 +25,7 @@ export default function AdminWalletSettings() {
       if (res.success) {
         setForm({
           topupFeePercent: res.data?.topupFeePercent ?? 0,
+          withdrawFeePercent: res.data?.withdrawFeePercent ?? 10,
           minTopupUSD: res.data?.minTopupUSD ?? 0,
         });
       }
@@ -40,9 +41,14 @@ export default function AdminWalletSettings() {
   const handleSave = async (e) => {
     e.preventDefault();
     const fee = Number(form.topupFeePercent);
+    const withdrawFee = Number(form.withdrawFeePercent);
     const min = Number(form.minTopupUSD);
     if (Number.isNaN(fee) || fee < 0 || fee > 100) {
       toast.error('Top-up fee must be between 0 and 100%.');
+      return;
+    }
+    if (Number.isNaN(withdrawFee) || withdrawFee < 0 || withdrawFee > 100) {
+      toast.error('Withdraw fee must be between 0 and 100%.');
       return;
     }
     if (Number.isNaN(min) || min < 1) {
@@ -51,7 +57,11 @@ export default function AdminWalletSettings() {
     }
     setIsSaving(true);
     try {
-      const res = await updateWalletSettings({ topupFeePercent: fee, minTopupUSD: min });
+      const res = await updateWalletSettings({
+        topupFeePercent: fee,
+        withdrawFeePercent: withdrawFee,
+        minTopupUSD: min,
+      });
       if (res.success) {
         toast.success('Wallet settings saved.');
         fetchSettings();
@@ -72,7 +82,7 @@ export default function AdminWalletSettings() {
             <Wallet size={22} style={{ color: 'var(--color-primary)' }} /> Wallet Settings
           </h1>
           <p className="body-sm" style={{ color: 'var(--color-text-muted)' }}>
-            Control the top-up fee (your revenue) and the minimum deposit amount.
+            Control top-up fee, withdrawal fee, and the minimum deposit amount.
           </p>
         </div>
 
@@ -110,6 +120,25 @@ export default function AdminWalletSettings() {
 
               <div>
                 <label className="form-label ws-label">
+                  <Percent size={15} style={{ color: 'var(--color-primary)' }} /> Withdraw Fee (%)
+                </label>
+                <input
+                  type="number"
+                  className="input"
+                  min="0"
+                  max="100"
+                  step="0.1"
+                  value={form.withdrawFeePercent}
+                  onChange={(e) => setForm((f) => ({ ...f, withdrawFeePercent: e.target.value }))}
+                  required
+                />
+                <span className="ws-hint">
+                  Charged on the payout amount. Customer receives the full requested payout; the fee is held from their remaining balance.
+                </span>
+              </div>
+
+              <div>
+                <label className="form-label ws-label">
                   <DollarSign size={15} style={{ color: 'var(--color-primary)' }} /> Minimum Top-up (USD)
                 </label>
                 <input
@@ -129,11 +158,18 @@ export default function AdminWalletSettings() {
               <div className="ws-example">
                 <Info size={15} style={{ flexShrink: 0, color: 'var(--color-primary)' }} />
                 <div>
-                  Example: a $100 top-up at {form.topupFeePercent || 0}% fee credits the customer{' '}
+                  Top-up: $100 at {form.topupFeePercent || 0}% credits{' '}
                   <strong>
                     ${(100 - (100 * (Number(form.topupFeePercent) || 0)) / 100).toFixed(2)}
-                  </strong>{' '}
-                  and retains ${(((100 * (Number(form.topupFeePercent) || 0)) / 100)).toFixed(2)} as revenue.
+                  </strong>
+                  .
+                  <br />
+                  Withdraw: $100 payout at {form.withdrawFeePercent || 0}% → customer receives{' '}
+                  <strong>$100.00</strong>, total debit{' '}
+                  <strong>
+                    ${(100 + (100 * (Number(form.withdrawFeePercent) || 0)) / 100).toFixed(2)}
+                  </strong>
+                  .
                 </div>
               </div>
 
