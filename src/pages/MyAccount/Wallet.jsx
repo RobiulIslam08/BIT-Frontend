@@ -8,7 +8,7 @@ import { motion } from 'motion/react';
 import { PayPalButtons, PayPalScriptProvider } from '@paypal/react-paypal-js';
 import {
   Wallet as WalletIcon, Gift, Plus, ArrowUpRight, RefreshCw, Loader2,
-  X, ArrowUpCircle, ArrowDownCircle, Info,
+  X, ArrowUpCircle, ArrowDownCircle, Info, Eye, ChevronRight,
 } from 'lucide-react';
 import {
   getWalletSummary, getWalletTransactions, createTopupOrder, completeTopup,
@@ -57,6 +57,7 @@ export default function Wallet() {
 
   const [showTopup, setShowTopup] = useState(false);
   const [showWithdraw, setShowWithdraw] = useState(false);
+  const [selectedTxn, setSelectedTxn] = useState(null);
 
   /** Prevents auto-complete from re-firing for the same token on every render. */
   const autoCompleteTokenRef = useRef(null);
@@ -303,23 +304,34 @@ export default function Wallet() {
                 ? (signedNet >= 0 ? '+' : '-')
                 : (meta.sign || '');
               return (
-                <div key={t._id} className="wallet-row">
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+                <div key={t._id} className="wallet-row wallet-row--clickable" onClick={() => setSelectedTxn(t)}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0, flex: 1 }}>
                     <div className="wallet-txn-icon" style={{ color: meta.color, background: `${meta.color}1a` }}>
                       <Icon size={16} />
                     </div>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{meta.label}</div>
                       <div className="wallet-txn-note">
-                        {t.note || new Date(t.createdAt).toLocaleString()}
+                        {(typeof t.note === 'object' && t.note !== null ? (t.note.id || JSON.stringify(t.note)) : t.note) || new Date(t.createdAt).toLocaleString()}
                       </div>
                     </div>
                   </div>
-                  <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                    <div style={{ fontWeight: 800, color: meta.color, fontFamily: 'var(--font-display)' }}>
-                      {sign}{formatPrice(displayAmt)}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                    <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                      <div style={{ fontWeight: 800, color: meta.color, fontFamily: 'var(--font-display)' }}>
+                        {sign}{formatPrice(displayAmt)}
+                      </div>
+                      <span className="wallet-pill" style={{ color: st.color, background: st.bg, fontSize: '10px' }}>{st.label}</span>
                     </div>
-                    <span className="wallet-pill" style={{ color: st.color, background: st.bg, fontSize: '10px' }}>{st.label}</span>
+                    <button
+                      className="wallet-details-btn"
+                      onClick={(e) => { e.stopPropagation(); setSelectedTxn(t); }}
+                      title="View Details"
+                    >
+                      <Eye size={14} />
+                      <span>Details</span>
+                      <ChevronRight size={12} />
+                    </button>
                   </div>
                 </div>
               );
@@ -333,6 +345,9 @@ export default function Wallet() {
       )}
       {showWithdraw && (
         <WithdrawModal summary={summary} onClose={() => setShowWithdraw(false)} onDone={onWithdrawDone} formatPrice={formatPrice} />
+      )}
+      {selectedTxn && (
+        <TransactionDetailModal txn={selectedTxn} onClose={() => setSelectedTxn(null)} formatPrice={formatPrice} />
       )}
 
       <WalletStyles />
@@ -696,6 +711,82 @@ function ModalShell({ title, onClose, children }) {
 }
 
 // ============================================
+// TRANSACTION DETAIL MODAL
+// ============================================
+function TransactionDetailModal({ txn, onClose, formatPrice }) {
+  // Some fields (e.g. _id, paypalOrderId) can arrive as MongoDB ObjectId objects
+  // ({kind, id}) instead of plain strings. Safely coerce them so React can render.
+  const safeStr = (v) => {
+    if (v == null) return '';
+    if (typeof v === 'object') return v.id || v._id || JSON.stringify(v);
+    return String(v);
+  };
+
+  const meta = txnMeta[txn.type] || txnMeta.adjustment;
+  const Icon = meta.icon;
+  const st = statusPill[txn.status] || statusPill.completed;
+  const signedNet = Number(txn.accountAmount || 0) + Number(txn.promoAmount || 0);
+  const displayAmt = Math.abs(signedNet) > 0
+    ? Math.abs(signedNet)
+    : Number(txn.netUSD || txn.grossUSD || txn.amount || 0);
+  const sign = signedNet !== 0 ? (signedNet >= 0 ? '+' : '-') : (meta.sign || '');
+
+  const rows = [
+    txn.grossUSD != null && { label: 'Gross Amount', value: `$${Number(txn.grossUSD).toFixed(2)}` },
+    txn.feeUSD != null && Number(txn.feeUSD) > 0 && { label: 'Processing Fee', value: `- $${Number(txn.feeUSD).toFixed(2)}`, muted: true },
+    txn.netUSD != null && { label: 'Net Amount', value: `$${Number(txn.netUSD).toFixed(2)}`, strong: true },
+    txn.accountAmount != null && {
+      label: 'Account Balance',
+      value: `${Number(txn.accountAmount) >= 0 ? '+' : '-'} ${formatPrice(Math.abs(Number(txn.accountAmount)))}`,
+      color: Number(txn.accountAmount) >= 0 ? '#16a34a' : '#dc2626',
+    },
+    txn.promoAmount != null && Number(txn.promoAmount) !== 0 && {
+      label: 'Promotional Credit',
+      value: `${Number(txn.promoAmount) >= 0 ? '+' : '-'} ${formatPrice(Math.abs(Number(txn.promoAmount)))}`,
+      color: '#7c3aed',
+    },
+    { label: 'Date & Time', value: new Date(txn.createdAt).toLocaleString('en-US', { dateStyle: 'long', timeStyle: 'short' }) },
+    txn.note && { label: 'Note', value: safeStr(txn.note) },
+    txn.paypalOrderId && { label: 'PayPal Order ID', value: safeStr(txn.paypalOrderId), mono: true },
+    (txn.reference && typeof txn.reference === 'string') && { label: 'Reference', value: txn.reference, mono: true },
+    { label: 'Transaction ID', value: safeStr(txn._id), mono: true },
+  ].filter(Boolean);
+
+  return (
+    <ModalShell title="Transaction Details" onClose={onClose}>
+      {/* ── Hero ── */}
+      <div className="txn-detail__hero">
+        <div className="txn-detail__hero-icon" style={{ color: meta.color, background: `${meta.color}14` }}>
+          <Icon size={28} />
+        </div>
+        <div className="txn-detail__hero-type">{meta.label}</div>
+        <span className="wallet-pill" style={{ color: st.color, background: st.bg, fontSize: '12px', padding: '0.2rem 0.65rem' }}>
+          {st.label}
+        </span>
+        <div className="txn-detail__hero-amount" style={{ color: meta.color }}>
+          {sign}{formatPrice(displayAmt)}
+        </div>
+      </div>
+
+      {/* ── Detail rows ── */}
+      <div className="txn-detail__list">
+        {rows.map((r, i) => (
+          <div key={i} className={`txn-detail__row${r.strong ? ' txn-detail__row--strong' : ''}`}>
+            <span className="txn-detail__row-label">{r.label}</span>
+            <span
+              className={`txn-detail__row-value${r.mono ? ' txn-detail__row-value--mono' : ''}`}
+              style={r.color ? { color: r.color, fontWeight: 700 } : r.muted ? { color: 'var(--color-text-muted)' } : undefined}
+            >
+              {typeof r.value === 'object' && r.value !== null ? safeStr(r.value) : r.value}
+            </span>
+          </div>
+        ))}
+      </div>
+    </ModalShell>
+  );
+}
+
+// ============================================
 // STYLES
 // ============================================
 function WalletStyles() {
@@ -775,6 +866,70 @@ function WalletStyles() {
       @media (max-width: 480px) {
         .wallet-row { padding: 0.65rem 0.7rem; gap: 0.5rem; }
         .wallet-card__actions .btn { min-width: 0; flex: 1 1 calc(50% - 0.25rem); }
+      }
+
+      /* ─── Details button ─── */
+      .wallet-row--clickable { cursor: pointer; transition: background 0.15s, box-shadow 0.15s; }
+      .wallet-row--clickable:hover { background: var(--color-bg-tertiary, rgba(0,0,0,0.04)); box-shadow: 0 0 0 1px var(--color-border); }
+      .wallet-details-btn {
+        display: inline-flex; align-items: center; gap: 0.3rem;
+        padding: 0.35rem 0.65rem; border-radius: 8px;
+        border: 1px solid var(--color-border); background: var(--color-surface-elevated);
+        font-size: 11px; font-weight: 700; color: var(--color-primary);
+        cursor: pointer; white-space: nowrap; transition: all 0.15s;
+        flex-shrink: 0;
+      }
+      .wallet-details-btn:hover { background: var(--color-primary-muted); border-color: var(--color-primary); }
+      @media (max-width: 480px) {
+        .wallet-details-btn span { display: none; }
+        .wallet-details-btn { padding: 0.35rem 0.45rem; }
+      }
+
+      /* ─── Transaction Detail Modal ─── */
+      .txn-detail__hero {
+        display: flex; flex-direction: column; align-items: center;
+        text-align: center; padding: 0.5rem 0 1.25rem; gap: 0.5rem;
+      }
+      .txn-detail__hero-icon {
+        width: 56px; height: 56px; border-radius: 16px;
+        display: flex; align-items: center; justify-content: center;
+      }
+      .txn-detail__hero-type {
+        font-size: var(--text-sm); font-weight: 700;
+        color: var(--color-text-secondary); margin-top: 0.15rem;
+      }
+      .txn-detail__hero-amount {
+        font-size: clamp(1.5rem, 7vw, 2rem); font-weight: 900;
+        font-family: var(--font-display); line-height: 1.1; margin-top: 0.25rem;
+      }
+      .txn-detail__list {
+        border: 1px solid var(--color-border); border-radius: 12px;
+        overflow: hidden;
+      }
+      .txn-detail__row {
+        display: flex; justify-content: space-between; align-items: flex-start;
+        gap: 1rem; padding: 0.7rem 1rem;
+        font-size: var(--text-sm); border-bottom: 1px solid var(--color-border);
+      }
+      .txn-detail__row:last-child { border-bottom: none; }
+      .txn-detail__row--strong {
+        background: var(--color-bg-secondary); font-weight: 700;
+      }
+      .txn-detail__row-label {
+        color: var(--color-text-muted); font-size: var(--text-xs);
+        white-space: nowrap; flex-shrink: 0;
+      }
+      .txn-detail__row-value {
+        text-align: right; word-break: break-word;
+        color: var(--color-text-primary); font-weight: 600;
+      }
+      .txn-detail__row-value--mono {
+        font-family: 'SF Mono', 'Fira Code', 'Cascadia Code', monospace;
+        font-size: 11px; letter-spacing: -0.01em;
+      }
+      @media (max-width: 480px) {
+        .txn-detail__row { flex-direction: column; gap: 0.2rem; padding: 0.6rem 0.85rem; }
+        .txn-detail__row-value { text-align: left; }
       }
     `}</style>
   );
