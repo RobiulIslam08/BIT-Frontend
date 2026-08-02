@@ -3,24 +3,24 @@
 // ============================================
 // Full profile for a single user: prominent copyable Customer ID, grouped
 // profile fields, role/status controls, guarded delete, and the user's
-// domains + hosting (reusing the admin list endpoints with a userId filter).
+// domains + hosting with renew prices, totals, and detail modals.
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import {
   ArrowLeft, Loader2, AlertCircle, Copy, Check, Trash2, Shield,
   User, Building2, Briefcase, Calendar, Mail, Phone, PhoneCall,
-  MapPin, Globe, Server, RefreshCw,
+  MapPin, Globe, Server, RefreshCw, Eye, X,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { toast } from '@/components/common/Toast/Toast';
-import { useCurrency } from '@/context/CurrencyContext';
 import {
   getUserById, updateUserRole, updateUserStatus, deleteUser,
 } from '@/api/adminUsersApi';
 import { getAllDomains } from '@/api/domainsApi';
 import { getAllHostings } from '@/api/hostingApi';
+import '../Domains/Domains.css';
 
 const roleConfig = {
   admin: { label: 'Admin', color: '#6366f1', bg: 'rgba(99,102,241,0.1)' },
@@ -31,6 +31,51 @@ const statusConfig = {
   active: { label: 'Active', color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
   blocked: { label: 'Blocked', color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
 };
+
+const domainStatusConfig = {
+  active: { label: 'Active', color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
+  expired: { label: 'Expired', color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
+  pending: { label: 'Pending', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+  cancelled: { label: 'Cancelled', color: '#9ca3af', bg: 'rgba(156,163,175,0.1)' },
+  transferred_out: { label: 'Transferred', color: '#6366f1', bg: 'rgba(99,102,241,0.1)' },
+};
+
+const hostingStatusConfig = {
+  active: { label: 'Active', color: '#22c55e', bg: 'rgba(34,197,94,0.1)' },
+  pending: { label: 'Pending', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)' },
+  expired: { label: 'Expired', color: '#ef4444', bg: 'rgba(239,68,68,0.1)' },
+  suspended: { label: 'Suspended', color: '#f97316', bg: 'rgba(249,115,22,0.1)' },
+  cancelled: { label: 'Cancelled', color: '#9ca3af', bg: 'rgba(156,163,175,0.1)' },
+};
+
+function formatUSD(n) {
+  if (typeof n !== 'number' || Number.isNaN(n)) return '—';
+  return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+}
+
+function formatDate(d) {
+  return d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+}
+
+function sumRenew(items) {
+  return (items || []).reduce((acc, item) => {
+    const n = item?.renewPriceUSD;
+    return acc + (typeof n === 'number' && !Number.isNaN(n) ? n : 0);
+  }, 0);
+}
+
+function StatusBadge({ status, map }) {
+  const s = map[status] || { label: status, color: '#9ca3af', bg: 'rgba(156,163,175,0.1)' };
+  return (
+    <span style={{
+      display: 'inline-flex', alignItems: 'center', gap: '0.25rem',
+      padding: '0.2rem 0.55rem', borderRadius: '999px', fontSize: '11px',
+      fontWeight: 700, background: s.bg, color: s.color,
+    }}>
+      {s.label}
+    </span>
+  );
+}
 
 function InfoGrid({ title, fields }) {
   const notSet = 'Not set';
@@ -56,10 +101,182 @@ function InfoGrid({ title, fields }) {
   );
 }
 
+function DomainDetailModal({ domain, onClose }) {
+  const owner = domain.userId
+    ? `${domain.userId.name || '—'}${domain.userId.email ? ` (${domain.userId.email})` : ''}`
+    : '—';
+  const ns = Array.isArray(domain.nameservers) && domain.nameservers.length
+    ? domain.nameservers.join(', ')
+    : '—';
+
+  const rows = [
+    { label: 'Domain', value: domain.domainName, bold: true },
+    { label: 'Owner', value: owner },
+    { label: 'Registrar', value: domain.registrar || '—' },
+    { label: 'Managed by us', value: domain.managedByNamecheap ? 'Yes' : 'No' },
+    { label: 'Status', value: <StatusBadge status={domain.status} map={domainStatusConfig} /> },
+    { label: 'Source', value: domain.source === 'purchase' ? 'Purchased' : 'Admin Added' },
+    { label: 'Registered', value: formatDate(domain.registeredAt) },
+    { label: 'Expires', value: formatDate(domain.expiresAt) },
+    { label: 'Registration years', value: domain.registrationYears ?? '—' },
+    { label: 'Renew Price', value: formatUSD(domain.renewPriceUSD), highlight: true },
+    { label: 'Auto-renew', value: domain.autoRenew ? 'ON' : 'OFF' },
+    { label: 'Whois privacy', value: domain.whoisPrivacy ? 'Yes' : 'No' },
+    { label: 'Nameservers', value: ns },
+    { label: 'Notes', value: domain.notes || '—' },
+  ];
+
+  return (
+    <div className="domains__modal-overlay" onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="domains__modal"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: 520 }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+          <h3 className="h5" style={{ margin: 0 }}>Domain Details</h3>
+          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', padding: 4 }} aria-label="Close">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div style={{
+          marginBottom: '1.15rem', padding: '0.85rem 1rem', borderRadius: 10,
+          background: 'rgba(var(--color-primary-rgb), 0.08)', border: '1px solid rgba(var(--color-primary-rgb), 0.25)',
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Renew Price</div>
+          <div style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--color-primary)', marginTop: 2 }}>
+            {formatUSD(domain.renewPriceUSD)}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: 'var(--text-sm)' }}>
+          {rows.map(({ label, value, bold, highlight }) => (
+            <div key={label} style={{ display: 'flex', gap: '0.5rem', alignItems: typeof value === 'string' || typeof value === 'number' ? 'flex-start' : 'center' }}>
+              <span style={{ color: 'var(--color-text-muted)', minWidth: 140, flexShrink: 0 }}>{label}:</span>
+              <span style={{
+                fontWeight: bold || highlight ? 700 : 500,
+                color: highlight ? 'var(--color-primary)' : 'var(--color-text-primary)',
+                wordBreak: 'break-word',
+              }}>
+                {value}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
+          <button type="button" className="btn btn-ghost" onClick={onClose} style={{ width: '100%' }}>Close</button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+function HostingDetailModal({ hosting, onClose }) {
+  const owner = hosting.userId
+    ? `${hosting.userId.name || '—'}${hosting.userId.email ? ` (${hosting.userId.email})` : ''}`
+    : '—';
+  const features = Array.isArray(hosting.features) && hosting.features.length
+    ? hosting.features.join(', ')
+    : '—';
+  const hasPassword = Boolean(hosting.hasCpanelPassword || hosting.hasCpanelAccess || hosting.cpanelPassword);
+  const cpanelPasswordLabel = hosting.cpanelPassword
+    ? hosting.cpanelPassword
+    : (hasPassword ? 'Set (hidden)' : 'Not set');
+
+  const rows = [
+    { label: 'Plan', value: hosting.planName || '—', bold: true },
+    { label: 'Plan slug', value: hosting.planSlug || '—' },
+    { label: 'Website', value: hosting.websiteLabel || '—' },
+    { label: 'Owner', value: owner },
+    { label: 'Type', value: hosting.planType || '—' },
+    { label: 'Billing cycle', value: hosting.billingCycle || '—' },
+    { label: 'Status', value: <StatusBadge status={hosting.status} map={hostingStatusConfig} /> },
+    { label: 'Source', value: hosting.source === 'purchase' ? 'Purchased' : 'Admin Added' },
+    { label: 'Starts', value: formatDate(hosting.startsAt) },
+    { label: 'Expires', value: formatDate(hosting.expiresAt) },
+    { label: 'Amount paid', value: formatUSD(hosting.amountUSD) },
+    { label: 'Renew Price', value: formatUSD(hosting.renewPriceUSD), highlight: true },
+    { label: 'Features', value: features },
+    { label: 'cPanel URL', value: hosting.cpanelUrl || '—' },
+    { label: 'cPanel username', value: hosting.cpanelUsername || '—' },
+    { label: 'cPanel domain', value: hosting.cpanelDomain || '—' },
+    { label: 'cPanel password', value: cpanelPasswordLabel },
+    { label: 'Internal provider', value: hosting.internalProvider || '—' },
+    { label: 'Internal note', value: hosting.internalServerNote || '—' },
+    { label: 'Project file', value: hosting.projectFile?.originalName || '—' },
+    { label: 'Notes', value: hosting.notes || '—' },
+  ];
+
+  return (
+    <div className="domains__modal-overlay" onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="domains__modal"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: 560 }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+          <h3 className="h5" style={{ margin: 0 }}>Hosting Details</h3>
+          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', padding: 4 }} aria-label="Close">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.15rem' }}>
+          <div style={{
+            padding: '0.85rem 1rem', borderRadius: 10,
+            background: 'rgba(var(--color-primary-rgb), 0.08)', border: '1px solid rgba(var(--color-primary-rgb), 0.25)',
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Renew Price</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--color-primary)', marginTop: 2 }}>
+              {formatUSD(hosting.renewPriceUSD)}
+            </div>
+          </div>
+          <div style={{
+            padding: '0.85rem 1rem', borderRadius: 10,
+            background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)',
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Amount Paid</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--color-text-primary)', marginTop: 2 }}>
+              {formatUSD(hosting.amountUSD)}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: 'var(--text-sm)' }}>
+          {rows.map(({ label, value, bold, highlight }) => (
+            <div key={label} style={{ display: 'flex', gap: '0.5rem', alignItems: typeof value === 'string' || typeof value === 'number' ? 'flex-start' : 'center' }}>
+              <span style={{ color: 'var(--color-text-muted)', minWidth: 140, flexShrink: 0 }}>{label}:</span>
+              <span style={{
+                fontWeight: bold || highlight ? 700 : 500,
+                color: highlight ? 'var(--color-primary)' : 'var(--color-text-primary)',
+                wordBreak: 'break-word',
+                textTransform: ['Type', 'Billing cycle'].includes(label) ? 'capitalize' : undefined,
+              }}>
+                {value}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
+          <button type="button" className="btn btn-ghost" onClick={onClose} style={{ width: '100%' }}>Close</button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
+const emptyMeta = { total: 0, totalRenewPriceUSD: undefined };
+
 export default function UserDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { formatPrice } = useCurrency();
 
   const [user, setUser] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -71,7 +288,11 @@ export default function UserDetails() {
 
   const [domains, setDomains] = useState([]);
   const [hostings, setHostings] = useState([]);
+  const [domainsMeta, setDomainsMeta] = useState(emptyMeta);
+  const [hostingsMeta, setHostingsMeta] = useState(emptyMeta);
   const [assetsLoading, setAssetsLoading] = useState(true);
+  const [detailDomain, setDetailDomain] = useState(null);
+  const [detailHosting, setDetailHosting] = useState(null);
 
   const fetchUser = useCallback(async () => {
     setIsLoading(true);
@@ -93,8 +314,14 @@ export default function UserDetails() {
         getAllDomains({ userId: id, limit: 100 }),
         getAllHostings({ userId: id, limit: 100 }),
       ]);
-      if (dRes.success) setDomains(dRes.data || []);
-      if (hRes.success) setHostings(hRes.data || []);
+      if (dRes.success) {
+        setDomains(dRes.data || []);
+        setDomainsMeta(dRes.meta || emptyMeta);
+      }
+      if (hRes.success) {
+        setHostings(hRes.data || []);
+        setHostingsMeta(hRes.meta || emptyMeta);
+      }
     } catch {
       // Non-blocking: the profile still renders without assets.
     } finally {
@@ -103,6 +330,23 @@ export default function UserDetails() {
   }, [id]);
 
   useEffect(() => { fetchUser(); fetchAssets(); }, [fetchUser, fetchAssets]);
+
+  const domainCount = typeof domainsMeta.total === 'number' ? domainsMeta.total : domains.length;
+  const hostingCount = typeof hostingsMeta.total === 'number' ? hostingsMeta.total : hostings.length;
+
+  const domainRenewTotal = useMemo(() => (
+    typeof domainsMeta.totalRenewPriceUSD === 'number'
+      ? domainsMeta.totalRenewPriceUSD
+      : sumRenew(domains)
+  ), [domainsMeta.totalRenewPriceUSD, domains]);
+
+  const hostingRenewTotal = useMemo(() => (
+    typeof hostingsMeta.totalRenewPriceUSD === 'number'
+      ? hostingsMeta.totalRenewPriceUSD
+      : sumRenew(hostings)
+  ), [hostingsMeta.totalRenewPriceUSD, hostings]);
+
+  const combinedRenewTotal = domainRenewTotal + hostingRenewTotal;
 
   const handleCopy = async () => {
     if (!user?.userCode) return;
@@ -159,8 +403,6 @@ export default function UserDetails() {
       setDeleting(false);
     }
   };
-
-  const formatDate = (d) => (d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—');
 
   if (isLoading) {
     return (
@@ -293,11 +535,54 @@ export default function UserDetails() {
           ]}
         />
 
+        {/* ─── Renew summary ─── */}
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.3 }}
+          style={{
+            display: 'grid',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+            gap: '0.75rem',
+            marginBottom: '1.25rem',
+          }}
+        >
+          {[
+            { label: 'Domains', value: String(domainCount) },
+            { label: 'Domain Renew Total', value: formatUSD(domainRenewTotal) },
+            { label: 'Hostings', value: String(hostingCount) },
+            { label: 'Hosting Renew Total', value: formatUSD(hostingRenewTotal) },
+            { label: 'Combined Renew', value: formatUSD(combinedRenewTotal), highlight: true },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="card-elevated"
+              style={{
+                padding: '0.9rem 1rem',
+                margin: 0,
+                borderColor: stat.highlight ? 'rgba(var(--color-primary-rgb), 0.35)' : undefined,
+                background: stat.highlight ? 'rgba(var(--color-primary-rgb), 0.06)' : undefined,
+              }}
+            >
+              <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em', marginBottom: 4 }}>
+                {stat.label}
+              </div>
+              <div style={{
+                fontSize: '1.15rem', fontWeight: 800, fontFamily: 'var(--font-display)',
+                color: stat.highlight ? 'var(--color-primary)' : 'var(--color-text-primary)',
+                lineHeight: 1.2,
+              }}>
+                {assetsLoading ? '…' : stat.value}
+              </div>
+            </div>
+          ))}
+        </motion.div>
+
         {/* ─── Domains ─── */}
-        <div className="card-elevated" style={{ marginBottom: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+        <div className="card-elevated" style={{ marginBottom: '1.25rem', padding: 0, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.25rem', borderBottom: '1px solid var(--color-border)' }}>
             <h3 className="h5" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Globe size={18} style={{ color: 'var(--color-primary)' }} /> Domains ({domains.length})
+              <Globe size={18} style={{ color: 'var(--color-primary)' }} /> Domains ({domainCount})
             </h3>
             <button className="btn btn-ghost btn-sm" onClick={fetchAssets} disabled={assetsLoading}>
               <RefreshCw size={13} className={assetsLoading ? 'spin' : ''} /> Refresh
@@ -306,55 +591,107 @@ export default function UserDetails() {
           {assetsLoading ? (
             <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--color-text-muted)' }}><Loader2 size={20} className="spin" /></div>
           ) : domains.length === 0 ? (
-            <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', margin: 0 }}>No domains for this user.</p>
+            <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', margin: 0, padding: '1.25rem' }}>No domains for this user.</p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '0.85rem 1rem' }}>
               {domains.map((d) => (
-                <div key={d._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', padding: '0.75rem 0.9rem', borderRadius: '10px', background: 'var(--color-bg-secondary)' }}>
-                  <div style={{ minWidth: 0 }}>
+                <div key={d._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', padding: '0.75rem 0.9rem', borderRadius: '10px', background: 'var(--color-bg-secondary)', flexWrap: 'wrap' }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ fontWeight: 700, fontFamily: 'var(--font-display)', overflow: 'hidden', textOverflow: 'ellipsis' }}>{d.domainName}</div>
-                    <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'capitalize' }}>{d.status} · Expires {formatDate(d.expiresAt)}</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.4rem', marginTop: 4 }}>
+                      <StatusBadge status={d.status} map={domainStatusConfig} />
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                        {d.registrar || '—'} · {d.source === 'purchase' ? 'Purchased' : 'Admin Added'} · Expires {formatDate(d.expiresAt)}
+                      </span>
+                    </div>
                   </div>
-                  <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/dashboard/domains?search=${encodeURIComponent(d.domainName)}`)} style={{ flexShrink: 0 }}>Manage</button>
+                  <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--color-primary)', fontSize: 'var(--text-sm)', whiteSpace: 'nowrap' }}>
+                      {formatUSD(d.renewPriceUSD)}
+                    </div>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => setDetailDomain(d)} title="View details">
+                      <Eye size={14} />
+                    </button>
+                    <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/dashboard/domains?search=${encodeURIComponent(d.domainName)}`)}>Manage</button>
+                  </div>
                 </div>
               ))}
             </div>
           )}
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', gap: '1rem 1.5rem',
+            padding: '0.85rem 1.25rem', borderTop: '1px solid var(--color-border)',
+            fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)',
+          }}>
+            <span>Total domains: <strong style={{ color: 'var(--color-text-primary)' }}>{domainCount}</strong></span>
+            <span>Total renew: <strong style={{ color: 'var(--color-primary)' }}>{formatUSD(domainRenewTotal)}</strong></span>
+          </div>
         </div>
 
         {/* ─── Hosting ─── */}
-        <div className="card-elevated" style={{ marginBottom: '1.25rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '1rem' }}>
+        <div className="card-elevated" style={{ marginBottom: '1.25rem', padding: 0, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.25rem', borderBottom: '1px solid var(--color-border)' }}>
             <h3 className="h5" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              <Server size={18} style={{ color: 'var(--color-primary)' }} /> Hosting ({hostings.length})
+              <Server size={18} style={{ color: 'var(--color-primary)' }} /> Hosting ({hostingCount})
             </h3>
           </div>
           {assetsLoading ? (
             <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--color-text-muted)' }}><Loader2 size={20} className="spin" /></div>
           ) : hostings.length === 0 ? (
-            <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', margin: 0 }}>No hosting for this user.</p>
+            <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', margin: 0, padding: '1.25rem' }}>No hosting for this user.</p>
           ) : (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', padding: '0.85rem 1rem' }}>
               {hostings.map((h) => (
-                <div key={h._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', padding: '0.75rem 0.9rem', borderRadius: '10px', background: 'var(--color-bg-secondary)' }}>
-                  <div style={{ minWidth: 0 }}>
+                <div key={h._id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem', padding: '0.75rem 0.9rem', borderRadius: '10px', background: 'var(--color-bg-secondary)', flexWrap: 'wrap' }}>
+                  <div style={{ minWidth: 0, flex: 1 }}>
                     <div style={{ fontWeight: 700, fontFamily: 'var(--font-display)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                      {h.planName} <span style={{ fontWeight: 500, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)', textTransform: 'capitalize' }}>({h.planType})</span>
+                      {h.planName || '—'}
+                      {h.websiteLabel && (
+                        <span style={{ fontWeight: 500, fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)' }}> · {h.websiteLabel}</span>
+                      )}
                     </div>
-                    <div style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'capitalize' }}>{h.status} · Expires {formatDate(h.expiresAt)}</div>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: '0.4rem', marginTop: 4 }}>
+                      <StatusBadge status={h.status} map={hostingStatusConfig} />
+                      <span style={{ fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'capitalize' }}>
+                        {h.planType || '—'} · {h.billingCycle || '—'} · Expires {formatDate(h.expiresAt)}
+                      </span>
+                      {typeof h.amountUSD === 'number' && (
+                        <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                          · Paid {formatUSD(h.amountUSD)}
+                        </span>
+                      )}
+                    </div>
                   </div>
-                  <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    {typeof h.amountUSD === 'number' && h.amountUSD > 0 && (
-                      <div style={{ fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-primary)', fontSize: 'var(--text-sm)' }}>{formatPrice(h.amountUSD)}</div>
-                    )}
+                  <div style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    <div style={{ fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--color-primary)', fontSize: 'var(--text-sm)', whiteSpace: 'nowrap' }}>
+                      {formatUSD(h.renewPriceUSD)}
+                    </div>
+                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => setDetailHosting(h)} title="View details">
+                      <Eye size={14} />
+                    </button>
                     <button className="btn btn-ghost btn-sm" onClick={() => navigate(`/dashboard/hostings?search=${encodeURIComponent(h.websiteLabel || h.planName || '')}`)}>Manage</button>
                   </div>
                 </div>
               ))}
             </div>
           )}
+          <div style={{
+            display: 'flex', flexWrap: 'wrap', gap: '1rem 1.5rem',
+            padding: '0.85rem 1.25rem', borderTop: '1px solid var(--color-border)',
+            fontSize: 'var(--text-sm)', color: 'var(--color-text-muted)',
+          }}>
+            <span>Total hostings: <strong style={{ color: 'var(--color-text-primary)' }}>{hostingCount}</strong></span>
+            <span>Total renew: <strong style={{ color: 'var(--color-primary)' }}>{formatUSD(hostingRenewTotal)}</strong></span>
+          </div>
         </div>
       </div>
+
+      {detailDomain && (
+        <DomainDetailModal domain={detailDomain} onClose={() => setDetailDomain(null)} />
+      )}
+      {detailHosting && (
+        <HostingDetailModal hosting={detailHosting} onClose={() => setDetailHosting(null)} />
+      )}
 
       <style>{`.spin { animation: spin 1s linear infinite; } @keyframes spin { to { transform: rotate(360deg); } }`}</style>
     </>
