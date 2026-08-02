@@ -8,7 +8,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'motion/react';
 import {
   Globe, Filter, RefreshCw, Loader2, AlertCircle, Plus,
-  ChevronLeft, ChevronRight, Edit3, Trash2, Search, X, Zap, Check,
+  ChevronLeft, ChevronRight, Edit3, Trash2, Search, X, Zap, Check, Eye,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import {
@@ -340,6 +340,88 @@ function DomainFormModal({ initial, onClose, onSaved }) {
   );
 }
 
+function formatUSD(n) {
+  if (typeof n !== 'number' || Number.isNaN(n)) return '—';
+  return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+}
+
+function DomainDetailModal({ domain, onClose }) {
+  const formatDate = (d) => (
+    d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'
+  );
+  const owner = domain.userId
+    ? `${domain.userId.name || '—'}${domain.userId.email ? ` (${domain.userId.email})` : ''}`
+    : '—';
+  const ns = Array.isArray(domain.nameservers) && domain.nameservers.length
+    ? domain.nameservers.join(', ')
+    : '—';
+
+  const rows = [
+    { label: 'Domain', value: domain.domainName, bold: true },
+    { label: 'Owner', value: owner },
+    { label: 'Registrar', value: domain.registrar || '—' },
+    { label: 'Managed by us', value: domain.managedByNamecheap ? 'Yes' : 'No' },
+    { label: 'Status', value: <Badge status={domain.status} /> },
+    { label: 'Source', value: domain.source === 'purchase' ? 'Purchased' : 'Admin Added' },
+    { label: 'Registered', value: formatDate(domain.registeredAt) },
+    { label: 'Expires', value: formatDate(domain.expiresAt) },
+    { label: 'Registration years', value: domain.registrationYears ?? '—' },
+    { label: 'Renew Price', value: formatUSD(domain.renewPriceUSD), highlight: true },
+    { label: 'Auto-renew', value: domain.autoRenew ? 'ON' : 'OFF' },
+    { label: 'Whois privacy', value: domain.whoisPrivacy ? 'Yes' : 'No' },
+    { label: 'Nameservers', value: ns },
+    { label: 'Notes', value: domain.notes || '—' },
+  ];
+
+  return (
+    <div className="domains__modal-overlay" onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="domains__modal"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: 520 }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+          <h3 className="h5" style={{ margin: 0 }}>Domain Details</h3>
+          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', padding: 4 }} aria-label="Close">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div style={{
+          marginBottom: '1.15rem', padding: '0.85rem 1rem', borderRadius: 10,
+          background: 'rgba(var(--color-primary-rgb), 0.08)', border: '1px solid rgba(var(--color-primary-rgb), 0.25)',
+        }}>
+          <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Renew Price</div>
+          <div style={{ fontSize: '1.35rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--color-primary)', marginTop: 2 }}>
+            {formatUSD(domain.renewPriceUSD)}
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: 'var(--text-sm)' }}>
+          {rows.map(({ label, value, bold, highlight }) => (
+            <div key={label} style={{ display: 'flex', gap: '0.5rem', alignItems: typeof value === 'string' || typeof value === 'number' ? 'flex-start' : 'center' }}>
+              <span style={{ color: 'var(--color-text-muted)', minWidth: 140, flexShrink: 0 }}>{label}:</span>
+              <span style={{
+                fontWeight: bold || highlight ? 700 : 500,
+                color: highlight ? 'var(--color-primary)' : 'var(--color-text-primary)',
+                wordBreak: 'break-word',
+              }}>
+                {value}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
+          <button type="button" className="btn btn-ghost" onClick={onClose} style={{ width: '100%' }}>Close</button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function AdminDomains() {
   const [domains, setDomains] = useState([]);
   const [meta, setMeta] = useState({ page: 1, total: 0, totalPage: 1, limit: 20 });
@@ -347,6 +429,7 @@ export default function AdminDomains() {
   const [error, setError] = useState('');
   const [filters, setFilters] = useState({ status: '', source: '', search: '', page: 1, limit: 20 });
   const [modal, setModal] = useState(null); // null | {} (new) | domain (edit)
+  const [detailDomain, setDetailDomain] = useState(null);
   const [running, setRunning] = useState(false);
 
   const fetchDomains = useCallback(async () => {
@@ -497,6 +580,7 @@ export default function AdminDomains() {
                         </span>
                       </td>
                       <td style={{ textAlign: 'right', whiteSpace: 'nowrap' }}>
+                        <button className="btn btn-ghost btn-sm" onClick={() => setDetailDomain(d)} style={{ padding: '0.35rem 0.5rem' }} title="View details"><Eye size={14} /></button>
                         <button className="btn btn-ghost btn-sm" onClick={() => setModal(d)} style={{ padding: '0.35rem 0.5rem' }} title="Edit"><Edit3 size={14} /></button>
                         <button className="btn btn-ghost btn-sm" onClick={() => handleDelete(d)} style={{ padding: '0.35rem 0.5rem', color: '#dc2626' }} title="Delete"><Trash2 size={14} /></button>
                       </td>
@@ -524,6 +608,13 @@ export default function AdminDomains() {
           initial={modal}
           onClose={() => setModal(null)}
           onSaved={fetchDomains}
+        />
+      )}
+
+      {detailDomain && (
+        <DomainDetailModal
+          domain={detailDomain}
+          onClose={() => setDetailDomain(null)}
         />
       )}
 

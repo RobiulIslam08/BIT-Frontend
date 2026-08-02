@@ -6,7 +6,7 @@ import { motion } from 'motion/react';
 import {
   Server, Filter, RefreshCw, Loader2, AlertCircle, Plus,
   ChevronLeft, ChevronRight, Edit3, Trash2, Search, X,
-  Upload, Download, FileArchive,
+  Upload, Download, FileArchive, Eye,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import {
@@ -505,6 +505,113 @@ function HostingFormModal({ initial, catalog, onClose, onSaved }) {
   );
 }
 
+function formatUSD(n) {
+  if (typeof n !== 'number' || Number.isNaN(n)) return '—';
+  return `$${n.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} USD`;
+}
+
+function HostingDetailModal({ hosting, onClose }) {
+  const formatDate = (d) => (
+    d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'
+  );
+  const owner = hosting.userId
+    ? `${hosting.userId.name || '—'}${hosting.userId.email ? ` (${hosting.userId.email})` : ''}`
+    : '—';
+  const features = Array.isArray(hosting.features) && hosting.features.length
+    ? hosting.features.join(', ')
+    : '—';
+  const hasPassword = Boolean(hosting.hasCpanelPassword || hosting.hasCpanelAccess || hosting.cpanelPassword);
+  const cpanelPasswordLabel = hosting.cpanelPassword
+    ? hosting.cpanelPassword
+    : (hasPassword ? 'Set (hidden)' : 'Not set');
+
+  const rows = [
+    { label: 'Plan', value: hosting.planName || '—', bold: true },
+    { label: 'Plan slug', value: hosting.planSlug || '—' },
+    { label: 'Website', value: hosting.websiteLabel || '—' },
+    { label: 'Owner', value: owner },
+    { label: 'Type', value: hosting.planType || '—' },
+    { label: 'Billing cycle', value: hosting.billingCycle || '—' },
+    { label: 'Status', value: <Badge status={hosting.status} /> },
+    { label: 'Source', value: hosting.source === 'purchase' ? 'Purchased' : 'Admin Added' },
+    { label: 'Starts', value: formatDate(hosting.startsAt) },
+    { label: 'Expires', value: formatDate(hosting.expiresAt) },
+    { label: 'Amount paid', value: formatUSD(hosting.amountUSD) },
+    { label: 'Renew Price', value: formatUSD(hosting.renewPriceUSD), highlight: true },
+    { label: 'Features', value: features },
+    { label: 'cPanel URL', value: hosting.cpanelUrl || '—' },
+    { label: 'cPanel username', value: hosting.cpanelUsername || '—' },
+    { label: 'cPanel domain', value: hosting.cpanelDomain || '—' },
+    { label: 'cPanel password', value: cpanelPasswordLabel },
+    { label: 'Internal provider', value: hosting.internalProvider || '—' },
+    { label: 'Internal note', value: hosting.internalServerNote || '—' },
+    { label: 'Project file', value: hosting.projectFile?.originalName || '—' },
+    { label: 'Notes', value: hosting.notes || '—' },
+  ];
+
+  return (
+    <div className="domains__modal-overlay" onClick={onClose}>
+      <motion.div
+        initial={{ opacity: 0, scale: 0.96 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="domains__modal"
+        onClick={(e) => e.stopPropagation()}
+        style={{ maxWidth: 560 }}
+      >
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
+          <h3 className="h5" style={{ margin: 0 }}>Hosting Details</h3>
+          <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--color-text-muted)', padding: 4 }} aria-label="Close">
+            <X size={18} />
+          </button>
+        </div>
+
+        <div style={{
+          display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.15rem',
+        }}>
+          <div style={{
+            padding: '0.85rem 1rem', borderRadius: 10,
+            background: 'rgba(var(--color-primary-rgb), 0.08)', border: '1px solid rgba(var(--color-primary-rgb), 0.25)',
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Renew Price</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--color-primary)', marginTop: 2 }}>
+              {formatUSD(hosting.renewPriceUSD)}
+            </div>
+          </div>
+          <div style={{
+            padding: '0.85rem 1rem', borderRadius: 10,
+            background: 'var(--color-bg-secondary)', border: '1px solid var(--color-border)',
+          }}>
+            <div style={{ fontSize: 11, fontWeight: 600, color: 'var(--color-text-muted)', textTransform: 'uppercase', letterSpacing: '0.04em' }}>Amount Paid</div>
+            <div style={{ fontSize: '1.25rem', fontWeight: 800, fontFamily: 'var(--font-display)', color: 'var(--color-text-primary)', marginTop: 2 }}>
+              {formatUSD(hosting.amountUSD)}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: 'var(--text-sm)' }}>
+          {rows.map(({ label, value, bold, highlight }) => (
+            <div key={label} style={{ display: 'flex', gap: '0.5rem', alignItems: typeof value === 'string' || typeof value === 'number' ? 'flex-start' : 'center' }}>
+              <span style={{ color: 'var(--color-text-muted)', minWidth: 140, flexShrink: 0 }}>{label}:</span>
+              <span style={{
+                fontWeight: bold || highlight ? 700 : 500,
+                color: highlight ? 'var(--color-primary)' : 'var(--color-text-primary)',
+                wordBreak: 'break-word',
+                textTransform: ['Type', 'Billing cycle'].includes(label) ? 'capitalize' : undefined,
+              }}>
+                {value}
+              </span>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ marginTop: '1.25rem', paddingTop: '1rem', borderTop: '1px solid var(--color-border)' }}>
+          <button type="button" className="btn btn-ghost" onClick={onClose} style={{ width: '100%' }}>Close</button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function AdminHostings() {
   const [items, setItems] = useState([]);
   const [meta, setMeta] = useState({ page: 1, limit: 20, total: 0, totalPage: 1 });
@@ -513,6 +620,7 @@ export default function AdminHostings() {
   const [filters, setFilters] = useState({ status: '', source: '', planType: '', search: '' });
   const [page, setPage] = useState(1);
   const [modal, setModal] = useState(null); // null | 'create' | hosting obj
+  const [detailHosting, setDetailHosting] = useState(null);
   const [catalog, setCatalog] = useState([]);
 
   const fetchList = useCallback(async () => {
@@ -661,6 +769,9 @@ export default function AdminHostings() {
                     </td>
                     <td>
                       <div style={{ display: 'flex', gap: 4 }}>
+                        <button type="button" className="btn btn-ghost btn-sm" onClick={() => setDetailHosting(h)} title="View details">
+                          <Eye size={14} />
+                        </button>
                         <button type="button" className="btn btn-ghost btn-sm" onClick={() => setModal(h)} title="Edit">
                           <Edit3 size={14} />
                         </button>
@@ -695,6 +806,13 @@ export default function AdminHostings() {
           catalog={catalog}
           onClose={() => setModal(null)}
           onSaved={fetchList}
+        />
+      )}
+
+      {detailHosting && (
+        <HostingDetailModal
+          hosting={detailHosting}
+          onClose={() => setDetailHosting(null)}
         />
       )}
     </>
