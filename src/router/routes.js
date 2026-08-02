@@ -60,4 +60,5 @@ export const ROUTES = {
   DASHBOARD_HOSTINGS: '/dashboard/hostings',
   DASHBOARD_HOSTING_ORDERS: '/dashboard/hosting-orders',
   DASHBOARD_HOSTING_PLANS: '/dashboard/hosting-plans',
+  DASHBOARD_SERVICE_ANALYSIS: '/dashboard/service-analysis',
 };

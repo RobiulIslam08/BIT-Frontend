@@ -58,6 +58,7 @@ const AdminDomainPricing = lazy(() => import('@/pages/Dashboard/DomainPricing'))
 const AdminHostings = lazy(() => import('@/pages/Dashboard/Hostings'));
 const AdminHostingOrders = lazy(() => import('@/pages/Dashboard/HostingOrders'));
 const AdminHostingPlans = lazy(() => import('@/pages/Dashboard/HostingPlans'));
+const AdminServiceAnalysis = lazy(() => import('@/pages/Dashboard/ServiceAnalysis'));
 const DashboardUsers = lazy(() => import('@/pages/Dashboard/Users'));
 const DashboardUserDetails = lazy(() => import('@/pages/Dashboard/UserDetails'));
 const AdminWalletSettings = lazy(() => import('@/pages/Dashboard/WalletSettings'));
@@ -158,6 +159,7 @@ export const router = createBrowserRouter([
           { path: 'hosting-orders', element: <SuspenseWrap><AdminHostingOrders /></SuspenseWrap> },
           { path: 'hostings', element: <SuspenseWrap><AdminHostings /></SuspenseWrap> },
           { path: 'hosting-plans', element: <SuspenseWrap><AdminHostingPlans /></SuspenseWrap> },
+          { path: 'service-analysis', element: <SuspenseWrap><AdminServiceAnalysis /></SuspenseWrap> },
           { path: 'users', element: <SuspenseWrap><DashboardUsers /></SuspenseWrap> },
           { path: 'users/:id', element: <SuspenseWrap><DashboardUserDetails /></SuspenseWrap> },
           { path: 'wallet-settings', element: <SuspenseWrap><AdminWalletSettings /></SuspenseWrap> },
