@@ -11,10 +11,18 @@ import {
   ChevronLeft, ChevronRight, Edit3, Trash2, Search, X, Zap, Check, Eye,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
+import { RegistrarLogo } from '@/components/common/RegistrarLogo';
 import {
   getAllDomains, createDomain, updateDomain, deleteDomain,
   searchUsers, runRenewalEngine,
 } from '@/api/domainsApi';
+import {
+  REGISTRAR_PRESETS,
+  REGISTRAR_OTHER_ID,
+  matchRegistrarPreset,
+  resolveRegistrarPayload,
+  resolvePresetLogo,
+} from '@/utils/registrars';
 import { toast } from '@/components/common/Toast/Toast';
 import './Domains.css';
 
@@ -70,7 +78,8 @@ const emptyForm = {
   userId: '',
   userLabel: '',
   domainName: '',
-  registrar: '',
+  registrarPresetId: 'bit',
+  registrarCustom: '',
   managedByNamecheap: false,
   status: 'active',
   registeredAt: '',
@@ -82,6 +91,14 @@ const emptyForm = {
   nameservers: '',
   notes: '',
 };
+
+function registrarFieldsFromValue(registrar) {
+  const matched = matchRegistrarPreset(registrar || 'BIT');
+  if (matched.id === REGISTRAR_OTHER_ID) {
+    return { registrarPresetId: REGISTRAR_OTHER_ID, registrarCustom: matched.custom };
+  }
+  return { registrarPresetId: matched.id, registrarCustom: '' };
+}
 
 // ─── User picker (search + select) ───
 function UserPicker({ value, label, onSelect }) {
@@ -167,7 +184,7 @@ function DomainFormModal({ initial, onClose, onSaved }) {
       userId: owner._id || '',
       userLabel: owner._id ? `${owner.name} · ${owner.email}` : '',
       domainName: initial.domainName || '',
-      registrar: initial.registrar || '',
+      ...registrarFieldsFromValue(initial.registrar || 'BIT'),
       managedByNamecheap: !!initial.managedByNamecheap,
       status: initial.status || 'active',
       registeredAt: toDateInput(initial.registeredAt),
@@ -185,17 +202,29 @@ function DomainFormModal({ initial, onClose, onSaved }) {
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
 
+  const isOtherRegistrar = form.registrarPresetId === REGISTRAR_OTHER_ID;
+  const registrarPreviewLabel = isOtherRegistrar
+    ? (form.registrarCustom.trim() || 'Other')
+    : (REGISTRAR_PRESETS.find((p) => p.id === form.registrarPresetId)?.label || 'BIT');
+  const registrarPreviewLogo = resolvePresetLogo(form.registrarPresetId);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError('');
 
     if (!form.userId) { setError('Please select the owner (user).'); return; }
     if (!form.domainName.trim()) { setError('Domain name is required.'); return; }
+    if (isOtherRegistrar && !form.registrarCustom.trim()) {
+      setError('Please enter the registrar company name.');
+      return;
+    }
+
+    const registrar = resolveRegistrarPayload(form.registrarPresetId, form.registrarCustom);
 
     const payload = {
       userId: form.userId,
       domainName: form.domainName.trim().toLowerCase(),
-      registrar: form.registrar.trim() || undefined,
+      registrar: registrar || 'BIT',
       managedByNamecheap: form.managedByNamecheap,
       status: form.status,
       registrationYears: Number(form.registrationYears) || 1,
@@ -261,7 +290,47 @@ function DomainFormModal({ initial, onClose, onSaved }) {
 
             <div className="domains__field">
               <label>Registrar</label>
-              <input className="input" placeholder="e.g. GoDaddy, BIT" value={form.registrar} onChange={(e) => set('registrar', e.target.value)} />
+              <div className="registrar-select">
+                <RegistrarLogo
+                  registrar={registrarPreviewLabel}
+                  logoSrc={registrarPreviewLogo}
+                  size={36}
+                  title={registrarPreviewLabel}
+                />
+                <select
+                  className="input registrar-select__control"
+                  value={form.registrarPresetId}
+                  onChange={(e) => {
+                    const id = e.target.value;
+                    setForm((f) => ({
+                      ...f,
+                      registrarPresetId: id,
+                      registrarCustom: id === REGISTRAR_OTHER_ID ? f.registrarCustom : '',
+                    }));
+                  }}
+                >
+                  {REGISTRAR_PRESETS.map((p) => (
+                    <option key={p.id} value={p.id}>{p.label}</option>
+                  ))}
+                  <option value={REGISTRAR_OTHER_ID}>Other…</option>
+                </select>
+              </div>
+              {isOtherRegistrar && (
+                <motion.div
+                  className="registrar-select__other"
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <input
+                    className="input"
+                    placeholder="e.g. Dynadot, Epik"
+                    value={form.registrarCustom}
+                    onChange={(e) => set('registrarCustom', e.target.value)}
+                    autoFocus
+                  />
+                </motion.div>
+              )}
             </div>
 
             <div className="domains__field">
@@ -561,7 +630,14 @@ export default function AdminDomains() {
                 <tbody>
                   {domains.map((d, idx) => (
                     <motion.tr key={d._id} initial={{ opacity: 0, x: -8 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: idx * 0.03 }}>
-                      <td style={{ fontWeight: 700, fontFamily: 'var(--font-display)' }}>{d.domainName}</td>
+                      <td>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', minWidth: 0 }}>
+                          <RegistrarLogo registrar={d.registrar || 'BIT'} />
+                          <span style={{ fontWeight: 700, fontFamily: 'var(--font-display)', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                            {d.domainName}
+                          </span>
+                        </div>
+                      </td>
                       <td>
                         <div style={{ fontWeight: 600, fontSize: 'var(--text-sm)' }}>{d.userId?.name || '—'}</div>
                         <div style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{d.userId?.email}</div>
