@@ -1,0 +1,317 @@
+/* GMB Profile Preview — Google-style mock card */
+
+.gmb-profile-preview {
+  width: 100%;
+}
+
+.gmb-profile-preview__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  padding: 0.35rem 0.75rem;
+  background: rgba(244, 180, 0, 0.1);
+  border: 1px solid rgba(244, 180, 0, 0.25);
+  border-radius: 8px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #F4B400;
+}
+
+.gmb-profile-preview .gmb-mock-card {
+  background: #FFFFFF;
+  border-radius: 20px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.12), 0 0 1px rgba(0, 0, 0, 0.08);
+  color: #3C4043;
+}
+
+.gmb-profile-preview .mock-search-header {
+  background: #F8F9FA;
+  border-bottom: 1px solid #DADCE0;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.gmb-profile-preview .search-logo {
+  font-family: 'Product Sans', 'Roboto', sans-serif;
+  font-weight: 700;
+  font-size: 1.15rem;
+  background: linear-gradient(90deg, #4285F4 0%, #EA4335 25%, #FBBC05 50%, #4285F4 75%, #34A853 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.02em;
+}
+
+.gmb-profile-preview .search-bar-mock {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  background: #FFFFFF;
+  border: 1px solid #DADCE0;
+  border-radius: 20px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.75rem;
+  color: #3C4043;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.gmb-profile-preview .search-bar-mock .search-icon {
+  color: #70757A;
+  flex-shrink: 0;
+}
+
+.gmb-profile-preview .search-bar-mock span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.gmb-profile-preview .mock-search-tabs {
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  padding: 0 1.25rem 0.5rem;
+  background: #F8F9FA;
+  border-bottom: 1px solid #DADCE0;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+
+.gmb-profile-preview .mock-search-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.gmb-profile-preview .mock-search-tabs .tab-item {
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: #5F6368;
+  padding-bottom: 0.35rem;
+  white-space: nowrap;
+}
+
+.gmb-profile-preview .mock-search-tabs .tab-item.is-active {
+  color: #1A73E8;
+  font-weight: 700;
+  border-bottom: 2px solid #1A73E8;
+}
+
+.gmb-profile-preview .mock-business-card {
+  padding: 1.25rem;
+}
+
+.gmb-profile-preview .mock-map-container {
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+}
+
+.gmb-profile-preview .map-zoom-btn-group {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  background: #FFFFFF;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+  overflow: hidden;
+  z-index: 10;
+}
+
+.gmb-profile-preview .map-zoom-btn {
+  width: 32px;
+  height: 32px;
+  background: #FFFFFF;
+  border: none;
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: #3C4043;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  user-select: none;
+}
+
+.gmb-profile-preview .map-zoom-btn:hover {
+  background: #F1F3F4;
+  color: #1A73E8;
+}
+
+.gmb-profile-preview .map-zoom-btn:first-child {
+  border-bottom: 1px solid #E8EAED;
+}
+
+.gmb-profile-preview .map-badge-coords {
+  font-size: 0.65rem;
+  color: #70757A;
+  margin-bottom: 0.75rem;
+}
+
+.gmb-profile-preview .mock-business-title {
+  font-size: 1.25rem;
+  font-weight: 500;
+  color: #202124;
+  margin: 0 0 0.25rem;
+  line-height: 1.25;
+  word-break: break-word;
+}
+
+.gmb-profile-preview .mock-business-category {
+  font-size: 0.8rem;
+  color: #70757A;
+  margin-bottom: 0.5rem;
+}
+
+.gmb-profile-preview .mock-rating-row {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  margin-bottom: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.gmb-profile-preview .rating-value {
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #E27B00;
+}
+
+.gmb-profile-preview .stars-row {
+  display: flex;
+  gap: 1px;
+}
+
+.gmb-profile-preview .reviews-count {
+  font-size: 0.8rem;
+  color: #70757A;
+}
+
+.gmb-profile-preview .mock-verification-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.15rem 0.5rem;
+  background: #E8F0FE;
+  border-radius: 999px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #1A73E8;
+}
+
+.gmb-profile-preview .mock-actions-row {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.5rem;
+  margin: 1.25rem 0;
+  text-align: center;
+}
+
+.gmb-profile-preview .mock-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.gmb-profile-preview .mock-action-btn .icon-circle {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1px solid #DADCE0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #1A73E8;
+}
+
+.gmb-profile-preview .mock-action-btn span {
+  font-size: 0.65rem;
+  font-weight: 600;
+  color: #1A73E8;
+}
+
+.gmb-profile-preview .mock-divider {
+  border: 0;
+  height: 1px;
+  background: #DADCE0;
+  margin: 1.25rem 0;
+}
+
+.gmb-profile-preview .mock-details-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.gmb-profile-preview .mock-detail-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  font-size: 0.75rem;
+  color: #3C4043;
+  line-height: 1.4;
+  word-break: break-word;
+}
+
+.gmb-profile-preview .detail-icon {
+  color: #70757A;
+  margin-top: 0.1rem;
+  flex-shrink: 0;
+}
+
+.gmb-profile-preview .hours-preview-text .text-emerald {
+  color: #188038;
+}
+
+.gmb-profile-preview .hours-preview-text .text-rose {
+  color: #d93025;
+}
+
+.gmb-profile-preview .text-blue {
+  color: #1A73E8;
+}
+
+.gmb-profile-preview .mock-desc-block {
+  margin-top: 1.25rem;
+}
+
+.gmb-profile-preview .mock-desc-block h5 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #202124;
+  margin: 0 0 0.5rem;
+}
+
+.gmb-profile-preview .mock-desc-text {
+  font-size: 0.75rem;
+  color: #5F6368;
+  line-height: 1.5;
+  margin: 0;
+  word-break: break-word;
+}
+
+@media (max-width: 520px) {
+  .gmb-profile-preview .mock-business-card {
+    padding: 1rem;
+  }
+
+  .gmb-profile-preview .mock-actions-row {
+    gap: 0.25rem;
+  }
+
+  .gmb-profile-preview .mock-action-btn .icon-circle {
+    width: 32px;
+    height: 32px;
+  }
+}

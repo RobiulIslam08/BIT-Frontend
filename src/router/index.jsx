@@ -39,6 +39,7 @@ const MyAccount = lazy(() => import('@/pages/MyAccount'));
 const ProfileEdit = lazy(() => import('@/pages/ProfileEdit'));
 const DomainDetails = lazy(() => import('@/pages/DomainDetails'));
 const HostingDetails = lazy(() => import('@/pages/HostingDetails'));
+const GmbProfileDetails = lazy(() => import('@/pages/GmbProfileDetails'));
 const TermsAndConditions = lazy(() => import('@/pages/TermsAndConditions'));
 const OurPolicy = lazy(() => import('@/pages/OurPolicy'));
 const Portfolio = lazy(() => import('@/pages/Portfolio'));
@@ -56,6 +57,7 @@ const AdminDomainOrders = lazy(() => import('@/pages/Dashboard/DomainOrders'));
 const AdminDomains = lazy(() => import('@/pages/Dashboard/Domains'));
 const AdminDomainPricing = lazy(() => import('@/pages/Dashboard/DomainPricing'));
 const AdminHostings = lazy(() => import('@/pages/Dashboard/Hostings'));
+const AdminGmbProfiles = lazy(() => import('@/pages/Dashboard/GmbProfiles'));
 const AdminHostingOrders = lazy(() => import('@/pages/Dashboard/HostingOrders'));
 const AdminHostingPlans = lazy(() => import('@/pages/Dashboard/HostingPlans'));
 const AdminServiceAnalysis = lazy(() => import('@/pages/Dashboard/ServiceAnalysis'));
@@ -121,6 +123,7 @@ export const router = createBrowserRouter([
           { path: 'profile/edit', element: <SuspenseWrap><ProfileEdit /></SuspenseWrap> },
           { path: 'domains/:id', element: <SuspenseWrap><DomainDetails /></SuspenseWrap> },
           { path: 'hosting/:id', element: <SuspenseWrap><HostingDetails /></SuspenseWrap> },
+          { path: 'gmb/:id', element: <SuspenseWrap><GmbProfileDetails /></SuspenseWrap> },
         ],
       },
     ],
@@ -153,6 +156,7 @@ export const router = createBrowserRouter([
           { path: 'offers', element: <SuspenseWrap><DashboardOffers /></SuspenseWrap> },
           { path: 'leads', element: <SuspenseWrap><DashboardLeads /></SuspenseWrap> },
           { path: 'orders', element: <SuspenseWrap><DashboardOrders /></SuspenseWrap> },
+          { path: 'gmb-profiles', element: <SuspenseWrap><AdminGmbProfiles /></SuspenseWrap> },
           { path: 'domain-orders', element: <SuspenseWrap><AdminDomainOrders /></SuspenseWrap> },
           { path: 'domains', element: <SuspenseWrap><AdminDomains /></SuspenseWrap> },
           { path: 'domain-pricing', element: <SuspenseWrap><AdminDomainPricing /></SuspenseWrap> },

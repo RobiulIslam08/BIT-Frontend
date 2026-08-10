@@ -27,7 +27,7 @@ const PRICING = {
 
 // ─── PayPal Buttons Inner Component ───
 // Separated so it can use usePayPalScriptReducer inside PayPalScriptProvider context
-function PayPalCheckoutButtons({ finalPrice, serviceType, form, hasExistingProfile, profileHasIssues, recoveryEmail, recoveryPhone, basePrice, couponApplied, couponCode, couponDiscount, termsAccepted, setValidationError, isSubmittingLocal, setIsSubmittingLocal, onSubmit, isSubmitting }) {
+function PayPalCheckoutButtons({ finalPrice, serviceType, form, businessHours, hasExistingProfile, profileHasIssues, recoveryEmail, recoveryPhone, basePrice, couponApplied, couponCode, couponDiscount, termsAccepted, setValidationError, isSubmittingLocal, setIsSubmittingLocal, onSubmit, isSubmitting }) {
   const [{ isPending, isRejected }] = usePayPalScriptReducer();
 
   if (isPending) {
@@ -127,6 +127,7 @@ function PayPalCheckoutButtons({ finalPrice, serviceType, form, hasExistingProfi
             website: form.website,
             description: form.description,
             servicesList: form.servicesList,
+            businessHours,
             // Step 5 data
             serviceType,
             hasExistingProfile,
@@ -168,7 +169,7 @@ function PayPalCheckoutButtons({ finalPrice, serviceType, form, hasExistingProfi
 }
 
 // ─── MAIN COMPONENT ───
-export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
+export default function Step5Payment({ form, businessHours, onBack, onSubmit, isSubmitting }) {
   const { currency, formatFromSARWithCode, formatPriceWithCode, rates } = useCurrency();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const [walletSummary, setWalletSummary] = useState(null);
@@ -455,6 +456,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
       website: form.website,
       description: form.description,
       servicesList: form.servicesList,
+      businessHours,
       serviceType,
       hasExistingProfile,
       profileHasIssues: profileHasIssues === 'yes',
@@ -1155,6 +1157,7 @@ export default function Step5Payment({ form, onBack, onSubmit, isSubmitting }) {
                   finalPrice={finalPrice}
                   serviceType={serviceType}
                   form={form}
+                  businessHours={businessHours}
                   hasExistingProfile={hasExistingProfile}
                   profileHasIssues={profileHasIssues}
                   recoveryEmail={recoveryEmail}

@@ -3,10 +3,12 @@
 // ============================================
 
 import { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
+import { useSelector } from 'react-redux';
 import { motion } from 'motion/react';
 import {
-  MapPin, Star, Search, CheckCircle2, Globe, Phone, Clock,
-  ArrowLeft, ArrowRight, Sparkles, Building2, Navigation, Heart, ShieldCheck,
+  Search, CheckCircle2, Globe,
+  ArrowLeft, ArrowRight, Building2, Navigation,
   ChevronDown, Award, ThumbsUp, ShieldAlert, BarChart3
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
@@ -15,6 +17,8 @@ import { toast } from '@/components/common/Toast/Toast';
 import { submitGMBOrder, payGMBWithWallet } from '@/api/gmbOrderApi';
 import { useCurrency } from '@/context/CurrencyContext';
 import { trackEvent, trackPurchase, trackGenerateLead } from '@/utils/analytics';
+import { selectIsAuthenticated } from '@/features/auth/authSlice';
+import GmbProfilePreview from '@/components/gmb/GmbProfilePreview';
 import MapPicker from './MapPicker';
 import Step5Payment from './Step5Payment';
 import './GoogleMyBusiness.css';
@@ -63,8 +67,8 @@ const CATEGORIES = [
 
 export default function GoogleMyBusiness() {
   const { formatFromSARWithCode } = useCurrency();
+  const isAuthenticated = useSelector(selectIsAuthenticated);
   const [step, setStep] = useState(1);
-  const [mapZoom, setMapZoom] = useState(15);
   const [submitted, setSubmitted] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [orderData, setOrderData] = useState(null);
@@ -346,9 +350,16 @@ export default function GoogleMyBusiness() {
                   )}
                 </ul>
               </div>
-              <button onClick={() => { setStep(1); setSubmitted(false); setOrderData(null); }} className="btn btn-primary">
-                Submit Another Order
-              </button>
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', justifyContent: 'center', marginTop: '1rem' }}>
+                {isAuthenticated && (
+                  <Link to="/my-account?tab=gmb" className="btn btn-primary">
+                    View in My Account
+                  </Link>
+                )}
+                <button onClick={() => { setStep(1); setSubmitted(false); setOrderData(null); }} className="btn btn-secondary">
+                  Submit Another Order
+                </button>
+              </div>
             </motion.div>
           </div>
         </section>
@@ -774,6 +785,7 @@ export default function GoogleMyBusiness() {
               {step === 5 && (
                 <Step5Payment
                   form={form}
+                  businessHours={activeHours}
                   onBack={handleBack}
                   onSubmit={handleSubmit}
                   isSubmitting={isSubmitting}
@@ -784,151 +796,13 @@ export default function GoogleMyBusiness() {
 
           {/* Right Column: Google Maps Realtime Search Preview Card */}
           <div className="gmb-preview-sticky">
-            <div className="preview-label-badge">
-              <Sparkles size={14} /> Realtime Google Profile Preview
-            </div>
-
-            <div className="gmb-mock-card">
-              {/* Google Search Mock */}
-              <div className="mock-search-header">
-                <div className="search-logo">Google</div>
-                <div className="search-bar-mock">
-                  <Search size={12} className="search-icon" />
-                  <span>{form.businessName || 'Your Business Name'}</span>
-                </div>
-              </div>
-
-              {/* Google Search Navigation Tabs */}
-              <div className="mock-search-tabs">
-                <span className="tab-item is-active">Overview</span>
-                <span className="tab-item">Services</span>
-                <span className="tab-item">Reviews</span>
-                <span className="tab-item">About</span>
-              </div>
-
-              {/* Business Overview Card */}
-              <div className="mock-business-card">
-                {form.hasPhysicalLocation === 'yes' && (
-                  <div className="mock-map-widget">
-                    <div className="mock-map-container">
-                      <iframe
-                        title="Google Maps Location Preview"
-                        width="100%"
-                        height="170"
-                        style={{ border: 0, borderRadius: '12px', display: 'block' }}
-                        src={`https://maps.google.com/maps?q=${form.latitude},${form.longitude}&z=${mapZoom}&output=embed`}
-                      />
-                      <div className="map-zoom-btn-group">
-                        <button
-                          type="button"
-                          onClick={() => setMapZoom((z) => Math.min(z + 1, 20))}
-                          className="map-zoom-btn"
-                          title="Zoom In"
-                          aria-label="Zoom In"
-                        >
-                          +
-                        </button>
-                        <button
-                          type="button"
-                          onClick={() => setMapZoom((z) => Math.max(z - 1, 1))}
-                          className="map-zoom-btn"
-                          title="Zoom Out"
-                          aria-label="Zoom Out"
-                        >
-                          −
-                        </button>
-                      </div>
-                    </div>
-                    <div className="map-badge-coords">
-                      <span>Coordinates: {form.latitude.toFixed(5)}, {form.longitude.toFixed(5)}</span>
-                    </div>
-                  </div>
-                )}
-
-                <div className="mock-card-header">
-                  <h4 className="mock-business-title">{form.businessName || 'Your Business Name'}</h4>
-                  <p className="mock-business-category">{form.category || 'Software & IT Solutions'}</p>
-
-                  <div className="mock-rating-row">
-                    <span className="rating-value">5.0</span>
-                    <div className="stars-row">
-                      {[...Array(5)].map((_, i) => (
-                        <Star key={i} size={13} fill="#F4B400" stroke="#F4B400" />
-                      ))}
-                    </div>
-                    <span className="reviews-count">(99+ Reviews)</span>
-                  </div>
-                  <span className="mock-verification-pill">
-                    <ShieldCheck size={12} /> Verified Profile
-                  </span>
-                </div>
-
-                {/* Quick Action Buttons */}
-                <div className="mock-actions-row">
-                  <div className="mock-action-btn">
-                    <div className="icon-circle"><Phone size={14} /></div>
-                    <span>Call</span>
-                  </div>
-                  <div className="mock-action-btn">
-                    <div className="icon-circle"><Navigation size={14} /></div>
-                    <span>Directions</span>
-                  </div>
-                  <div className="mock-action-btn">
-                    <div className="icon-circle"><Globe size={14} /></div>
-                    <span>Website</span>
-                  </div>
-                  <div className="mock-action-btn">
-                    <div className="icon-circle"><Heart size={14} /></div>
-                    <span>Save</span>
-                  </div>
-                </div>
-
-                <hr className="mock-divider" />
-
-                {/* Detail Information Fields */}
-                <div className="mock-details-list">
-                  <div className="mock-detail-item">
-                    <MapPin size={14} className="detail-icon" />
-                    <span>
-                      {form.hasPhysicalLocation === 'yes' ? (
-                        <>
-                          {form.streetAddress || '123 Business Street'}, {form.city || 'Riyadh'}, {form.country}
-                        </>
-                      ) : (
-                        `Service Area: ${form.serviceAreas || 'Global / Multiple locations'}`
-                      )}
-                    </span>
-                  </div>
-
-                  <div className="mock-detail-item">
-                    <Clock size={14} className="detail-icon" />
-                    <div className="hours-preview-text">
-                      <strong className="text-emerald">Open</strong> · Hours: 09:00 AM - 06:00 PM
-                    </div>
-                  </div>
-
-                  <div className="mock-detail-item">
-                    <Phone size={14} className="detail-icon" />
-                    <span>{form.phone ? `${form.phoneCode} ${form.phone}` : 'Add phone number'}</span>
-                  </div>
-
-                  {form.website && (
-                    <div className="mock-detail-item">
-                      <Globe size={14} className="detail-icon" />
-                      <span className="text-blue">{form.website}</span>
-                    </div>
-                  )}
-                </div>
-
-                {/* Description Shimmer */}
-                <div className="mock-desc-block">
-                  <h5>From the business</h5>
-                  <p className="mock-desc-text">
-                    {form.description || 'Provide your business description to showcase your services and company mission on Google Local Search.'}
-                  </p>
-                </div>
-              </div>
-            </div>
+            <GmbProfilePreview
+              profile={{
+                ...form,
+                phone: form.phone ? `${form.phoneCode} ${form.phone}` : '',
+                businessHours: activeHours,
+              }}
+            />
 
             {/* Google Guidelines Warning Box */}
             <div className="gmb-guidelines-box">

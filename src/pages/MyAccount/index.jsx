@@ -17,6 +17,7 @@ import { SEOHead } from '@/components/common/SEOHead';
 import { selectCurrentUser, selectIsAuthenticated, updateUser } from '@/features/auth/authSlice';
 import { getMyDomains } from '@/api/domainsApi';
 import { getMyHostings, openCpanelLogin, sendCpanelAccessEmail } from '@/api/hostingApi';
+import { getMyGmbProfiles } from '@/api/gmbProfileApi';
 import { getMyProfile } from '@/api/userApi';
 import { useCurrency } from '@/context/CurrencyContext';
 import { toast } from '@/components/common/Toast/Toast';
@@ -28,6 +29,7 @@ const TABS = [
   { id: 'profile', label: 'Profile', icon: Settings },
   { id: 'domains', label: 'My Domains', icon: Globe },
   { id: 'hosting', label: 'My Hosting', icon: Server },
+  { id: 'gmb', label: 'My GMB', icon: MapPin },
   { id: 'wallet', label: 'Wallet', icon: Wallet },
   { id: 'billing', label: 'Billing', icon: CreditCard },
 ];
@@ -35,10 +37,17 @@ const TABS = [
 const statusConfig = {
   active: { label: 'Active', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', icon: CheckCircle2 },
   pending: { label: 'Pending', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', icon: Clock },
+  in_progress: { label: 'In Progress', color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', icon: Clock },
   expired: { label: 'Expired', color: '#ef4444', bg: 'rgba(239,68,68,0.1)', icon: XCircle },
   cancelled: { label: 'Cancelled', color: '#9ca3af', bg: 'rgba(156,163,175,0.1)', icon: XCircle },
   suspended: { label: 'Suspended', color: '#f97316', bg: 'rgba(249,115,22,0.1)', icon: AlertTriangle },
   transferred_out: { label: 'Transferred', color: '#6366f1', bg: 'rgba(99,102,241,0.1)', icon: XCircle },
+};
+
+const gmbServiceLabels = {
+  new: 'New Profile',
+  recovery: 'Recovery',
+  regular: 'Management',
 };
 
 const getDaysUntilExpiry = (expiresAt) => {
@@ -85,6 +94,9 @@ export default function MyAccount() {
   const [hostings, setHostings] = useState([]);
   const [isLoadingHostings, setIsLoadingHostings] = useState(true);
   const [hostingError, setHostingError] = useState('');
+  const [gmbProfiles, setGmbProfiles] = useState([]);
+  const [isLoadingGmb, setIsLoadingGmb] = useState(true);
+  const [gmbError, setGmbError] = useState('');
   const [cpanelBusy, setCpanelBusy] = useState({}); // { [id]: 'login' | 'email' }
 
   // Keep tab in sync with ?tab= query (default = profile)
@@ -135,6 +147,19 @@ export default function MyAccount() {
     }
   };
 
+  const fetchGmbProfiles = async () => {
+    setIsLoadingGmb(true);
+    setGmbError('');
+    try {
+      const res = await getMyGmbProfiles();
+      if (res.success) setGmbProfiles(res.data || []);
+    } catch (err) {
+      setGmbError(err?.response?.data?.message || 'Failed to load GMB profiles.');
+    } finally {
+      setIsLoadingGmb(false);
+    }
+  };
+
   const handleGoToCpanel = async (e, hostingId, ready) => {
     e.stopPropagation();
     if (!ready) {
@@ -176,7 +201,7 @@ export default function MyAccount() {
     }
   };
 
-  useEffect(() => { fetchDomains(); fetchHostings(); }, []);
+  useEffect(() => { fetchDomains(); fetchHostings(); fetchGmbProfiles(); }, []);
 
   // Hydrate the full profile (Namecheap-style fields + account balance) from the server.
   useEffect(() => {
@@ -567,6 +592,121 @@ export default function MyAccount() {
                             <div className="myaccount__domain-meta-item">
                               <Server size={13} />
                               <span style={{ textTransform: 'capitalize' }}>{item.billingCycle} billing</span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* ─── GMB TAB ─── */}
+            {activeTab === 'gmb' && (
+              <motion.div key="gmb" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <div className="myaccount__section-header">
+                  <div>
+                    <h2 className="h4">My GMB</h2>
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginTop: '0.25rem' }}>
+                      View your Google Business Profile orders and previews
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button className="btn btn-ghost btn-sm" onClick={fetchGmbProfiles} disabled={isLoadingGmb}>
+                      <RefreshCw size={14} className={isLoadingGmb ? 'spin' : ''} /> Refresh
+                    </button>
+                    <Link to="/services/google-my-business" className="btn btn-primary btn-sm">
+                      <MapPin size={14} /> New GMB Profile
+                    </Link>
+                  </div>
+                </div>
+
+                {gmbError && (
+                  <div style={{ display: 'flex', gap: '0.5rem', padding: '1rem', borderRadius: '10px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#dc2626', fontSize: 'var(--text-sm)', marginBottom: '1rem' }}>
+                    <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '1px' }} /> {gmbError}
+                  </div>
+                )}
+
+                {isLoadingGmb ? (
+                  <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--color-text-muted)' }}>
+                    <Loader2 size={32} className="spin" />
+                    <p style={{ marginTop: '1rem', fontSize: 'var(--text-sm)' }}>Loading your GMB profiles...</p>
+                  </div>
+                ) : gmbProfiles.length === 0 ? (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="card-elevated" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+                    <MapPin size={48} style={{ color: 'var(--color-text-muted)', marginBottom: '1rem' }} />
+                    <h3 className="h5" style={{ marginBottom: '0.5rem' }}>No GMB Profiles Yet</h3>
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginBottom: '1.5rem' }}>
+                      Order a Google Business Profile setup to see it here — including pending orders.
+                    </p>
+                    <Link to="/services/google-my-business" className="btn btn-primary">Get Started</Link>
+                  </motion.div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {gmbProfiles.map((item, i) => {
+                      const status = statusConfig[item.status] || statusConfig.pending;
+                      const StatusIcon = status.icon;
+                      return (
+                        <motion.div
+                          key={item._id}
+                          initial={{ opacity: 0, x: -12 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.06 }}
+                          className="card-elevated myaccount__domain-card"
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => navigate(`/my-account/gmb/${item._id}`)}
+                        >
+                          <div className="myaccount__domain-top">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+                              <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--color-primary-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <MapPin size={20} style={{ color: 'var(--color-primary)' }} />
+                              </div>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontWeight: 800, fontSize: 'var(--text-lg)', fontFamily: 'var(--font-display)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {item.businessName}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.15rem 0.5rem', borderRadius: '999px', fontSize: '11px', fontWeight: 700, background: status.bg, color: status.color }}>
+                                    <StatusIcon size={11} /> {status.label}
+                                  </span>
+                                  <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                                    {item.category}
+                                  </span>
+                                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-primary)' }}>
+                                    {gmbServiceLabels[item.serviceType] || item.serviceType}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                              {typeof item.amountSAR === 'number' && item.amountSAR > 0 && (
+                                <div style={{ fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-primary)' }}>
+                                  {item.amountSAR} SAR
+                                </div>
+                              )}
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: 'var(--text-xs)', color: 'var(--color-primary)', marginTop: '0.3rem', fontWeight: 600 }}>
+                                Details <ChevronRight size={13} />
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="myaccount__domain-meta">
+                            <div className="myaccount__domain-meta-item">
+                              <Phone size={13} />
+                              <span>{item.phone || '—'}</span>
+                            </div>
+                            <div className="myaccount__domain-meta-item">
+                              <MapPin size={13} />
+                              <span>
+                                {item.hasPhysicalLocation === 'yes'
+                                  ? [item.city, item.country].filter(Boolean).join(', ') || 'Physical location'
+                                  : item.serviceAreas || 'Service area'}
+                              </span>
+                            </div>
+                            <div className="myaccount__domain-meta-item">
+                              <Calendar size={13} />
+                              <span>Created: {formatDate(item.createdAt)}</span>
                             </div>
                           </div>
                         </motion.div>
