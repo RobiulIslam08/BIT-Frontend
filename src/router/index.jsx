@@ -22,6 +22,7 @@ const About = lazy(() => import('@/pages/About'));
 const Services = lazy(() => import('@/pages/Services'));
 const ITServices = lazy(() => import('@/pages/Services/ITServices'));
 const WebDevelopment = lazy(() => import('@/pages/Services/WebDevelopment'));
+const SupplyCompany = lazy(() => import('@/pages/Services/WebDevelopment/SupplyCompany'));
 const ERPSoftware = lazy(() => import('@/pages/Services/ERPSoftware'));
 const MobileApps = lazy(() => import('@/pages/Services/MobileApps'));
 const SocialMedia = lazy(() => import('@/pages/Services/SocialMedia'));
@@ -84,6 +85,7 @@ export const router = createBrowserRouter([
       { path: 'services', element: <SuspenseWrap><Services /></SuspenseWrap> },
       { path: 'services/it-services', element: <SuspenseWrap><ITServices /></SuspenseWrap> },
       { path: 'services/web-development', element: <SuspenseWrap><WebDevelopment /></SuspenseWrap> },
+      { path: 'services/web-development/supply-company', element: <SuspenseWrap><SupplyCompany /></SuspenseWrap> },
       { path: 'services/erp-software', element: <SuspenseWrap><ERPSoftware /></SuspenseWrap> },
       { path: 'services/mobile-apps', element: <SuspenseWrap><MobileApps /></SuspenseWrap> },
       { path: 'services/social-media', element: <SuspenseWrap><SocialMedia /></SuspenseWrap> },

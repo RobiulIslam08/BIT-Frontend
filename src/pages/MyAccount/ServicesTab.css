@@ -1,0 +1,204 @@
+/* ============================================
+   My Account — Services Tab
+   ============================================ */
+
+.acct-services__error {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 1rem;
+  border-radius: var(--radius-md);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--color-error);
+  font-size: var(--text-sm);
+  margin-bottom: 1rem;
+  line-height: 1.45;
+}
+
+.acct-services__loading,
+.acct-services__empty {
+  text-align: center;
+  padding: 4rem 2rem;
+  color: var(--color-text-muted);
+}
+
+.acct-services__empty .h5 {
+  margin: 0.75rem 0 0.5rem;
+  color: var(--color-text-primary);
+}
+
+.acct-services__empty p {
+  margin: 0 0 1.5rem;
+  font-size: var(--text-sm);
+}
+
+.acct-services__table-wrap {
+  padding: 0 !important;
+  overflow: hidden;
+}
+
+.acct-services__table-scroll {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.acct-services__table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 720px;
+  text-align: left;
+}
+
+.acct-services__table th {
+  padding: 0.9rem 1.1rem;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--color-text-muted);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg-secondary);
+  white-space: nowrap;
+}
+
+.acct-services__table td {
+  padding: 1rem 1.1rem;
+  font-size: var(--text-sm);
+  border-bottom: 1px solid var(--color-border);
+  vertical-align: top;
+  color: var(--color-text-secondary);
+}
+
+.acct-services__table tr:last-child td {
+  border-bottom: none;
+}
+
+.acct-services__name {
+  font-weight: 700;
+  color: var(--color-text-primary);
+  margin-bottom: 0.2rem;
+}
+
+.acct-services__portal-link {
+  font-size: 0.75rem;
+  color: var(--color-primary);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.acct-services__portal-link:hover {
+  text-decoration: underline;
+}
+
+.acct-services__package {
+  text-transform: capitalize;
+  color: var(--color-text-primary);
+  font-weight: 500;
+}
+
+.acct-services__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.2rem 0.55rem;
+  border-radius: var(--radius-full);
+  font-size: 0.7rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.acct-services__actions {
+  display: flex;
+  gap: 0.4rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.acct-services__details {
+  margin-top: 0.7rem;
+  padding: 0.8rem 0.9rem;
+  border-radius: var(--radius-md);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  font-size: 0.75rem;
+  line-height: 1.55;
+  color: var(--color-text-secondary);
+}
+
+.acct-services__details p {
+  margin: 0 0 0.35rem;
+}
+
+.acct-services__details p:last-child {
+  margin-bottom: 0;
+}
+
+.acct-services__details a {
+  color: var(--color-primary);
+  word-break: break-all;
+}
+
+.acct-services__mobile {
+  display: none;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.acct-services__card {
+  padding: 1.15rem !important;
+}
+
+.acct-services__card-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 0.55rem;
+}
+
+.acct-services__card-top strong {
+  color: var(--color-text-primary);
+  font-size: var(--text-base);
+  line-height: 1.3;
+}
+
+.acct-services__meta {
+  margin: 0 0 0.35rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.acct-services__dates {
+  margin: 0 0 0.85rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+}
+
+.acct-services__notes {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  margin: 0 0 0.75rem;
+  line-height: 1.5;
+}
+
+.acct-services__card .btn {
+  margin-top: 0.25rem;
+}
+
+@media (max-width: 768px) {
+  .acct-services__table-wrap {
+    display: none;
+  }
+
+  .acct-services__mobile {
+    display: flex;
+  }
+
+  .myaccount__section-header {
+    align-items: flex-start;
+  }
+}

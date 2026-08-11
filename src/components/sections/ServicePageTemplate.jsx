@@ -60,11 +60,20 @@ export function ServicePageTemplate({ seo, hero, features, whyUs, process, stats
               <StaggerChildren className="services-overview__grid">
                 {features.items.map((f) => (
                   <StaggerItem key={f.title}>
-                    <div className="service-card">
-                      <div className="service-card__icon"><f.icon size={24} /></div>
-                      <h3 className="service-card__title">{f.title}</h3>
-                      <p className="service-card__desc">{f.desc}</p>
-                    </div>
+                    {f.href ? (
+                      <Link to={f.href} className="service-card service-card--link">
+                        <div className="service-card__icon"><f.icon size={24} /></div>
+                        <h3 className="service-card__title">{f.title}</h3>
+                        <p className="service-card__desc">{f.desc}</p>
+                        <span className="service-card__cta">View details <ArrowRight size={14} /></span>
+                      </Link>
+                    ) : (
+                      <div className="service-card">
+                        <div className="service-card__icon"><f.icon size={24} /></div>
+                        <h3 className="service-card__title">{f.title}</h3>
+                        <p className="service-card__desc">{f.desc}</p>
+                      </div>
+                    )}
                   </StaggerItem>
                 ))}
               </StaggerChildren>

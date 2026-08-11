@@ -204,6 +204,26 @@
   transition: gap var(--transition-base);
 }
 
+.service-card--link {
+  text-decoration: none;
+  color: inherit;
+  cursor: pointer;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  box-sizing: border-box;
+}
+
+.service-card--link:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 3px;
+}
+
+.services-overview__grid > * {
+  height: 100%;
+  min-width: 0;
+}
+
 .service-card:hover .service-card__cta {
   gap: 0.75rem;
 }

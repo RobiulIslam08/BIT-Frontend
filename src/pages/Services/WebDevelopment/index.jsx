@@ -1,6 +1,7 @@
 // BIT SOFTWARE — Web Development Page
 import { ServicePageTemplate } from '@/components/sections/ServicePageTemplate';
 import { Globe, ShoppingCart, GraduationCap, BookOpen, Truck, Users, Code, Package } from 'lucide-react';
+import { ROUTES } from '@/router/routes';
 
 export default function WebDevelopment() {
   return <ServicePageTemplate
@@ -10,7 +11,7 @@ export default function WebDevelopment() {
       { icon: ShoppingCart, title: 'E-Commerce Platforms', desc: 'Custom online stores with Mada, Apple Pay, and Saudi payment integration.' },
       { icon: GraduationCap, title: 'Educational Platforms', desc: 'School and university websites with student portals and course management.' },
       { icon: BookOpen, title: 'LMS (Learning Management)', desc: 'Full-featured learning platforms with video hosting and progress tracking.' },
-      { icon: Truck, title: 'Supply Company Portals', desc: 'Inventory, ordering, and logistics management web applications.' },
+      { icon: Truck, title: 'Supply Company Portals', desc: 'Inventory, ordering, and logistics management web applications.', href: ROUTES.SERVICES_WEB_SUPPLY },
       { icon: Users, title: 'Manpower & HR Portals', desc: 'Construction and manpower management websites with worker tracking.' },
       { icon: Code, title: 'Custom Web Applications', desc: 'Bespoke web applications tailored to your unique business requirements.' },
       { icon: Package, title: 'Drop Shipping Stores', desc: 'Automated drop shipping stores with supplier integration.' },

@@ -11,7 +11,7 @@ import {
   Calendar, AlertTriangle, ChevronRight,
   Shield, CreditCard, RotateCw, Server,
   Wallet, Pencil, Building2, Briefcase, Phone, PhoneCall,
-  MapPin, Mail, ExternalLink, KeyRound,
+  MapPin, Mail, ExternalLink, KeyRound, Package,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { selectCurrentUser, selectIsAuthenticated, updateUser } from '@/features/auth/authSlice';
@@ -23,6 +23,7 @@ import { useCurrency } from '@/context/CurrencyContext';
 import { toast } from '@/components/common/Toast/Toast';
 import PaymentMethods from './PaymentMethods';
 import WalletTab from './Wallet';
+import ServicesTab from './ServicesTab';
 import './MyAccount.css';
 
 const TABS = [
@@ -30,6 +31,7 @@ const TABS = [
   { id: 'domains', label: 'My Domains', icon: Globe },
   { id: 'hosting', label: 'My Hosting', icon: Server },
   { id: 'gmb', label: 'My GMB', icon: MapPin },
+  { id: 'services', label: 'Services', icon: Package },
   { id: 'wallet', label: 'Wallet', icon: Wallet },
   { id: 'billing', label: 'Billing', icon: CreditCard },
 ];
@@ -719,6 +721,9 @@ export default function MyAccount() {
 
             {/* ─── WALLET TAB ─── */}
             {activeTab === 'wallet' && <WalletTab key="wallet" />}
+
+            {/* ─── SERVICES TAB ─── */}
+            {activeTab === 'services' && <ServicesTab key="services" />}
 
             {/* ─── BILLING TAB ─── */}
             {activeTab === 'billing' && <PaymentMethods key="billing" />}

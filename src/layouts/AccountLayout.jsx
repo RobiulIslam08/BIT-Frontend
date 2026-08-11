@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   User, Globe, Server, Wallet, CreditCard, LayoutDashboard,
-  LogOut, Menu, X, Home, ChevronRight, MapPin,
+  LogOut, Menu, X, Home, ChevronRight, MapPin, Package,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { useAppDispatch } from '@/app/hooks';
@@ -22,6 +22,7 @@ const NAV_ITEMS = [
   { id: 'domains', label: 'My Domains', icon: Globe, to: '/my-account?tab=domains' },
   { id: 'hosting', label: 'My Hosting', icon: Server, to: '/my-account?tab=hosting' },
   { id: 'gmb', label: 'My GMB', icon: MapPin, to: '/my-account?tab=gmb' },
+  { id: 'services', label: 'Services', icon: Package, to: '/my-account?tab=services' },
   { id: 'wallet', label: 'Wallet', icon: Wallet, to: '/my-account?tab=wallet' },
   { id: 'billing', label: 'Billing', icon: CreditCard, to: '/my-account?tab=billing' },
 ];
@@ -31,6 +32,7 @@ const PAGE_TITLES = {
   domains: 'My Domains',
   hosting: 'My Hosting',
   gmb: 'My GMB',
+  services: 'Services',
   wallet: 'Wallet',
   billing: 'Billing',
 };

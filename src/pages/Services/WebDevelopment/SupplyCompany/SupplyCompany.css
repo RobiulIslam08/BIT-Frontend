@@ -1,0 +1,573 @@
+/* ============================================
+   Supply Company Portals — Product Page
+   Aligned with site design system (page-hero, service-card, tokens)
+   ============================================ */
+
+/* Hero uses shared .page-hero — brand emphasis on this product page */
+.scp-page .page-hero__brand {
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 3.2vw, 2.15rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  color: var(--color-text-primary);
+  margin: 0 0 0.35rem;
+  line-height: 1.15;
+}
+
+.scp-page .page-hero__product {
+  display: inline-block;
+  margin: 0 0 0.75rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--color-primary);
+}
+
+.scp-page .page-hero__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  justify-content: center;
+}
+
+/* Features reuse services-overview grid + service-card */
+.scp-page .scp-features > * {
+  height: 100%;
+}
+
+.scp-page .scp-feature-card {
+  height: 100%;
+}
+
+.scp-pricing {
+  background: var(--color-bg-secondary);
+}
+
+.scp-pricing__grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.5rem;
+  margin-top: 2rem;
+  align-items: stretch;
+  max-width: 920px;
+  margin-inline: auto;
+}
+
+.scp-pricing__grid > * {
+  min-width: 0;
+  height: 100%;
+  display: flex;
+}
+
+.scp-plan {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 1.75rem 1.5rem;
+  border-radius: var(--radius-xl);
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-md);
+  transition: border-color var(--transition-base), box-shadow var(--transition-base), transform var(--transition-base);
+}
+
+.scp-plan:hover {
+  border-color: var(--color-primary-border);
+  box-shadow: var(--shadow-lg);
+}
+
+.scp-plan--featured {
+  border-color: var(--color-primary-border);
+  box-shadow: var(--shadow-primary);
+  padding-top: 2.25rem;
+}
+
+.scp-plan__ribbon {
+  position: absolute;
+  top: 0.85rem;
+  right: 0.85rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  padding: 0.3rem 0.6rem;
+  border-radius: var(--radius-full);
+  background: var(--color-primary);
+  color: var(--color-on-primary);
+  z-index: 1;
+}
+
+.scp-plan__badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  width: fit-content;
+  font-size: var(--text-xs);
+  font-weight: 600;
+  color: var(--color-text-muted);
+  margin-bottom: 0.65rem;
+}
+
+.scp-plan__badge--accent {
+  color: var(--color-primary);
+}
+
+.scp-plan__name {
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  margin: 0 0 0.75rem;
+  color: var(--color-text-primary);
+  line-height: 1.25;
+  padding-right: 4.5rem;
+}
+
+.scp-plan:not(.scp-plan--featured) .scp-plan__name {
+  padding-right: 0;
+}
+
+.scp-plan__price {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.scp-plan__amount {
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 3.5vw, 2.25rem);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  color: var(--color-text-primary);
+  line-height: 1.1;
+}
+
+.scp-plan__period {
+  color: var(--color-text-muted);
+  font-size: var(--text-sm);
+  font-weight: 500;
+}
+
+.scp-plan__save {
+  font-size: var(--text-sm);
+  color: var(--color-success);
+  margin: 0 0 1rem;
+  font-weight: 600;
+}
+
+.scp-plan__features {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  flex: 1;
+}
+
+.scp-plan__features li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.45;
+}
+
+.scp-plan__features svg {
+  color: var(--color-primary);
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.scp-plan__actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  margin-top: auto;
+}
+
+.scp-plan__actions .btn {
+  width: 100%;
+  justify-content: center;
+  white-space: normal;
+  text-align: center;
+  min-height: 2.75rem;
+  line-height: 1.25;
+}
+
+.scp-plan__actions .btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.scp-pricing__trial-used {
+  text-align: center;
+  margin: 1.5rem auto 0;
+  max-width: 28rem;
+  font-size: var(--text-sm);
+  color: var(--color-warning);
+  line-height: 1.5;
+}
+
+/* Trust strip */
+.scp-trust {
+  border-top: 1px solid var(--color-border);
+  border-bottom: 1px solid var(--color-border);
+  background: var(--color-bg);
+}
+
+.scp-trust__row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem 2rem;
+}
+
+.scp-trust__item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.scp-trust__item svg {
+  color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+/* FAQ */
+.scp-faq {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  max-width: 800px;
+  margin-inline: auto;
+}
+
+.scp-faq__item {
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-lg);
+  background: var(--color-surface);
+  overflow: hidden;
+}
+
+.scp-faq__q {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 1.1rem 1.25rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: var(--text-base);
+  color: var(--color-text-primary);
+  text-align: left;
+  line-height: 1.4;
+}
+
+.scp-faq__q:hover {
+  background: var(--color-bg-secondary);
+}
+
+.scp-faq__chevron {
+  display: inline-flex;
+  flex-shrink: 0;
+  color: var(--color-text-muted);
+}
+
+.scp-faq__a-wrap {
+  overflow: hidden;
+}
+
+.scp-faq__a {
+  margin: 0;
+  padding: 0 1.25rem 1.15rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.7;
+}
+
+/* Checkout drawer — above navbar (--z-sticky: 200) */
+.scp-checkout-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(5, 13, 26, 0.55);
+  backdrop-filter: blur(4px);
+  z-index: calc(var(--z-modal) - 1);
+}
+
+.scp-checkout {
+  position: fixed;
+  top: 0;
+  right: 0;
+  height: 100%;
+  height: 100dvh;
+  width: min(440px, 100vw);
+  background: var(--color-surface);
+  color: var(--color-text-primary);
+  z-index: var(--z-modal);
+  display: flex;
+  flex-direction: column;
+  box-shadow: var(--shadow-xl);
+  border-left: 1px solid var(--color-border);
+}
+
+.scp-checkout__header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--color-border);
+  flex-shrink: 0;
+  background: var(--color-surface);
+}
+
+.scp-checkout__title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.scp-checkout__sub {
+  margin: 0.3rem 0 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.scp-checkout__close {
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  color: var(--color-text-muted);
+  padding: 0.45rem;
+  border-radius: var(--radius-md);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.scp-checkout__close:hover {
+  color: var(--color-text-primary);
+  border-color: var(--color-border-strong);
+}
+
+.scp-checkout__body {
+  padding: 1.25rem;
+  overflow-y: auto;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scp-checkout__summary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  padding: 1rem 1.1rem;
+  border-radius: var(--radius-lg);
+  background: var(--color-bg-secondary);
+  border: 1px solid var(--color-border);
+}
+
+.scp-checkout__summary > span {
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-weight: 600;
+}
+
+.scp-checkout__summary strong {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--color-text-primary);
+}
+
+.scp-checkout__summary small {
+  color: var(--color-text-muted);
+  font-size: var(--text-xs);
+}
+
+.scp-checkout__error {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
+  padding: 0.85rem 1rem;
+  border-radius: var(--radius-md);
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: var(--color-error);
+  font-size: var(--text-sm);
+  line-height: 1.45;
+}
+
+.scp-checkout__form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+}
+
+.scp-checkout__form label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--color-text-secondary);
+}
+
+.scp-checkout__form .input {
+  font-weight: 500;
+}
+
+.scp-field-error {
+  color: var(--color-error);
+  font-size: var(--text-xs);
+  font-weight: 500;
+}
+
+.scp-pay-methods {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem;
+}
+
+.scp-pay-method {
+  padding: 0.8rem 0.5rem;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border);
+  background: var(--color-bg);
+  cursor: pointer;
+  font-weight: 600;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  font-family: var(--font-body);
+  transition: all var(--transition-fast);
+}
+
+.scp-pay-method:hover {
+  border-color: var(--color-border-strong);
+}
+
+.scp-pay-method.is-active {
+  border-color: var(--color-primary);
+  color: var(--color-primary);
+  background: var(--color-primary-muted);
+}
+
+.scp-checkout__paypal,
+.scp-checkout__success {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.scp-checkout__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  font-size: var(--text-sm);
+  color: var(--color-text-muted);
+}
+
+.scp-checkout__success {
+  text-align: center;
+  align-items: center;
+  padding: 1.5rem 0.25rem 0.5rem;
+}
+
+.scp-checkout__success h3 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: var(--text-xl);
+  color: var(--color-text-primary);
+}
+
+.scp-checkout__success p {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--color-text-secondary);
+  line-height: 1.65;
+  max-width: 22rem;
+}
+
+.scp-checkout__success .btn {
+  width: 100%;
+  justify-content: center;
+}
+
+.scp-checkout .spin,
+.scp-page .spin {
+  animation: scp-spin 0.8s linear infinite;
+}
+
+@keyframes scp-spin {
+  to { transform: rotate(360deg); }
+}
+
+body.scp-checkout-open {
+  overflow: hidden;
+}
+
+@media (max-width: 768px) {
+  .scp-pricing__grid {
+    grid-template-columns: 1fr;
+    max-width: 440px;
+  }
+
+  .scp-plan__name {
+    padding-right: 0;
+  }
+
+  .scp-plan--featured .scp-plan__name {
+    padding-right: 0;
+    padding-top: 0.25rem;
+  }
+
+  .scp-checkout {
+    width: 100%;
+  }
+
+  .scp-page .page-hero__actions {
+    width: 100%;
+  }
+
+  .scp-page .page-hero__actions .btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .scp-plan {
+    padding: 1.35rem 1.15rem;
+  }
+
+  .scp-plan__amount {
+    font-size: 1.5rem;
+  }
+
+  .scp-pay-methods {
+    grid-template-columns: 1fr;
+  }
+}
