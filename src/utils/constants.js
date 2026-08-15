@@ -94,6 +94,31 @@ export const STATS = [
   { value: 5, suffix: '+', label: 'Years Experience' },
 ];
 
+// Leadership team (demo data — replace name, bio, image when ready)
+export const TEAM_MEMBERS = [
+  {
+    id: 'ceo',
+    name: 'Fahad Al-Qahtani',
+    role: 'CEO',
+    bio: 'Leads vision and client partnerships across the Kingdom, turning business goals into lasting digital outcomes.',
+    image: '/team/ceo.jpg',
+  },
+  {
+    id: 'engineer',
+    name: 'Nour Hassan',
+    role: 'Software Engineer',
+    bio: 'Builds full-stack products with React and cloud architectures — clean code, fast delivery, production-ready systems.',
+    image: '/team/engineer.jpg',
+  },
+  {
+    id: 'marketer',
+    name: 'Layla Al-Mutairi',
+    role: 'Digital Marketer',
+    bio: 'Drives growth for Saudi brands through SEO, campaigns, and content that converts local audiences.',
+    image: '/team/marketer.jpg',
+  },
+];
+
 // Services overview
 export const SERVICES = [
   {

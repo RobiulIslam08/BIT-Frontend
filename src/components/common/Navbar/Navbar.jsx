@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import { Menu, X, ChevronDown, Phone, Mail, Globe, AtSign, Users, MessageCircle, ShoppingCart } from 'lucide-react';
+import { Facebook, Instagram, Linkedin, Twitter } from '@/components/common/BrandIcons';
 import { ThemeToggle } from '../ThemeToggle';
 import { useAppDispatch, useAppSelector } from '@/app/hooks';
 import { toggleMobileMenu, closeMobileMenu } from '@/features/ui/uiSlice';
@@ -94,16 +95,16 @@ export function Navbar() {
               </a>
               <div className="navbar__trust-socials">
                 <a href={SOCIALS.facebook} target="_blank" rel="noopener noreferrer" className="navbar__trust-social-icon" aria-label="Facebook">
-                  <Globe size={12} />
+                  <Facebook size={12} />
                 </a>
                 <a href={SOCIALS.instagram} target="_blank" rel="noopener noreferrer" className="navbar__trust-social-icon" aria-label="Instagram">
-                  <AtSign size={12} />
+                  <Instagram size={12} />
                 </a>
                 <a href={SOCIALS.linkedin} target="_blank" rel="noopener noreferrer" className="navbar__trust-social-icon" aria-label="Linkedin">
-                  <Users size={12} />
+                  <Linkedin size={12} />
                 </a>
                 <a href={SOCIALS.twitter} target="_blank" rel="noopener noreferrer" className="navbar__trust-social-icon" aria-label="Twitter">
-                  <MessageCircle size={12} />
+                  <Twitter size={12} />
                 </a>
               </div>
             </div>

@@ -24,6 +24,7 @@ import { toast } from '@/components/common/Toast/Toast';
 import PaymentMethods from './PaymentMethods';
 import WalletTab from './Wallet';
 import ServicesTab from './ServicesTab';
+import RenewalPayPalNotice from './RenewalPayPalNotice';
 import './MyAccount.css';
 
 const TABS = [
@@ -244,6 +245,8 @@ export default function MyAccount() {
                     <Pencil size={14} /> Edit Profile
                   </Link>
                 </div>
+
+                <RenewalPayPalNotice />
 
                 {/* ─── Balance cards (Account + Promotional Credit) ─── */}
                 <div className="card-elevated myaccount__balance-summary">

@@ -1,17 +1,18 @@
 // BIT SOFTWARE — Footer Component
 import { Link, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
-import { Mail, Phone, MapPin, ExternalLink, Globe, MessageCircle, Users, Play, AtSign } from 'lucide-react';
+import { Mail, Phone, MapPin, ExternalLink, Play } from 'lucide-react';
+import { Facebook, Instagram, Linkedin, Twitter, Youtube } from '@/components/common/BrandIcons';
 import { FadeInUp } from '../../animations/FadeInUp';
 import { COMPANY, SOCIALS, SERVICES } from '@/utils/constants';
 import './Footer.css';
 
 const SOCIAL_ICONS = [
-  { Icon: Globe, link: SOCIALS.facebook, label: 'Facebook' },
-  { Icon: AtSign, link: SOCIALS.instagram, label: 'Instagram' },
-  { Icon: Users, link: SOCIALS.linkedin, label: 'LinkedIn' },
-  { Icon: MessageCircle, link: SOCIALS.twitter, label: 'Twitter' },
-  { Icon: Play, link: SOCIALS.youtube, label: 'YouTube' },
+  { Icon: Facebook, link: SOCIALS.facebook, label: 'Facebook' },
+  { Icon: Instagram, link: SOCIALS.instagram, label: 'Instagram' },
+  { Icon: Linkedin, link: SOCIALS.linkedin, label: 'LinkedIn' },
+  { Icon: Twitter, link: SOCIALS.twitter, label: 'Twitter' },
+  { Icon: Youtube, link: SOCIALS.youtube, label: 'YouTube' },
 ];
 
 const QUICK_LINKS = [
