@@ -94,28 +94,28 @@ export const STATS = [
   { value: 5, suffix: '+', label: 'Years Experience' },
 ];
 
-// Leadership team (demo data — replace name, bio, image when ready)
+// Leadership team (images in /public/team)
 export const TEAM_MEMBERS = [
   {
     id: 'ceo',
-    name: 'Fahad Al-Qahtani',
+    name: 'MD. Jakir Hossen',
     role: 'CEO',
     bio: 'Leads vision and client partnerships across the Kingdom, turning business goals into lasting digital outcomes.',
-    image: '/team/ceo.jpg',
+    image: '/team/ceo.png',
   },
   {
     id: 'engineer',
-    name: 'Nour Hassan',
+    name: 'Robiul Islam',
     role: 'Software Engineer',
     bio: 'Builds full-stack products with React and cloud architectures — clean code, fast delivery, production-ready systems.',
-    image: '/team/engineer.jpg',
+    image: '/team/engineer.png',
   },
   {
     id: 'marketer',
-    name: 'Layla Al-Mutairi',
+    name: 'Noman Bin Ahammad',
     role: 'Digital Marketer',
     bio: 'Drives growth for Saudi brands through SEO, campaigns, and content that converts local audiences.',
-    image: '/team/marketer.jpg',
+    image: '/team/marketer.png',
   },
 ];
 

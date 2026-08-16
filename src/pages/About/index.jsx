@@ -45,9 +45,9 @@ const TEAM_SOCIALS = {
     mail: 'mailto:ceo@bitsoftware.sa',
   },
   engineer: {
-    linkedin: 'https://linkedin.com',
-    github: 'https://github.com',
-    mail: 'mailto:engineer@bitsoftware.sa',
+    linkedin: 'https://www.linkedin.com/in/rabiul-islam-webdev/',
+    github: 'https://github.com/RobiulIslam08',
+    mail: 'mailto:robiulislamrobi0874@gmail.com',
   },
   marketer: {
     linkedin: 'https://linkedin.com',
