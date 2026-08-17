@@ -11,7 +11,7 @@ import { motion } from 'motion/react';
 import {
   ArrowLeft, Loader2, AlertCircle, Copy, Check, Trash2, Shield,
   User, Building2, Briefcase, Calendar, Mail, Phone, PhoneCall,
-  MapPin, Globe, Server, RefreshCw, Eye, X,
+  MapPin, Globe, Server, RefreshCw, Eye, X, Activity,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { toast } from '@/components/common/Toast/Toast';
@@ -20,6 +20,7 @@ import {
 } from '@/api/adminUsersApi';
 import { getAllDomains } from '@/api/domainsApi';
 import { getAllHostings } from '@/api/hostingApi';
+import { getActivitySessions } from '@/api/activityApi';
 import '../Domains/Domains.css';
 
 const roleConfig = {
@@ -55,6 +56,10 @@ function formatUSD(n) {
 
 function formatDate(d) {
   return d ? new Date(d).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }) : '—';
+}
+
+function formatDateTime(d) {
+  return d ? new Date(d).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '—';
 }
 
 function sumRenew(items) {
@@ -293,6 +298,8 @@ export default function UserDetails() {
   const [assetsLoading, setAssetsLoading] = useState(true);
   const [detailDomain, setDetailDomain] = useState(null);
   const [detailHosting, setDetailHosting] = useState(null);
+  const [activity, setActivity] = useState([]);
+  const [activityLoading, setActivityLoading] = useState(true);
 
   const fetchUser = useCallback(async () => {
     setIsLoading(true);
@@ -329,7 +336,19 @@ export default function UserDetails() {
     }
   }, [id]);
 
-  useEffect(() => { fetchUser(); fetchAssets(); }, [fetchUser, fetchAssets]);
+  const fetchActivity = useCallback(async () => {
+    setActivityLoading(true);
+    try {
+      const res = await getActivitySessions({ userId: id, limit: 8, page: 1 });
+      if (res.success) setActivity(res.data || []);
+    } catch {
+      setActivity([]);
+    } finally {
+      setActivityLoading(false);
+    }
+  }, [id]);
+
+  useEffect(() => { fetchUser(); fetchAssets(); fetchActivity(); }, [fetchUser, fetchAssets, fetchActivity]);
 
   const domainCount = typeof domainsMeta.total === 'number' ? domainsMeta.total : domains.length;
   const hostingCount = typeof hostingsMeta.total === 'number' ? hostingsMeta.total : hostings.length;
@@ -683,6 +702,54 @@ export default function UserDetails() {
             <span>Total hostings: <strong style={{ color: 'var(--color-text-primary)' }}>{hostingCount}</strong></span>
             <span>Total renew: <strong style={{ color: 'var(--color-primary)' }}>{formatUSD(hostingRenewTotal)}</strong></span>
           </div>
+        </div>
+
+        {/* ─── Website activity ─── */}
+        <div className="card-elevated" style={{ marginBottom: '1.25rem', padding: 0, overflow: 'hidden' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '1rem 1.25rem', borderBottom: '1px solid var(--color-border)', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <h3 className="h5" style={{ margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Activity size={18} style={{ color: 'var(--color-primary)' }} /> Website activity
+            </h3>
+            <button className="btn btn-ghost btn-sm" onClick={() => navigate('/dashboard/analytics')}>All analytics</button>
+          </div>
+          {activityLoading ? (
+            <div style={{ padding: '1.5rem', textAlign: 'center', color: 'var(--color-text-muted)' }}><Loader2 size={20} className="spin" /></div>
+          ) : activity.length === 0 ? (
+            <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', margin: 0, padding: '1.25rem' }}>No website visits recorded for this user yet.</p>
+          ) : (
+            <div style={{ overflowX: 'auto' }}>
+              <table className="users__table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+                <thead>
+                  <tr>
+                    <th style={{ textAlign: 'left', padding: '0.75rem 1rem', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}>Last seen</th>
+                    <th style={{ textAlign: 'left', padding: '0.75rem 1rem', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}>Entry</th>
+                    <th style={{ textAlign: 'left', padding: '0.75rem 1rem', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}>Exit / current</th>
+                    <th style={{ textAlign: 'left', padding: '0.75rem 1rem', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}>Pages</th>
+                    <th style={{ textAlign: 'left', padding: '0.75rem 1rem', fontSize: 11, fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--color-text-muted)', borderBottom: '1px solid var(--color-border)' }}>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {activity.map((s) => (
+                    <tr key={s._id || s.sessionId}>
+                      <td style={{ padding: '0.75rem 1rem', fontSize: 'var(--text-sm)', borderBottom: '1px solid var(--color-border)' }}>{formatDateTime(s.lastSeenAt)}</td>
+                      <td style={{ padding: '0.75rem 1rem', fontSize: 'var(--text-sm)', wordBreak: 'break-all', borderBottom: '1px solid var(--color-border)' }}>{s.entryPage || '—'}</td>
+                      <td style={{ padding: '0.75rem 1rem', fontSize: 'var(--text-sm)', wordBreak: 'break-all', borderBottom: '1px solid var(--color-border)' }}>{s.exitPage || s.currentPage || '—'}</td>
+                      <td style={{ padding: '0.75rem 1rem', fontSize: 'var(--text-sm)', borderBottom: '1px solid var(--color-border)' }}>{s.pages?.length || 0}</td>
+                      <td style={{ padding: '0.75rem 1rem', borderBottom: '1px solid var(--color-border)' }}>
+                        <span style={{
+                          padding: '0.2rem 0.55rem', borderRadius: '999px', fontSize: 11, fontWeight: 700,
+                          background: s.status === 'active' ? 'rgba(34,197,94,0.1)' : 'rgba(156,163,175,0.1)',
+                          color: s.status === 'active' ? '#22c55e' : '#9ca3af',
+                        }}>
+                          {s.status === 'active' ? 'Live' : 'Left'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
 

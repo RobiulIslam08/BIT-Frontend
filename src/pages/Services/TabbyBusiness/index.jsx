@@ -55,6 +55,10 @@ const ACCEPTED = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
 const MAX_BYTES = 4 * 1024 * 1024;
 const DRAFT_KEY = 'bit_tabby_order_draft';
 const SAUDI_IBAN = /^SA[0-9]{22}$/;
+const EXAMPLE_SAUDI_IBAN = 'SA0380000000608010167519';
+
+const normalizeIban = (value) =>
+  value.toUpperCase().replace(/[\s-]+/g, '').replace(/[^A-Z0-9]/g, '').slice(0, 24);
 
 const loadDraft = () => {
   try {
@@ -354,12 +358,14 @@ export default function TabbyBusiness() {
                 <Field label="Email" error={errors.email}>
                   <input type="email" value={form.email} onChange={(e) => setField('email', e.target.value)} />
                 </Field>
-                <Field label="IBAN" ar="الآيبان" error={errors.iban} className="tabby-field--full" hint="24 characters: SA + 22 digits, same as your IBAN letter">
+                <Field label="IBAN" ar="الآيبان" error={errors.iban} className="tabby-field--full" hint={`24 characters: SA + 22 digits. Example: ${EXAMPLE_SAUDI_IBAN}`}>
                   <input
                     value={form.iban}
-                    onChange={(e) => setField('iban', e.target.value.toUpperCase().replace(/\s+/g, ''))}
-                    placeholder="SAxxxxxxxxxxxxxxxxxxxxxx"
-                    maxLength={24}
+                    onChange={(e) => setField('iban', normalizeIban(e.target.value))}
+                    placeholder={EXAMPLE_SAUDI_IBAN}
+                    maxLength={34}
+                    autoComplete="off"
+                    spellCheck={false}
                   />
                 </Field>
                 <Field label="Website (optional)" className="tabby-field--full">

@@ -12,6 +12,7 @@ import { router } from '@/router';
 import { ToastProvider } from '@/components/common/Toast/Toast';
 import { CurrencyProvider } from '@/context/CurrencyContext';
 import { trackPageView } from '@/utils/analytics';
+import { startVisitorTracking } from '@/utils/visitorTracker';
 
 const googleClientId = import.meta.env.VITE_GOOGLE_CLIENT_ID || '';
 
@@ -31,13 +32,18 @@ function App() {
     send(window.location);
 
     // Route change (SPA navigation)
-    const unsubscribe = router.subscribe((state) => {
+    const unsubscribeGa = router.subscribe((state) => {
       if (state.navigation.state === 'idle') {
         send(state.location);
       }
     });
 
-    return unsubscribe;
+    const stopVisitorTracking = startVisitorTracking(router);
+
+    return () => {
+      unsubscribeGa();
+      stopVisitorTracking();
+    };
   }, []);
 
   return (

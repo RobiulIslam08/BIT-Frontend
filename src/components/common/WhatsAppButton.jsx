@@ -1,5 +1,6 @@
 import { motion } from 'motion/react';
 import { COMPANY } from '@/utils/constants';
+import { trackVisitorEvent } from '@/utils/visitorTracker';
 
 export function WhatsAppButton() {
   return (
@@ -8,6 +9,7 @@ export function WhatsAppButton() {
       target="_blank"
       rel="noopener noreferrer"
       aria-label="Contact us on WhatsApp"
+      onClick={() => trackVisitorEvent('whatsapp')}
       initial={{ opacity: 0, scale: 0.8, y: 20 }}
       animate={{ opacity: 1, scale: 1, y: 0 }}
       transition={{ duration: 0.4, delay: 0.5 }}

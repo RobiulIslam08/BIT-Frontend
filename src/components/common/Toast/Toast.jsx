@@ -111,8 +111,14 @@ export function ToastProvider({ children }) {
 
   useEffect(() => {
     const handleToast = (message, type, options) => {
-      const id = Math.random().toString(36).substring(2, 9);
-      setToasts((prev) => [...prev, { id, message, type, ...options }]);
+      setToasts((prev) => {
+        const alreadyVisible = prev.some(
+          (t) => t.message === message && t.type === type
+        );
+        if (alreadyVisible) return prev;
+        const id = Math.random().toString(36).substring(2, 9);
+        return [...prev, { id, message, type, ...options }];
+      });
     };
 
     listeners.add(handleToast);

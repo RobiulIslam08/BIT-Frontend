@@ -6,7 +6,6 @@
 // isAdmin required হলে admin check করে।
 // GuestRoute — logged in থাকলে saved page (বা role default) এ redirect।
 
-import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
@@ -14,7 +13,6 @@ import {
   selectIsAdmin,
   selectCurrentUser,
 } from '@/features/auth/authSlice';
-import { toast } from '@/components/common/Toast/Toast';
 import { getPostAuthRedirect } from '@/utils/authRedirect';
 
 /**
@@ -24,12 +22,6 @@ import { getPostAuthRedirect } from '@/utils/authRedirect';
 export function ProtectedRoute() {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const location = useLocation();
-
-  useEffect(() => {
-    if (!isAuthenticated) {
-      toast.warning('Please sign in to access this page.');
-    }
-  }, [isAuthenticated]);
 
   if (!isAuthenticated) {
     // Login-এ redirect — current URL save করা হয় যাতে login-এর পরে ফিরে আসা যায়
@@ -48,20 +40,12 @@ export function AdminRoute() {
   const isAdmin = useSelector(selectIsAdmin);
   const location = useLocation();
 
-  useEffect(() => {
-    if (!isAuthenticated) {
-      toast.warning('Please sign in to access this page.');
-    } else if (!isAdmin) {
-      toast.error('Access denied. Admin privileges required.');
-    }
-  }, [isAuthenticated, isAdmin]);
-
   if (!isAuthenticated) {
     return <Navigate to="/auth/login" state={{ from: location }} replace />;
   }
 
   if (!isAdmin) {
-    // Authenticated কিন্তু admin নয় → home-এ পাঠাও
+    // Authenticated কিন্তু admin নয় → home-এ পাঠাও (toast নেই — login success-এর সাথে clash এড়াতে)
     return <Navigate to="/" replace />;
   }
 

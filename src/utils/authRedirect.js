@@ -5,6 +5,7 @@
 // Priority: location.state.from → ?redirect= → role default.
 
 const AUTH_PREFIX = '/auth';
+const ADMIN_PREFIX = '/dashboard';
 
 /**
  * Only allow same-origin relative paths (no open redirects / auth loops).
@@ -24,6 +25,26 @@ export function isSafeInternalPath(path) {
   return true;
 }
 
+export function isAdminOnlyPath(path) {
+  if (!path || typeof path !== 'string') return false;
+  return (
+    path === ADMIN_PREFIX ||
+    path.startsWith(`${ADMIN_PREFIX}/`) ||
+    path.startsWith(`${ADMIN_PREFIX}?`) ||
+    path.startsWith(`${ADMIN_PREFIX}#`)
+  );
+}
+
+function defaultPathForRole(userRole) {
+  return userRole === 'admin' ? ADMIN_PREFIX : '/';
+}
+
+function canAccessPath(path, userRole) {
+  if (!isSafeInternalPath(path)) return false;
+  if (userRole !== 'admin' && isAdminOnlyPath(path)) return false;
+  return true;
+}
+
 export function locationToPath(loc) {
   if (!loc) return null;
   if (typeof loc === 'string') return loc;
@@ -37,10 +58,10 @@ export function locationToPath(loc) {
  */
 export function getPostAuthRedirect({ location, userRole } = {}) {
   const fromPath = locationToPath(location?.state?.from);
-  if (isSafeInternalPath(fromPath)) return fromPath;
+  if (canAccessPath(fromPath, userRole)) return fromPath;
 
   const queryRedirect = new URLSearchParams(location?.search || '').get('redirect');
-  if (isSafeInternalPath(queryRedirect)) return queryRedirect;
+  if (canAccessPath(queryRedirect, userRole)) return queryRedirect;
 
-  return userRole === 'admin' ? '/dashboard' : '/';
+  return defaultPathForRole(userRole);
 }
