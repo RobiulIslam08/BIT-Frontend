@@ -182,7 +182,7 @@ export default function TermsAndConditions() {
                   </li>
                   <li>
                     <CheckCircle2 size={16} style={{ color: '#34A853' }} />
-                    <span><strong>Wallet</strong> — account balance, promotional credit, top-ups, and withdrawals (subject to Our Policy).</span>
+                    <span><strong>Account Balance</strong> — funds you add, promotional credit, top-ups, and withdrawals (subject to Our Policy).</span>
                   </li>
                 </ul>
                 <p className="terms-text">
@@ -343,11 +343,11 @@ export default function TermsAndConditions() {
                 <ul className="terms-list">
                   <li>
                     <CreditCard size={16} style={{ color: '#4285F4' }} />
-                    <span><strong>PayPal</strong> — Primary online payment method for many checkouts and wallet top-ups. Confirmation is typically instant after successful authorization.</span>
+                    <span><strong>PayPal</strong> — Primary online payment method for many checkouts and account balance top-ups. Confirmation is typically instant after successful authorization.</span>
                   </li>
                   <li>
                     <Wallet size={16} style={{ color: '#4285F4' }} />
-                    <span><strong>Wallet balance</strong> — Where enabled, you may pay using Account Balance and/or Promotional Credit according to Our Policy.</span>
+                    <span><strong>Account Balance</strong> — Where enabled, you may pay using Account Balance and/or Promotional Credit according to Our Policy.</span>
                   </li>
                   <li>
                     <Banknote size={16} style={{ color: '#4285F4' }} />

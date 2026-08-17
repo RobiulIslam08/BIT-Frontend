@@ -18,7 +18,7 @@ import './OurPolicy.css';
 const NAV_LINKS = [
   { href: '#privacy', icon: Shield, label: 'Privacy' },
   { href: '#transaction', icon: CreditCard, label: 'Transactions' },
-  { href: '#wallet', icon: Wallet, label: 'Wallet Rules' },
+  { href: '#wallet', icon: Wallet, label: 'Account Balance Rules' },
   { href: '#refund', icon: RefreshCw, label: 'Refunds' },
   { href: '#retention', icon: Database, label: 'Data Retention' },
   { href: '#notices', icon: Bell, label: 'Important Notices' },
@@ -48,7 +48,7 @@ export default function OurPolicy() {
                 Our <span className="text-gradient">Policy</span>
               </h1>
               <p className="terms-hero__desc">
-                How {COMPANY.name} handles your data, payments, wallet balances, and refunds.
+                How {COMPANY.name} handles your data, payments, account balances, and refunds.
                 Read this together with our{' '}
                 <Link to="/terms" style={{ color: 'var(--color-primary)', fontWeight: 600 }}>Terms of Service</Link>.
               </p>
@@ -107,7 +107,7 @@ export default function OurPolicy() {
                   </li>
                 </ul>
                 <p className="terms-text"><strong>How we use it:</strong> to create and secure accounts, fulfill orders,
-                  process wallet top-ups and withdrawals, communicate about services, prevent fraud, and
+                  process account balance top-ups and withdrawals, communicate about services, prevent fraud, and
                   improve the platform.</p>
                 <p className="terms-text"><strong>Sharing:</strong> We share data with processors only as needed —
                   for example PayPal for payments, domain registries/registrars, hosting infrastructure,
@@ -138,11 +138,11 @@ export default function OurPolicy() {
                   </li>
                   <li>
                     <Banknote size={16} style={{ color: '#FBBC05' }} />
-                    <span><strong>2. Payment</strong> — You pay via PayPal, wallet balance (where available), or an approved manual method.</span>
+                    <span><strong>2. Payment</strong> — You pay via PayPal, account balance (where available), or an approved manual method.</span>
                   </li>
                   <li>
                     <CheckCircle2 size={16} style={{ color: '#FBBC05' }} />
-                    <span><strong>3. Confirmation</strong> — PayPal/wallet charges confirm instantly when successful. Manual payments are verified by our team (usually within 24 hours) before the order is marked paid.</span>
+                    <span><strong>3. Confirmation</strong> — PayPal and account balance charges confirm instantly when successful. Manual payments are verified by our team (usually within 24 hours) before the order is marked paid.</span>
                   </li>
                   <li>
                     <FileText size={16} style={{ color: '#FBBC05' }} />
@@ -168,10 +168,10 @@ export default function OurPolicy() {
               <div id="wallet" className="terms-section">
                 <div className="terms-section-header">
                   <div className="terms-section-icon purple"><Wallet size={20} /></div>
-                  <h2 className="terms-section-title">Wallet Business Rules</h2>
+                  <h2 className="terms-section-title">Account Balance Rules</h2>
                 </div>
                 <p className="terms-text">
-                  Your My Account wallet may show two balances that work differently:
+                  Your My Account balance may show two amounts that work differently:
                 </p>
                 <ul className="terms-list">
                   <li>
@@ -185,7 +185,7 @@ export default function OurPolicy() {
                 </ul>
                 <p className="terms-text"><strong>Top-up:</strong> You create a top-up order and complete payment
                   with PayPal. After PayPal returns a successful authorization, we credit your Account Balance.
-                  If return completion fails, you may retry completing the same PayPal order from the wallet screen.</p>
+                  If return completion fails, you may retry completing the same PayPal order from the Account Balance screen.</p>
                 <p className="terms-text"><strong>Withdrawal:</strong> You may request a payout from Account Balance
                   only. Promotional Credit cannot be withdrawn. A withdrawal fee may apply, and you typically
                   need enough balance to cover at least a $1 payout plus the fee. Requests are reviewed and
@@ -281,7 +281,7 @@ export default function OurPolicy() {
                   <h2 className="terms-section-title">Data Retention & User Rights</h2>
                 </div>
                 <p className="terms-text">
-                  We retain account, order, and wallet records for as long as needed to provide services,
+                  We retain account, order, and balance records for as long as needed to provide services,
                   meet accounting/legal obligations, and resolve disputes. Support tickets and logs may be
                   kept for a limited operational period.
                 </p>
@@ -319,7 +319,7 @@ export default function OurPolicy() {
                   </li>
                   <li>
                     <Info size={16} style={{ color: '#FBBC05' }} />
-                    <span><strong>Admin adjustments</strong> — Balance corrections, promotional grants, and dispute resolutions may appear as adjustments in your wallet history.</span>
+                    <span><strong>Admin adjustments</strong> — Balance corrections, promotional grants, and dispute resolutions may appear as adjustments in your account history.</span>
                   </li>
                   <li>
                     <Info size={16} style={{ color: '#FBBC05' }} />
@@ -336,7 +336,7 @@ export default function OurPolicy() {
                   <h2 className="terms-section-title">Contact for Policy Questions</h2>
                 </div>
                 <p className="terms-text">
-                  Questions about privacy, a specific transaction, wallet balance, or a refund request:
+                  Questions about privacy, a specific transaction, account balance, or a refund request:
                 </p>
                 <ul className="terms-list">
                   <li>
@@ -357,7 +357,7 @@ export default function OurPolicy() {
                   <span>
                     Service eligibility and account rules are in our{' '}
                     <Link to="/terms" style={{ color: 'var(--color-primary)', fontWeight: 700 }}>Terms of Service</Link>.
-                    This page focuses on privacy, payments, wallet logic, and refunds.
+                    This page focuses on privacy, payments, account balance rules, and refunds.
                   </span>
                 </div>
 

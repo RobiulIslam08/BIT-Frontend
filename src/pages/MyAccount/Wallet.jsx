@@ -86,7 +86,7 @@ export default function Wallet() {
       if (t?.success) setTxns(t.data || []);
       if (w?.success) setWithdrawals(w.data || []);
     } catch (err) {
-      toast.error(err?.response?.data?.message || 'Failed to load wallet.');
+      toast.error(err?.response?.data?.message || 'Failed to load account balance.');
     } finally {
       setLoading(false);
     }
@@ -108,7 +108,7 @@ export default function Wallet() {
     try {
       const res = await completeTopup(paypalOrderId);
       if (res?.success) {
-        toast.success(res.message || 'Wallet topped up successfully!');
+        toast.success(res.message || 'Account balance topped up successfully!');
         await Promise.all([loadAll(), refreshProfile()]);
         clearPayPalReturnParams();
         return true;
@@ -163,7 +163,7 @@ export default function Wallet() {
     <motion.div key="wallet" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
       <div className="myaccount__section-header">
         <div>
-          <h2 className="h4">My Wallet</h2>
+          <h2 className="h4">Account Balance</h2>
           <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginTop: '0.25rem' }}>
             Add funds, pay for services, and manage promotional credit
           </p>
@@ -233,7 +233,7 @@ export default function Wallet() {
               type="button"
               onClick={() => {
                 if (summary == null) {
-                  toast.warning('Wallet is still loading. Please wait a moment.');
+                  toast.warning('Account balance is still loading. Please wait a moment.');
                   return;
                 }
                 if (sendable < 1) {
@@ -252,7 +252,7 @@ export default function Wallet() {
               type="button"
               onClick={() => {
                 if (summary == null) {
-                  toast.warning('Wallet is still loading. Please wait a moment.');
+                  toast.warning('Account balance is still loading. Please wait a moment.');
                   return;
                 }
                 if (withdrawable < 1) {
@@ -443,7 +443,7 @@ function TopupModal({ summary, onClose, onDone, formatPrice }) {
     try {
       const res = await completeTopup(data.orderID);
       if (res?.success) {
-        toast.success('Wallet topped up successfully!');
+        toast.success('Account balance topped up successfully!');
         onDone();
       } else {
         setError(res?.message || 'Top-up could not be completed.');
@@ -479,7 +479,7 @@ function TopupModal({ summary, onClose, onDone, formatPrice }) {
           <div className="wallet-breakdown">
             <div><span>You pay</span><strong>${gross.toFixed(2)}</strong></div>
             <div><span>Fee ({feePercent}%)</span><strong>- ${fee.toFixed(2)}</strong></div>
-            <div className="wallet-breakdown__net"><span>Credited to wallet</span><strong>${net.toFixed(2)}</strong></div>
+            <div className="wallet-breakdown__net"><span>Credited to account balance</span><strong>${net.toFixed(2)}</strong></div>
           </div>
           <p className="wallet-note"><Info size={12} /> ≈ {formatPrice(net)} will be added to your balance.</p>
 
@@ -518,7 +518,7 @@ function TopupModal({ summary, onClose, onDone, formatPrice }) {
         <div style={{ textAlign: 'center', padding: '1.5rem' }}>
           <Loader2 size={28} className="spin" style={{ color: 'var(--color-primary)' }} />
           <p style={{ marginTop: '0.75rem', color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)' }}>
-            Crediting your wallet...
+            Crediting your account balance...
           </p>
         </div>
       )}
@@ -631,7 +631,7 @@ function WithdrawModal({ summary, onClose, onDone, formatPrice }) {
       <p className="wallet-note" style={{ marginTop: 0 }}>
         <Info size={12} /> Only whole-dollar amounts of your <strong>Account Balance</strong> can be withdrawn.
         A <strong>{feePercent}%</strong> fee is held from your remaining balance in addition to the payout.
-        Promotional credit stays in your wallet. Max payout: <strong>${max}</strong>.
+        Promotional credit stays in your account. Max payout: <strong>${max}</strong>.
       </p>
 
       {max < 1 ? (

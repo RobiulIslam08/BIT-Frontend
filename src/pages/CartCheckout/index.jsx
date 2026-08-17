@@ -139,7 +139,7 @@ export default function CartCheckout() {
     e.preventDefault();
     if (!validateForm() || !items.length) return;
     if (!canAffordWallet) {
-      toast.warning('Insufficient wallet balance.');
+      toast.warning('Insufficient account balance.');
       return;
     }
     setIsCompleting(true);
@@ -169,10 +169,10 @@ export default function CartCheckout() {
           items: gaItems,
         });
       } else {
-        setOrderError(res.message || 'Wallet payment failed.');
+        setOrderError(res.message || 'Account balance payment failed.');
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Wallet payment failed.';
+      const msg = err?.response?.data?.message || 'Account balance payment failed.';
       setOrderError(msg);
       toast.error(msg);
     } finally {
@@ -291,7 +291,7 @@ export default function CartCheckout() {
                 </div>
                 <div style={{ marginTop: '0.65rem', display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                   {[
-                    { icon: Shield, text: 'Secure PayPal / Wallet payment', color: '#8b5cf6' },
+                    { icon: Shield, text: 'Secure PayPal / Account Balance payment', color: '#8b5cf6' },
                     { icon: Lock, text: 'Live server pricing at checkout', color: '#3b82f6' },
                     { icon: CheckCircle2, text: 'Failed lines auto-refunded', color: '#22c55e' },
                   ].map(({ icon: Icon, text, color }) => (
@@ -358,7 +358,7 @@ export default function CartCheckout() {
                       display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 6,
                     }}
                   >
-                    <Wallet size={14} /> Wallet
+                    <Wallet size={14} /> Account Balance
                   </button>
                 </div>
                 {payMethod === 'wallet' && (
@@ -405,7 +405,7 @@ export default function CartCheckout() {
                 {(isCreatingOrder || isCompleting)
                   ? <><Loader2 size={16} style={{ animation: 'spin 1s linear infinite' }} /> Processing…</>
                   : payMethod === 'wallet'
-                    ? <>Pay with Wallet · {formatPriceWithCode(totalUSD)}</>
+                    ? <>Pay with Account Balance · {formatPriceWithCode(totalUSD)}</>
                     : <>Continue to PayPal · {formatPriceWithCode(totalUSD)}</>}
               </button>
               <div style={{ textAlign: 'center', marginTop: '0.75rem' }}>

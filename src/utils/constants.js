@@ -79,6 +79,7 @@ export const NAV_ITEMS = [
       { label: 'Google My Business', path: '/services/google-my-business' },
       { label: 'Tabby Business Account', path: '/services/tabby-business' },
       { label: 'Domain & Hosting', path: '/services/domain-hosting' },
+      { label: 'Business Email', path: '/services/business-email' },
     ],
   },
   { label: 'About', path: '/about', key: 'about' },
@@ -198,5 +199,12 @@ export const SERVICES = [
     description: 'Reliable hosting plans and domain registration at the best prices.',
     icon: 'HardDrive',
     path: '/services/domain-hosting',
+  },
+  {
+    id: 'business-email',
+    title: 'Business Email',
+    description: 'Professional custom email for your company with storage, meetings, and admin tools.',
+    icon: 'Mail',
+    path: '/services/business-email',
   },
 ];

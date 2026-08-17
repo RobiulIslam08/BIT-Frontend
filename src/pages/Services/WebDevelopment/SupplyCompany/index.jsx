@@ -71,7 +71,7 @@ const FAQS = [
   },
   {
     q: 'How do I pay?',
-    a: 'You can pay securely with PayPal or your BIT wallet balance. Prices are shown in SAR; PayPal settles in USD at the fixed rate of 3.75.',
+    a: 'You can pay securely with PayPal or your BIT account balance. Prices are shown in SAR; PayPal settles in USD at the fixed rate of 3.75.',
   },
   {
     q: 'When do I get access?',
@@ -272,7 +272,7 @@ export default function SupplyCompany() {
         setOrderError(res.message || 'Payment failed.');
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Wallet payment failed.';
+      const msg = err?.response?.data?.message || 'Account balance payment failed.';
       setOrderError(msg);
       toast.error(msg);
     } finally {
@@ -353,7 +353,7 @@ export default function SupplyCompany() {
                 </button>
               </div>
               <div className="page-hero__badges">
-                <div className="page-hero__badge-item"><CheckCircle2 size={16} style={{ color: 'var(--color-success)' }} /> PayPal &amp; Wallet</div>
+                <div className="page-hero__badge-item"><CheckCircle2 size={16} style={{ color: 'var(--color-success)' }} /> PayPal &amp; Account Balance</div>
                 <div className="page-hero__badge-item"><CheckCircle2 size={16} style={{ color: 'var(--color-success)' }} /> 1-month trial</div>
                 <div className="page-hero__badge-item"><CheckCircle2 size={16} style={{ color: 'var(--color-success)' }} /> Monthly &amp; Yearly</div>
               </div>
@@ -476,7 +476,7 @@ export default function SupplyCompany() {
       <ScrollBlurReveal className="section-sm scp-trust">
         <div className="container scp-trust__row">
           <div className="scp-trust__item"><Lock size={18} /> Secure PayPal checkout</div>
-          <div className="scp-trust__item"><Wallet size={18} /> Pay with BIT Wallet</div>
+          <div className="scp-trust__item"><Wallet size={18} /> Pay with Account Balance</div>
           <div className="scp-trust__item"><Truck size={18} /> Built for Saudi supply ops</div>
         </div>
       </ScrollBlurReveal>
@@ -625,7 +625,7 @@ export default function SupplyCompany() {
                         className={`scp-pay-method ${payMethod === 'wallet' ? 'is-active' : ''}`}
                         onClick={() => setPayMethod('wallet')}
                       >
-                        Wallet {walletSummary ? `($${walletBalance.toFixed(2)})` : ''}
+                        Account Balance {walletSummary ? `($${walletBalance.toFixed(2)})` : ''}
                       </button>
                     </div>
 
@@ -637,7 +637,7 @@ export default function SupplyCompany() {
                     >
                       {(isCreatingOrder || isCompleting) && <Loader2 size={16} className="spin" />}
                       {payMethod === 'wallet'
-                        ? `Pay ${formatSAR(amountSAR)} with Wallet`
+                        ? `Pay ${formatSAR(amountSAR)} with Account Balance`
                         : 'Continue to PayPal'}
                     </button>
                   </form>

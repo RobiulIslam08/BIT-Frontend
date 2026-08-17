@@ -416,7 +416,7 @@ export default function DomainDetails() {
                     )}
                     {!walletLoaded && (
                       <div className="renew-wallet-box__hint">
-                        Loading wallet balance…
+                        Loading account balance…
                       </div>
                     )}
                   </div>

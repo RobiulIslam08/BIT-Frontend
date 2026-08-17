@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Package, Tag, Users, FileText,
   ShoppingCart, Settings, BarChart3, LogOut,
   Menu, X, ChevronRight, Globe, Server, MapPin,
-  Wallet, ArrowUpRight, Gift, PieChart, CreditCard,
+  Wallet, ArrowUpRight, Gift, PieChart, CreditCard, Mail,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { useAppDispatch } from '@/app/hooks';
@@ -31,6 +31,9 @@ const SIDEBAR_ITEMS = [
   { label: 'Hosting Orders', path: '/dashboard/hosting-orders', icon: ShoppingCart },
   { label: 'Hostings', path: '/dashboard/hostings', icon: Server },
   { label: 'Hosting Plans', path: '/dashboard/hosting-plans', icon: Tag },
+  { label: 'Email Orders', path: '/dashboard/email-orders', icon: ShoppingCart },
+  { label: 'Business Emails', path: '/dashboard/emails', icon: Mail },
+  { label: 'Email Plans', path: '/dashboard/email-plans', icon: Tag },
   { label: 'Service Analysis', path: '/dashboard/service-analysis', icon: PieChart },
   { label: 'Users', path: '/dashboard/users', icon: Users },
   { label: 'Grant Credit', path: '/dashboard/wallet-grant-credit', icon: Gift },

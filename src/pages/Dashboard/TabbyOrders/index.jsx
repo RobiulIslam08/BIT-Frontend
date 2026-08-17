@@ -296,7 +296,7 @@ export default function AdminTabbyOrders() {
                     <AlertCircle size={16} />
                     {selected.refundStatus === 'requested'
                       ? <>Customer requested a refund: {selected.refundReason}</>
-                      : <>Issue a refund to PayPal or wallet if Tabby cannot be activated.</>}
+                      : <>Issue a refund to PayPal or account balance if Tabby cannot be activated.</>}
                     <label className="tabby-admin-label">
                       Refund note
                       <textarea rows={2} value={refundNote} onChange={(e) => setRefundNote(e.target.value)} placeholder="Visible in admin history / reject reason" />

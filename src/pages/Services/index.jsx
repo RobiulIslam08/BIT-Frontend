@@ -3,7 +3,7 @@
 // ============================================
 
 import { Link } from 'react-router-dom';
-import { ArrowRight, Globe, Database, Smartphone, Share2, Palette, PenTool, Server, TrendingUp, MapPin, HardDrive, Phone, CreditCard } from 'lucide-react';
+import { ArrowRight, Globe, Database, Smartphone, Share2, Palette, PenTool, Server, TrendingUp, MapPin, HardDrive, Phone, CreditCard, Mail } from 'lucide-react';
 import { motion } from 'motion/react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { FadeInUp } from '@/components/animations/FadeInUp';
@@ -11,7 +11,7 @@ import { StaggerChildren, StaggerItem } from '@/components/animations/StaggerChi
 import { ScrollBlurReveal } from '@/components/animations/ScrollBlurReveal';
 import { SERVICES, COMPANY } from '@/utils/constants';
 
-const ICON_MAP = { Globe, Database, Smartphone, Share2, Palette, PenTool, Server, TrendingUp, MapPin, HardDrive, CreditCard };
+const ICON_MAP = { Globe, Database, Smartphone, Share2, Palette, PenTool, Server, TrendingUp, MapPin, HardDrive, CreditCard, Mail };
 
 export default function Services() {
   return (

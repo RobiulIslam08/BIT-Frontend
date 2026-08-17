@@ -378,7 +378,7 @@ export default function Step5Payment({ form, businessHours, onBack, onSubmit, is
         return;
       }
       if (!walletSufficient) {
-        const msg = 'Insufficient wallet balance. Please add funds or choose another method.';
+        const msg = 'Insufficient account balance. Please add funds or choose another method.';
         setValidationError(msg);
         toast.warning(msg);
         return;
@@ -709,11 +709,11 @@ export default function Step5Payment({ form, businessHours, onBack, onSubmit, is
             </div>
             <span className="gmb-payment-card-desc">
               {!isAuthenticated ? (
-                <>Please <Link to="/auth/login" state={{ from: location }}>log in</Link> to pay instantly from your wallet balance.</>
+                <>Please <Link to="/auth/login" state={{ from: location }}>log in</Link> to pay instantly from your account balance.</>
               ) : !walletLoaded ? (
-                <>Loading wallet balance…</>
+                <>Loading account balance…</>
               ) : (
-                <>Instant payment from your wallet. Balance: <strong>{formatPriceWithCode(walletBalance)}</strong>
+                <>Instant payment from your account balance. Balance: <strong>{formatPriceWithCode(walletBalance)}</strong>
                   {!walletSufficient && (
                     <> — <span style={{ color: '#dc2626' }}>insufficient. <Link to="/my-account?tab=wallet">Add funds</Link></span></>
                   )}

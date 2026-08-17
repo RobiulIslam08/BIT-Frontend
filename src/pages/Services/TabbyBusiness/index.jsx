@@ -318,7 +318,7 @@ export default function TabbyBusiness() {
                 <div className="tabby-price-card__label">One-time setup</div>
                 <div className="tabby-price-card__amount">{formatFromSARWithCode(TABBY_PRICE_SAR)}</div>
                 <p style={{ color: 'var(--color-text-muted)', fontSize: 14, margin: 0 }}>
-                  PayPal checkout. Wallet balance also accepted.
+                  PayPal checkout. Account balance also accepted.
                 </p>
                 <ul className="tabby-price-card__list">
                   <li><CheckCircle2 size={16} color="#0d9488" /> Application prepared for Tabby Business</li>

@@ -198,7 +198,7 @@ export default function DomainCheckout() {
         setOrderError(res.message || 'Payment failed. Please try again.');
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Wallet payment failed. Please try again.';
+      const msg = err?.response?.data?.message || 'Account balance payment failed. Please try again.';
       setOrderError(msg);
       toast.error(msg);
     } finally {
@@ -404,10 +404,10 @@ export default function DomainCheckout() {
                     </div>
                     {payMethod === 'wallet' && walletSummary && (
                       <div className="pay-method-chooser__hint">
-                        Wallet balance: <strong>{formatPriceWithCode(walletSummary.totalBalance)}</strong>
+                        Account balance: <strong>{formatPriceWithCode(walletSummary.totalBalance)}</strong>
                         {!priceReady && !priceLoading && (
                           <span className="pay-method-chooser__warn">
-                            Live domain price unavailable — wallet pay is disabled until pricing loads.
+                            Live domain price unavailable — account balance pay is disabled until pricing loads.
                           </span>
                         )}
                         {priceReady && priceUSD != null && walletSummary.totalBalance < priceUSD && (

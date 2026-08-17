@@ -187,7 +187,7 @@ export default function HostingCheckout() {
         setOrderError(res.message || 'Payment failed. Please try again.');
       }
     } catch (err) {
-      const msg = err?.response?.data?.message || 'Wallet payment failed. Please try again.';
+      const msg = err?.response?.data?.message || 'Account balance payment failed. Please try again.';
       setOrderError(msg);
       toast.error(msg);
     } finally {
@@ -425,7 +425,7 @@ export default function HostingCheckout() {
                         </div>
                         {payMethod === 'wallet' && walletSummary && (
                           <div className="pay-method-chooser__hint">
-                            Wallet balance: <strong>{formatPriceWithCode(walletSummary.totalBalance)}</strong>
+                            Account balance: <strong>{formatPriceWithCode(walletSummary.totalBalance)}</strong>
                             {walletSummary.totalBalance < priceUSD && (
                               <span className="pay-method-chooser__error">
                                 Insufficient balance.{' '}

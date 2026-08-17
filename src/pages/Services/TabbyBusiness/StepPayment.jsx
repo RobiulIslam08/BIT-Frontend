@@ -80,7 +80,7 @@ function PayPalCheckoutButtons({ termsAccepted, setError, isBusy, setBusy, onPay
         }
       }}
       onError={() => {
-        const msg = 'PayPal payment failed. Please try again or use wallet balance.';
+        const msg = 'PayPal payment failed. Please try again or use account balance.';
         setError(msg);
         toast.error(msg);
       }}
@@ -160,7 +160,7 @@ export default function StepPayment({ form, files, onBack, onSubmit, isSubmittin
       return;
     }
     if (!walletSufficient) {
-      const msg = 'Insufficient wallet balance. Please add funds or choose PayPal.';
+      const msg = 'Insufficient account balance. Please add funds or choose PayPal.';
       setError(msg);
       toast.error(msg);
       return;
@@ -213,13 +213,13 @@ export default function StepPayment({ form, files, onBack, onSubmit, isSubmittin
             <label className={`tabby-pay-card ${paymentMethod === 'paypal' ? 'is-on' : ''}`}>
               <input type="radio" name="tabbyPay" checked={paymentMethod === 'paypal'} onChange={() => setPaymentMethod('paypal')} style={{ display: 'none' }} />
               <CreditCard size={18} />
-              <div style={{ fontWeight: 800, marginTop: 6 }}>PayPal</div>
+              <div style={{ fontWeight: 800, marginTop: 6 }}>Pay with Card</div>
               <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>Pay 500 SAR securely (charged in USD)</div>
             </label>
             <label className={`tabby-pay-card ${paymentMethod === 'wallet' ? 'is-on' : ''}`}>
               <input type="radio" name="tabbyPay" checked={paymentMethod === 'wallet'} onChange={() => setPaymentMethod('wallet')} style={{ display: 'none' }} />
               <Wallet size={18} />
-              <div style={{ fontWeight: 800, marginTop: 6 }}>Wallet</div>
+              <div style={{ fontWeight: 800, marginTop: 6 }}>Account Balance</div>
               <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>
                 {walletSummary == null ? 'Loading balance…' : (
                   <>Balance: <strong>{formatPriceWithCode(walletBalance)}</strong>

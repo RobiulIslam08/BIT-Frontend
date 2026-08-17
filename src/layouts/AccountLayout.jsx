@@ -9,7 +9,7 @@ import { useSelector } from 'react-redux';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   User, Globe, Server, Wallet, CreditCard, LayoutDashboard,
-  LogOut, Menu, X, Home, ChevronRight, MapPin, Package,
+  LogOut, Menu, X, Home, ChevronRight, MapPin, Package, Mail,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { useAppDispatch } from '@/app/hooks';
@@ -21,9 +21,10 @@ const NAV_ITEMS = [
   { id: 'profile', label: 'Profile', icon: User, to: '/my-account' },
   { id: 'domains', label: 'My Domains', icon: Globe, to: '/my-account?tab=domains' },
   { id: 'hosting', label: 'My Hosting', icon: Server, to: '/my-account?tab=hosting' },
+  { id: 'email', label: 'My Email', icon: Mail, to: '/my-account?tab=email' },
   { id: 'gmb', label: 'My GMB', icon: MapPin, to: '/my-account?tab=gmb' },
   { id: 'services', label: 'Services', icon: Package, to: '/my-account?tab=services' },
-  { id: 'wallet', label: 'Wallet', icon: Wallet, to: '/my-account?tab=wallet' },
+  { id: 'wallet', label: 'Account Balance', icon: Wallet, to: '/my-account?tab=wallet' },
   { id: 'billing', label: 'Billing', icon: CreditCard, to: '/my-account?tab=billing' },
 ];
 
@@ -31,15 +32,17 @@ const PAGE_TITLES = {
   profile: 'Profile',
   domains: 'My Domains',
   hosting: 'My Hosting',
+  email: 'My Email',
   gmb: 'My GMB',
   services: 'Services',
-  wallet: 'Wallet',
+  wallet: 'Account Balance',
   billing: 'Billing',
 };
 
 function resolveActiveSection(pathname, searchParams) {
   if (pathname.startsWith('/my-account/domains')) return 'domains';
   if (pathname.startsWith('/my-account/hosting')) return 'hosting';
+  if (pathname.startsWith('/my-account/email')) return 'email';
   if (pathname.startsWith('/my-account/gmb')) return 'gmb';
   if (pathname.startsWith('/my-account/profile')) return 'profile';
   if (pathname === '/my-account' || pathname === '/my-account/') {
@@ -54,6 +57,7 @@ function resolvePageTitle(pathname, section) {
   if (pathname.includes('/profile/edit')) return 'Edit Profile';
   if (/\/my-account\/domains\/[^/]+/.test(pathname)) return 'Domain Details';
   if (/\/my-account\/hosting\/[^/]+/.test(pathname)) return 'Hosting Details';
+  if (/\/my-account\/email\/[^/]+/.test(pathname)) return 'Email Details';
   if (/\/my-account\/gmb\/[^/]+/.test(pathname)) return 'GMB Profile';
   return PAGE_TITLES[section] || 'My Account';
 }

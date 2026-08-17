@@ -33,14 +33,17 @@ const OnlineMarketing = lazy(() => import('@/pages/Services/OnlineMarketing'));
 const GoogleMyBusiness = lazy(() => import('@/pages/Services/GoogleMyBusiness'));
 const TabbyBusiness = lazy(() => import('@/pages/Services/TabbyBusiness'));
 const DomainHosting = lazy(() => import('@/pages/Services/DomainHosting'));
+const BusinessEmail = lazy(() => import('@/pages/Services/BusinessEmail'));
 const DomainCheckout = lazy(() => import('@/pages/DomainCheckout'));
 const HostingCheckout = lazy(() => import('@/pages/HostingCheckout'));
+const EmailCheckout = lazy(() => import('@/pages/EmailCheckout'));
 const CartPage = lazy(() => import('@/pages/Cart'));
 const CartCheckout = lazy(() => import('@/pages/CartCheckout'));
 const MyAccount = lazy(() => import('@/pages/MyAccount'));
 const ProfileEdit = lazy(() => import('@/pages/ProfileEdit'));
 const DomainDetails = lazy(() => import('@/pages/DomainDetails'));
 const HostingDetails = lazy(() => import('@/pages/HostingDetails'));
+const EmailDetails = lazy(() => import('@/pages/EmailDetails'));
 const GmbProfileDetails = lazy(() => import('@/pages/GmbProfileDetails'));
 const TabbyOrderDetails = lazy(() => import('@/pages/TabbyOrderDetails'));
 const TermsAndConditions = lazy(() => import('@/pages/TermsAndConditions'));
@@ -64,6 +67,9 @@ const AdminHostings = lazy(() => import('@/pages/Dashboard/Hostings'));
 const AdminGmbProfiles = lazy(() => import('@/pages/Dashboard/GmbProfiles'));
 const AdminHostingOrders = lazy(() => import('@/pages/Dashboard/HostingOrders'));
 const AdminHostingPlans = lazy(() => import('@/pages/Dashboard/HostingPlans'));
+const AdminEmailOrders = lazy(() => import('@/pages/Dashboard/EmailOrders'));
+const AdminEmails = lazy(() => import('@/pages/Dashboard/Emails'));
+const AdminEmailPlans = lazy(() => import('@/pages/Dashboard/EmailPlans'));
 const AdminServiceAnalysis = lazy(() => import('@/pages/Dashboard/ServiceAnalysis'));
 const DashboardUsers = lazy(() => import('@/pages/Dashboard/Users'));
 const DashboardUserDetails = lazy(() => import('@/pages/Dashboard/UserDetails'));
@@ -99,6 +105,7 @@ export const router = createBrowserRouter([
       { path: 'services/google-my-business', element: <SuspenseWrap><GoogleMyBusiness /></SuspenseWrap> },
       { path: 'services/tabby-business', element: <SuspenseWrap><TabbyBusiness /></SuspenseWrap> },
       { path: 'services/domain-hosting', element: <SuspenseWrap><DomainHosting /></SuspenseWrap> },
+      { path: 'services/business-email', element: <SuspenseWrap><BusinessEmail /></SuspenseWrap> },
       { path: 'cart', element: <SuspenseWrap><CartPage /></SuspenseWrap> },
       { path: 'terms-and-conditions', element: <SuspenseWrap><TermsAndConditions /></SuspenseWrap> },
       { path: 'terms', element: <SuspenseWrap><TermsAndConditions /></SuspenseWrap> },
@@ -111,6 +118,7 @@ export const router = createBrowserRouter([
         children: [
           { path: 'domain-checkout', element: <SuspenseWrap><DomainCheckout /></SuspenseWrap> },
           { path: 'hosting-checkout', element: <SuspenseWrap><HostingCheckout /></SuspenseWrap> },
+          { path: 'email-checkout', element: <SuspenseWrap><EmailCheckout /></SuspenseWrap> },
           { path: 'cart-checkout', element: <SuspenseWrap><CartCheckout /></SuspenseWrap> },
         ],
       },
@@ -129,6 +137,7 @@ export const router = createBrowserRouter([
           { path: 'profile/edit', element: <SuspenseWrap><ProfileEdit /></SuspenseWrap> },
           { path: 'domains/:id', element: <SuspenseWrap><DomainDetails /></SuspenseWrap> },
           { path: 'hosting/:id', element: <SuspenseWrap><HostingDetails /></SuspenseWrap> },
+          { path: 'email/:id', element: <SuspenseWrap><EmailDetails /></SuspenseWrap> },
           { path: 'gmb/:id', element: <SuspenseWrap><GmbProfileDetails /></SuspenseWrap> },
           { path: 'tabby/:id', element: <SuspenseWrap><TabbyOrderDetails /></SuspenseWrap> },
         ],
@@ -171,6 +180,9 @@ export const router = createBrowserRouter([
           { path: 'hosting-orders', element: <SuspenseWrap><AdminHostingOrders /></SuspenseWrap> },
           { path: 'hostings', element: <SuspenseWrap><AdminHostings /></SuspenseWrap> },
           { path: 'hosting-plans', element: <SuspenseWrap><AdminHostingPlans /></SuspenseWrap> },
+          { path: 'email-orders', element: <SuspenseWrap><AdminEmailOrders /></SuspenseWrap> },
+          { path: 'emails', element: <SuspenseWrap><AdminEmails /></SuspenseWrap> },
+          { path: 'email-plans', element: <SuspenseWrap><AdminEmailPlans /></SuspenseWrap> },
           { path: 'service-analysis', element: <SuspenseWrap><AdminServiceAnalysis /></SuspenseWrap> },
           { path: 'users', element: <SuspenseWrap><DashboardUsers /></SuspenseWrap> },
           { path: 'users/:id', element: <SuspenseWrap><DashboardUserDetails /></SuspenseWrap> },

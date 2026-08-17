@@ -17,6 +17,7 @@ import { SEOHead } from '@/components/common/SEOHead';
 import { selectCurrentUser, selectIsAuthenticated, updateUser } from '@/features/auth/authSlice';
 import { getMyDomains } from '@/api/domainsApi';
 import { getMyHostings, openCpanelLogin, sendCpanelAccessEmail } from '@/api/hostingApi';
+import { getMyEmails, sendWebmailAccessEmail } from '@/api/emailsApi';
 import { getMyGmbProfiles } from '@/api/gmbProfileApi';
 import { getMyTabbyOrders } from '@/api/tabbyOrderApi';
 import { getMyProfile } from '@/api/userApi';
@@ -32,10 +33,11 @@ const TABS = [
   { id: 'profile', label: 'Profile', icon: Settings },
   { id: 'domains', label: 'My Domains', icon: Globe },
   { id: 'hosting', label: 'My Hosting', icon: Server },
+  { id: 'email', label: 'My Email', icon: Mail },
   { id: 'gmb', label: 'My GMB', icon: MapPin },
   { id: 'tabby', label: 'Tabby', icon: CreditCard },
   { id: 'services', label: 'Services', icon: Package },
-  { id: 'wallet', label: 'Wallet', icon: Wallet },
+  { id: 'wallet', label: 'Account Balance', icon: Wallet },
   { id: 'billing', label: 'Billing', icon: CreditCard },
 ];
 
@@ -102,6 +104,9 @@ export default function MyAccount() {
   const [hostings, setHostings] = useState([]);
   const [isLoadingHostings, setIsLoadingHostings] = useState(true);
   const [hostingError, setHostingError] = useState('');
+  const [emails, setEmails] = useState([]);
+  const [isLoadingEmails, setIsLoadingEmails] = useState(true);
+  const [emailError, setEmailError] = useState('');
   const [gmbProfiles, setGmbProfiles] = useState([]);
   const [isLoadingGmb, setIsLoadingGmb] = useState(true);
   const [gmbError, setGmbError] = useState('');
@@ -109,6 +114,7 @@ export default function MyAccount() {
   const [isLoadingTabby, setIsLoadingTabby] = useState(true);
   const [tabbyError, setTabbyError] = useState('');
   const [cpanelBusy, setCpanelBusy] = useState({}); // { [id]: 'login' | 'email' }
+  const [emailBusy, setEmailBusy] = useState({});
 
   // Keep tab in sync with ?tab= query (default = profile)
   useEffect(() => {
@@ -155,6 +161,19 @@ export default function MyAccount() {
       setHostingError(err?.response?.data?.message || 'Failed to load hosting.');
     } finally {
       setIsLoadingHostings(false);
+    }
+  };
+
+  const fetchEmails = async () => {
+    setIsLoadingEmails(true);
+    setEmailError('');
+    try {
+      const res = await getMyEmails();
+      if (res.success) setEmails(res.data || []);
+    } catch (err) {
+      setEmailError(err?.response?.data?.message || 'Failed to load Business Email.');
+    } finally {
+      setIsLoadingEmails(false);
     }
   };
 
@@ -225,7 +244,7 @@ export default function MyAccount() {
     }
   };
 
-  useEffect(() => { fetchDomains(); fetchHostings(); fetchGmbProfiles(); fetchTabbyOrders(); }, []);
+  useEffect(() => { fetchDomains(); fetchHostings(); fetchEmails(); fetchGmbProfiles(); fetchTabbyOrders(); }, []);
 
   // Hydrate the full profile (Namecheap-style fields + account balance) from the server.
   useEffect(() => {
@@ -297,7 +316,7 @@ export default function MyAccount() {
                     className="btn btn-primary btn-sm"
                     onClick={() => switchTab('wallet')}
                   >
-                    <Wallet size={14} /> Manage Wallet
+                    <Wallet size={14} /> Manage Account Balance
                   </button>
                 </div>
 
@@ -617,6 +636,165 @@ export default function MyAccount() {
                             </div>
                             <div className="myaccount__domain-meta-item">
                               <Server size={13} />
+                              <span style={{ textTransform: 'capitalize' }}>{item.billingCycle} billing</span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* ─── BUSINESS EMAIL TAB ─── */}
+            {activeTab === 'email' && (
+              <motion.div key="email" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <div className="myaccount__section-header">
+                  <div>
+                    <h2 className="h4">My Email</h2>
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginTop: '0.25rem' }}>
+                      View all your Business Email subscriptions
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button className="btn btn-ghost btn-sm" onClick={fetchEmails} disabled={isLoadingEmails}>
+                      <RefreshCw size={14} className={isLoadingEmails ? 'spin' : ''} /> Refresh
+                    </button>
+                    <Link to="/services/business-email" className="btn btn-primary btn-sm">
+                      <Mail size={14} /> Get Business Email
+                    </Link>
+                  </div>
+                </div>
+
+                {emailError && (
+                  <div style={{ display: 'flex', gap: '0.5rem', padding: '1rem', borderRadius: '10px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#dc2626', fontSize: 'var(--text-sm)', marginBottom: '1rem' }}>
+                    <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '1px' }} /> {emailError}
+                  </div>
+                )}
+
+                {isLoadingEmails ? (
+                  <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--color-text-muted)' }}>
+                    <Loader2 size={32} className="spin" />
+                    <p style={{ marginTop: '1rem', fontSize: 'var(--text-sm)' }}>Loading your emails...</p>
+                  </div>
+                ) : emails.length === 0 ? (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="card-elevated" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+                    <Mail size={48} style={{ color: 'var(--color-text-muted)', marginBottom: '1rem' }} />
+                    <h3 className="h5" style={{ marginBottom: '0.5rem' }}>No Business Email Yet</h3>
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginBottom: '1.5rem' }}>
+                      Choose a plan to get a professional business email for your company.
+                    </p>
+                    <Link to="/services/business-email" className="btn btn-primary">Browse Email Plans</Link>
+                  </motion.div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {emails.map((item, i) => {
+                      const status = statusConfig[item.status] || statusConfig.pending;
+                      const StatusIcon = status.icon;
+                      const label = item.primaryEmail
+                        || (item.desiredEmailLocalPart && item.domainName
+                          ? `${item.desiredEmailLocalPart}@${item.domainName}`
+                          : item.domainName || item.planName);
+                      const ready = item.provisioningStatus === 'ready' || item.hasWebmailAccess;
+                      return (
+                        <motion.div
+                          key={item._id}
+                          initial={{ opacity: 0, x: -12 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.06 }}
+                          className="card-elevated myaccount__domain-card"
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => navigate(`/my-account/email/${item._id}`)}
+                        >
+                          <div className="myaccount__domain-top">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+                              <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'var(--color-primary-muted)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <Mail size={20} style={{ color: 'var(--color-primary)' }} />
+                              </div>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontWeight: 800, fontSize: 'var(--text-lg)', fontFamily: 'var(--font-display)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {item.planName}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.15rem 0.5rem', borderRadius: '999px', fontSize: '11px', fontWeight: 700, background: status.bg, color: status.color }}>
+                                    <StatusIcon size={11} /> {status.label}
+                                  </span>
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.15rem 0.5rem', borderRadius: '999px', fontSize: '11px', fontWeight: 700, background: ready ? 'rgba(34,197,94,0.1)' : 'rgba(245,158,11,0.1)', color: ready ? '#16a34a' : '#d97706' }}>
+                                    {ready ? 'Ready' : 'Setup in progress'}
+                                  </span>
+                                  {item.status === 'active' && <ExpiryBadge expiresAt={item.expiresAt} />}
+                                  <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>{label}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                              {typeof item.amountUSD === 'number' && item.amountUSD > 0 && (
+                                <div style={{ fontWeight: 700, fontFamily: 'var(--font-display)', color: 'var(--color-primary)' }}>
+                                  {formatPrice(item.amountUSD)}
+                                </div>
+                              )}
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: 'var(--text-xs)', color: 'var(--color-primary)', marginTop: '0.3rem', fontWeight: 600 }}>
+                                Details <ChevronRight size={13} />
+                              </div>
+                            </div>
+                          </div>
+
+                          {(ready || item.webmailUrl) && (
+                            <div
+                              className="myaccount__cpanel-actions"
+                              onClick={(e) => e.stopPropagation()}
+                              role="group"
+                            >
+                              {item.webmailUrl && (
+                                <a
+                                  className="btn btn-primary btn-sm"
+                                  href={item.webmailUrl}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  onClick={(e) => e.stopPropagation()}
+                                >
+                                  <ExternalLink size={14} /> Open webmail
+                                </a>
+                              )}
+                              <button
+                                type="button"
+                                className="btn btn-ghost btn-sm"
+                                disabled={!ready || emailBusy[item._id]}
+                                onClick={async (e) => {
+                                  e.stopPropagation();
+                                  if (!ready) {
+                                    toast.info('Access is not ready yet.');
+                                    return;
+                                  }
+                                  setEmailBusy((s) => ({ ...s, [item._id]: true }));
+                                  try {
+                                    await sendWebmailAccessEmail(item._id);
+                                    toast.success('Access details sent to your email.');
+                                  } catch (err) {
+                                    toast.error(err?.response?.data?.message || 'Failed to send access email.');
+                                  } finally {
+                                    setEmailBusy((s) => {
+                                      const next = { ...s };
+                                      delete next[item._id];
+                                      return next;
+                                    });
+                                  }
+                                }}
+                              >
+                                {emailBusy[item._id] ? <Loader2 size={14} className="spin" /> : <KeyRound size={14} />}
+                                Email me credentials
+                              </button>
+                            </div>
+                          )}
+
+                          <div className="myaccount__domain-meta">
+                            <div className="myaccount__domain-meta-item">
+                              <Calendar size={13} />
+                              <span>Expires: {formatDate(item.expiresAt)}</span>
+                            </div>
+                            <div className="myaccount__domain-meta-item">
+                              <Mail size={13} />
                               <span style={{ textTransform: 'capitalize' }}>{item.billingCycle} billing</span>
                             </div>
                           </div>

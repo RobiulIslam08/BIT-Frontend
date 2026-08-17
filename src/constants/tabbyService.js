@@ -24,7 +24,7 @@ export const TABBY_SAUDI_CITIES = [
   'Al Ahsa',
   'Taif',
   'Abha',
-  'Khamis Mushait',
+
   'Tabuk',
   'Buraydah',
   'Hail',

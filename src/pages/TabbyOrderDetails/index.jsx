@@ -154,7 +154,7 @@ export default function TabbyOrderDetails() {
                 </div>
                 <div style={{ textAlign: 'right' }}>
                   <div style={{ fontWeight: 800, color: '#0d9488' }}>{formatFromSARWithCode(order.amountSAR || 500)}</div>
-                  <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{order.paymentMethod === 'wallet' ? 'Wallet' : 'PayPal'} · {order.paymentStatus}</div>
+                  <div style={{ fontSize: 12, color: 'var(--color-text-muted)' }}>{order.paymentMethod === 'wallet' ? 'Account Balance' : 'PayPal'} · {order.paymentStatus}</div>
                   {promised && order.orderStatus !== 'completed' && (
                     <div style={{ fontSize: 12, marginTop: 4 }}>Promised by {promised}</div>
                   )}
