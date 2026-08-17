@@ -31,6 +31,7 @@ const GraphicsDesign = lazy(() => import('@/pages/Services/GraphicsDesign'));
 const ITManagement = lazy(() => import('@/pages/Services/ITManagement'));
 const OnlineMarketing = lazy(() => import('@/pages/Services/OnlineMarketing'));
 const GoogleMyBusiness = lazy(() => import('@/pages/Services/GoogleMyBusiness'));
+const TabbyBusiness = lazy(() => import('@/pages/Services/TabbyBusiness'));
 const DomainHosting = lazy(() => import('@/pages/Services/DomainHosting'));
 const DomainCheckout = lazy(() => import('@/pages/DomainCheckout'));
 const HostingCheckout = lazy(() => import('@/pages/HostingCheckout'));
@@ -41,6 +42,7 @@ const ProfileEdit = lazy(() => import('@/pages/ProfileEdit'));
 const DomainDetails = lazy(() => import('@/pages/DomainDetails'));
 const HostingDetails = lazy(() => import('@/pages/HostingDetails'));
 const GmbProfileDetails = lazy(() => import('@/pages/GmbProfileDetails'));
+const TabbyOrderDetails = lazy(() => import('@/pages/TabbyOrderDetails'));
 const TermsAndConditions = lazy(() => import('@/pages/TermsAndConditions'));
 const OurPolicy = lazy(() => import('@/pages/OurPolicy'));
 const Portfolio = lazy(() => import('@/pages/Portfolio'));
@@ -54,6 +56,7 @@ const DashboardServices = lazy(() => import('@/pages/Dashboard/Services'));
 const DashboardOffers = lazy(() => import('@/pages/Dashboard/Offers'));
 const DashboardLeads = lazy(() => import('@/pages/Dashboard/Leads'));
 const DashboardOrders = lazy(() => import('@/pages/Dashboard/Orders'));
+const AdminTabbyOrders = lazy(() => import('@/pages/Dashboard/TabbyOrders'));
 const AdminDomainOrders = lazy(() => import('@/pages/Dashboard/DomainOrders'));
 const AdminDomains = lazy(() => import('@/pages/Dashboard/Domains'));
 const AdminDomainPricing = lazy(() => import('@/pages/Dashboard/DomainPricing'));
@@ -94,6 +97,7 @@ export const router = createBrowserRouter([
       { path: 'services/it-management', element: <SuspenseWrap><ITManagement /></SuspenseWrap> },
       { path: 'services/online-marketing', element: <SuspenseWrap><OnlineMarketing /></SuspenseWrap> },
       { path: 'services/google-my-business', element: <SuspenseWrap><GoogleMyBusiness /></SuspenseWrap> },
+      { path: 'services/tabby-business', element: <SuspenseWrap><TabbyBusiness /></SuspenseWrap> },
       { path: 'services/domain-hosting', element: <SuspenseWrap><DomainHosting /></SuspenseWrap> },
       { path: 'cart', element: <SuspenseWrap><CartPage /></SuspenseWrap> },
       { path: 'terms-and-conditions', element: <SuspenseWrap><TermsAndConditions /></SuspenseWrap> },
@@ -126,6 +130,7 @@ export const router = createBrowserRouter([
           { path: 'domains/:id', element: <SuspenseWrap><DomainDetails /></SuspenseWrap> },
           { path: 'hosting/:id', element: <SuspenseWrap><HostingDetails /></SuspenseWrap> },
           { path: 'gmb/:id', element: <SuspenseWrap><GmbProfileDetails /></SuspenseWrap> },
+          { path: 'tabby/:id', element: <SuspenseWrap><TabbyOrderDetails /></SuspenseWrap> },
         ],
       },
     ],
@@ -158,6 +163,7 @@ export const router = createBrowserRouter([
           { path: 'offers', element: <SuspenseWrap><DashboardOffers /></SuspenseWrap> },
           { path: 'leads', element: <SuspenseWrap><DashboardLeads /></SuspenseWrap> },
           { path: 'orders', element: <SuspenseWrap><DashboardOrders /></SuspenseWrap> },
+          { path: 'tabby-orders', element: <SuspenseWrap><AdminTabbyOrders /></SuspenseWrap> },
           { path: 'gmb-profiles', element: <SuspenseWrap><AdminGmbProfiles /></SuspenseWrap> },
           { path: 'domain-orders', element: <SuspenseWrap><AdminDomainOrders /></SuspenseWrap> },
           { path: 'domains', element: <SuspenseWrap><AdminDomains /></SuspenseWrap> },

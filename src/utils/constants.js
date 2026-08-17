@@ -77,6 +77,7 @@ export const NAV_ITEMS = [
       { label: 'IT Management', path: '/services/it-management' },
       { label: 'Online Marketing', path: '/services/online-marketing' },
       { label: 'Google My Business', path: '/services/google-my-business' },
+      { label: 'Tabby Business Account', path: '/services/tabby-business' },
       { label: 'Domain & Hosting', path: '/services/domain-hosting' },
     ],
   },
@@ -183,6 +184,13 @@ export const SERVICES = [
     description: 'Get found on Google Maps and local search in Saudi Arabia.',
     icon: 'MapPin',
     path: '/services/google-my-business',
+  },
+  {
+    id: 'tabby-business',
+    title: 'Tabby Business Account',
+    description: 'Open Tabby for your store so customers can buy now and pay later.',
+    icon: 'CreditCard',
+    path: '/services/tabby-business',
   },
   {
     id: 'domain-hosting',

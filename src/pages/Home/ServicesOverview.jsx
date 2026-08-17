@@ -5,7 +5,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
-import { Globe, Database, Smartphone, Code, TrendingUp, Search, MapPin, Share2, Palette, PenTool, Server, Cloud } from 'lucide-react';
+import { Globe, Database, Smartphone, Code, TrendingUp, Search, MapPin, Share2, Palette, PenTool, Server, Cloud, CreditCard } from 'lucide-react';
 import './Home.css';
 
 const TABS = ['Build', 'Grow', 'Design', 'Manage'];
@@ -21,7 +21,8 @@ const SERVICES_TABS = {
     { title: 'Online Marketing', benefit: 'Targeted campaigns that maximize your ROI and customer acquisition.', icon: TrendingUp, path: '/services/online-marketing' },
     { title: 'Search Optimization', benefit: 'Rank #1 on local Saudi search results with our SEO strategies.', icon: Search, path: '/services/online-marketing' },
     { title: 'Google My Business', benefit: 'Optimize maps visibility to drive foot traffic to your retail stores.', icon: MapPin, path: '/services/google-my-business' },
-    { title: 'Social Media Management', benefit: 'Engage your audience across Snapchat, TikTok, WhatsApp & Instagram.', icon: Share2, path: '/services/social-media' }
+    { title: 'Social Media Management', benefit: 'Engage your audience across Snapchat, TikTok, WhatsApp & Instagram.', icon: Share2, path: '/services/social-media' },
+    { title: 'Tabby Business Account', benefit: 'Let Saudi shoppers buy now and pay later through Tabby.', icon: CreditCard, path: '/services/tabby-business' }
   ],
   Design: [
     { title: 'Logo Creation', benefit: 'Memorable brand identity design tailored to Saudi cultural values.', icon: Palette, path: '/services/logo-design' },

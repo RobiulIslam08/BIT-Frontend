@@ -1,0 +1,51 @@
+.tabby-admin-modal { max-width: 760px; width: min(760px, 94vw); }
+.tabby-admin-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem 1rem;
+  font-size: 13px;
+}
+.tabby-admin-grid b { display: block; color: var(--color-text-muted); font-size: 11px; text-transform: uppercase; letter-spacing: 0.04em; }
+.tabby-admin-label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  margin-top: 0.85rem;
+  font-size: 13px;
+  font-weight: 700;
+}
+.tabby-admin-label input,
+.tabby-admin-label select,
+.tabby-admin-label textarea {
+  font-weight: 500;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: inherit;
+  border-radius: 10px;
+  padding: 0.55rem 0.7rem;
+}
+.tabby-refund-banner {
+  margin-top: 1rem;
+  padding: 0.85rem;
+  border-radius: 12px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.3);
+  font-size: 13px;
+}
+.tabby-files { display: flex; flex-wrap: wrap; gap: 0.45rem; margin-top: 0.5rem; }
+.tabby-file-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: inherit;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+@media (max-width: 700px) {
+  .tabby-admin-grid { grid-template-columns: 1fr; }
+}

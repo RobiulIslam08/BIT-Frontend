@@ -9,7 +9,7 @@ import {
   LayoutDashboard, Package, Tag, Users, FileText,
   ShoppingCart, Settings, BarChart3, LogOut,
   Menu, X, ChevronRight, Globe, Server, MapPin,
-  Wallet, ArrowUpRight, Gift, PieChart,
+  Wallet, ArrowUpRight, Gift, PieChart, CreditCard,
 } from 'lucide-react';
 import { ThemeToggle } from '@/components/common/ThemeToggle';
 import { useAppDispatch } from '@/app/hooks';
@@ -23,6 +23,7 @@ const SIDEBAR_ITEMS = [
   { label: 'Offers', path: '/dashboard/offers', icon: Tag },
   { label: 'Leads', path: '/dashboard/leads', icon: FileText },
   { label: 'GMB Orders', path: '/dashboard/orders', icon: ShoppingCart },
+  { label: 'Tabby Orders', path: '/dashboard/tabby-orders', icon: CreditCard },
   { label: 'GMB Profiles', path: '/dashboard/gmb-profiles', icon: MapPin },
   { label: 'Domain Orders', path: '/dashboard/domain-orders', icon: Globe },
   { label: 'Domains', path: '/dashboard/domains', icon: Server },

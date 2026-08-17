@@ -233,6 +233,7 @@ export default function OurPolicy() {
                     <ul className="refund-card-list">
                       <li><CheckCircle2 size={14} /> Duplicate or failed charges with no service delivered.</li>
                       <li><CheckCircle2 size={14} /> GMB creation/recovery cannot be completed after reasonable effort.</li>
+                      <li><CheckCircle2 size={14} /> Tabby Business setup cancelled before activation, or Tabby rejects the merchant application after reasonable effort.</li>
                       <li><CheckCircle2 size={14} /> Cancellation requested before work or provisioning starts (case-by-case).</li>
                       <li><CheckCircle2 size={14} /> Clear billing error attributable to us.</li>
                     </ul>
@@ -252,6 +253,7 @@ export default function OurPolicy() {
                       <li><XCircle size={14} /> Domain successfully registered, renewed, or transferred at the registry.</li>
                       <li><XCircle size={14} /> Hosting period already provisioned and usable (unused time may be reviewed case-by-case).</li>
                       <li><XCircle size={14} /> GMB profile created or recovered successfully.</li>
+                      <li><XCircle size={14} /> Tabby merchant account successfully activated.</li>
                       <li><XCircle size={14} /> Promotional Credit (not cash; not withdrawable).</li>
                       <li><XCircle size={14} /> Completed custom project milestones already accepted.</li>
                     </ul>

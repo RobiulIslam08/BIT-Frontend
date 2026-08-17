@@ -1,0 +1,511 @@
+/* ============================================
+   BIT SOFTWARE — Tabby Business Account
+   ============================================ */
+
+.tabby-page {
+  --tabby: #0d9488;
+  --tabby-dark: #0f766e;
+  --tabby-soft: rgba(13, 148, 136, 0.12);
+}
+
+.tabby-hero {
+  position: relative;
+  padding: 4.5rem 0 3rem;
+  background: var(--color-bg-secondary);
+  overflow: hidden;
+  border-bottom: 1px solid var(--color-border);
+}
+
+.tabby-hero__bg {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+
+.tabby-orb {
+  position: absolute;
+  width: 280px;
+  height: 280px;
+  border-radius: 50%;
+  filter: blur(110px);
+  opacity: 0.16;
+}
+
+.tabby-orb-a { top: -60px; left: 8%; background: #0d9488; }
+.tabby-orb-b { bottom: -80px; right: 12%; background: #14b8a6; }
+
+.tabby-hero__grid {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+.tabby-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.4rem 0.85rem;
+  background: var(--color-bg);
+  border: 1px solid var(--color-border);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--tabby-dark);
+  margin-bottom: 1.25rem;
+}
+
+.tabby-hero__title {
+  font-size: clamp(2rem, 4.6vw, 3.25rem);
+  font-weight: 900;
+  line-height: 1.15;
+  margin-bottom: 1rem;
+}
+
+.tabby-hero__desc {
+  color: var(--color-text-muted);
+  font-size: 1.05rem;
+  line-height: 1.7;
+  max-width: 560px;
+  margin-bottom: 1.5rem;
+}
+
+.tabby-hero__cta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+}
+
+.tabby-pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+}
+
+.tabby-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.35rem 0.7rem;
+  border-radius: 999px;
+  background: var(--tabby-soft);
+  color: var(--tabby-dark);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tabby-price-card {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 1.75rem;
+  box-shadow: var(--shadow-md);
+}
+
+.tabby-price-card__label {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--color-text-muted);
+}
+
+.tabby-price-card__amount {
+  font-family: var(--font-display);
+  font-size: 2.6rem;
+  font-weight: 900;
+  color: var(--tabby);
+  line-height: 1.1;
+  margin: 0.35rem 0;
+}
+
+.tabby-price-card__list {
+  list-style: none;
+  padding: 0;
+  margin: 1rem 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+}
+
+.tabby-price-card__list li {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+  font-size: 0.92rem;
+  color: var(--color-text-secondary);
+}
+
+.tabby-benefits {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+}
+
+.tabby-benefit {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 1.25rem;
+}
+
+.tabby-benefit__icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tabby-soft);
+  color: var(--tabby);
+  margin-bottom: 0.85rem;
+}
+
+.tabby-wizard {
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
+  padding: 1.5rem 1.5rem 1.75rem;
+  box-shadow: var(--shadow-sm);
+}
+
+.tabby-steps {
+  display: flex;
+  gap: 0.4rem;
+  overflow-x: auto;
+  padding-bottom: 0.75rem;
+  margin-bottom: 1.25rem;
+}
+
+.tabby-step {
+  flex: 1;
+  min-width: 110px;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.55rem 0.7rem;
+  border-radius: 12px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.tabby-step.is-active {
+  border-color: var(--tabby);
+  background: var(--tabby-soft);
+  color: var(--tabby-dark);
+}
+
+.tabby-step.is-done {
+  border-color: rgba(13, 148, 136, 0.35);
+  color: var(--tabby);
+}
+
+.tabby-step__num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-border);
+  font-size: 11px;
+  flex-shrink: 0;
+}
+
+.tabby-step.is-active .tabby-step__num,
+.tabby-step.is-done .tabby-step__num {
+  background: var(--tabby);
+  color: #fff;
+}
+
+.tabby-form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
+
+.tabby-form-intro {
+  grid-column: 1 / -1;
+  margin: 0 0 0.25rem;
+  color: var(--color-text-muted);
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.tabby-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.tabby-field--full { grid-column: 1 / -1; }
+
+.tabby-field label {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--color-text-primary);
+}
+
+.tabby-field .hint {
+  font-size: 12px;
+  color: var(--color-text-muted);
+}
+
+.tabby-field .ar {
+  font-weight: 600;
+  color: var(--tabby);
+}
+
+.tabby-field input,
+.tabby-field select,
+.tabby-field textarea {
+  width: 100%;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg);
+  color: var(--color-text-primary);
+  border-radius: 12px;
+  padding: 0.7rem 0.85rem;
+  font-size: 0.95rem;
+}
+
+.tabby-field input:focus,
+.tabby-field select:focus,
+.tabby-field textarea:focus {
+  outline: none;
+  border-color: var(--tabby);
+  box-shadow: 0 0 0 3px var(--tabby-soft);
+}
+
+.tabby-field.has-error input,
+.tabby-field.has-error select {
+  border-color: #ef4444;
+}
+
+.tabby-error {
+  color: #dc2626;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.tabby-choice {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.tabby-choice label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.tabby-choice label.is-on {
+  border-color: var(--tabby);
+  background: var(--tabby-soft);
+  color: var(--tabby-dark);
+}
+
+.tabby-docs {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.tabby-doc {
+  border: 1px dashed var(--color-border);
+  border-radius: 14px;
+  padding: 1rem;
+  background: var(--color-bg);
+}
+
+.tabby-doc.is-ready {
+  border-style: solid;
+  border-color: rgba(13, 148, 136, 0.45);
+  background: var(--tabby-soft);
+}
+
+.tabby-doc__top {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.tabby-doc__file {
+  margin-top: 0.7rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tabby-nav {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-top: 1.5rem;
+  flex-wrap: wrap;
+}
+
+.tabby-review {
+  display: grid;
+  gap: 0.75rem;
+}
+
+.tabby-review__row {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.7rem 0;
+  border-bottom: 1px solid var(--color-border);
+  font-size: 0.92rem;
+}
+
+.tabby-review__row span:first-child {
+  color: var(--color-text-muted);
+}
+
+.tabby-pay-bar {
+  position: sticky;
+  bottom: 0.75rem;
+  margin-top: 1.25rem;
+  background: var(--color-surface-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 0.9rem 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  box-shadow: var(--shadow-md);
+  z-index: 3;
+}
+
+.tabby-pay-bar strong {
+  color: var(--tabby);
+  font-size: 1.25rem;
+}
+
+.tabby-pay-methods {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+.tabby-pay-card {
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 1rem;
+  cursor: pointer;
+  background: var(--color-bg);
+}
+
+.tabby-pay-card.is-on {
+  border-color: var(--tabby);
+  background: var(--tabby-soft);
+}
+
+.tabby-terms {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-start;
+  font-size: 13px;
+  margin: 1rem 0;
+  padding: 0.75rem;
+  border-radius: 12px;
+  border: 1px solid transparent;
+}
+
+.tabby-terms.is-warn {
+  border-color: #f59e0b;
+  background: rgba(245, 158, 11, 0.1);
+}
+
+.tabby-terms-warning {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  margin: -0.35rem 0 0.85rem;
+  padding: 0.65rem 0.8rem;
+  border-radius: 10px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.35);
+  color: #b45309;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.tabby-success {
+  text-align: center;
+  padding: 2.5rem 1.25rem;
+}
+
+.tabby-success__icon {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  margin: 0 auto 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--tabby-soft);
+  color: var(--tabby);
+}
+
+.tabby-faq details {
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 0.9rem 1rem;
+  background: var(--color-surface-elevated);
+}
+
+.tabby-faq {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.tabby-faq summary {
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.tabby-faq p {
+  margin: 0.65rem 0 0;
+  color: var(--color-text-muted);
+  font-size: 0.92rem;
+  line-height: 1.6;
+}
+
+.tabby-login-box {
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: 1.25rem;
+  background: var(--color-bg);
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .tabby-hero__grid,
+  .tabby-benefits,
+  .tabby-form-grid,
+  .tabby-pay-methods {
+    grid-template-columns: 1fr;
+  }
+  .tabby-hero { padding: 3rem 0 2rem; }
+  .tabby-wizard { padding: 1.1rem; }
+  .tabby-pay-bar { flex-direction: column; align-items: stretch; }
+}

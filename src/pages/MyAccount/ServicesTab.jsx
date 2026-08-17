@@ -3,22 +3,27 @@
 // ============================================
 
 import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { motion } from 'motion/react';
 import {
   Package, RefreshCw, Loader2, AlertCircle, CheckCircle2,
-  Clock, XCircle, AlertTriangle, ExternalLink, ArrowRight,
+  Clock, XCircle, AlertTriangle, ExternalLink, ArrowRight, CreditCard,
 } from 'lucide-react';
 import { getMyDigitalServices } from '@/api/digitalServiceApi';
+import { getMyTabbyOrders } from '@/api/tabbyOrderApi';
 import { DIGITAL_SERVICES } from '@/constants/digitalServices';
 import './ServicesTab.css';
 
 const statusConfig = {
   active: { label: 'Active', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', icon: CheckCircle2 },
   pending: { label: 'Pending', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', icon: Clock },
+  pending_review: { label: 'Pending review', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', icon: Clock },
+  in_progress: { label: 'In progress', color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', icon: Clock },
+  completed: { label: 'Activated', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', icon: CheckCircle2 },
   expired: { label: 'Expired', color: '#ef4444', bg: 'rgba(239,68,68,0.1)', icon: XCircle },
   cancelled: { label: 'Cancelled', color: '#9ca3af', bg: 'rgba(156,163,175,0.1)', icon: XCircle },
   suspended: { label: 'Suspended', color: '#f97316', bg: 'rgba(249,115,22,0.1)', icon: AlertTriangle },
+  refunded: { label: 'Refunded', color: '#6366f1', bg: 'rgba(99,102,241,0.1)', icon: XCircle },
 };
 
 const formatDate = (dateStr) => {
@@ -44,7 +49,9 @@ function StatusBadge({ status }) {
 }
 
 export default function ServicesTab() {
+  const navigate = useNavigate();
   const [services, setServices] = useState([]);
+  const [tabbyOrders, setTabbyOrders] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [expandedId, setExpandedId] = useState(null);
@@ -53,9 +60,13 @@ export default function ServicesTab() {
     setLoading(true);
     setError('');
     try {
-      const res = await getMyDigitalServices();
-      if (res.success) setServices(res.data || []);
-      else setError(res.message || 'Failed to load services.');
+      const [digitalRes, tabbyRes] = await Promise.all([
+        getMyDigitalServices().catch(() => ({ success: false, data: [] })),
+        getMyTabbyOrders().catch(() => ({ success: false, data: [] })),
+      ]);
+      if (digitalRes.success) setServices(digitalRes.data || []);
+      else if (digitalRes.message) setError(digitalRes.message);
+      if (tabbyRes.success) setTabbyOrders(tabbyRes.data || []);
     } catch (err) {
       setError(err?.response?.data?.message || 'Failed to load services.');
     } finally {
@@ -66,6 +77,24 @@ export default function ServicesTab() {
   useEffect(() => {
     fetchServices();
   }, [fetchServices]);
+
+  const tabbyRows = tabbyOrders
+    .filter((o) => o.paymentStatus === 'paid' || o.paymentStatus === 'refunded')
+    .map((o) => ({
+      _id: o._id,
+      serviceName: 'Tabby Business Account Setup',
+      packageLabel: 'One-time · 500 SAR',
+      status: o.paymentStatus === 'refunded' ? 'refunded' : o.orderStatus,
+      startsAt: o.createdAt,
+      expiresAt: o.promisedBy,
+      amountSAR: o.amountSAR,
+      company: o.legalCompanyName,
+      orderId: o.orderId,
+      notes: o.customerVisibleNotes,
+      merchantId: o.tabbyMerchantId,
+    }));
+
+  const hasAny = services.length > 0 || tabbyRows.length > 0;
 
   return (
     <motion.div
@@ -79,7 +108,7 @@ export default function ServicesTab() {
         <div>
           <h2 className="h4">My Services</h2>
           <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginTop: '0.25rem' }}>
-            Supply portals and other digital subscriptions
+            Digital subscriptions and purchased packages such as Tabby Business
           </p>
         </div>
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -103,7 +132,7 @@ export default function ServicesTab() {
           <Loader2 size={32} className="spin" />
           <p style={{ marginTop: '1rem', fontSize: 'var(--text-sm)' }}>Loading your services...</p>
         </div>
-      ) : services.length === 0 ? (
+      ) : !hasAny ? (
         <motion.div
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -111,10 +140,15 @@ export default function ServicesTab() {
         >
           <Package size={48} />
           <h3 className="h5">No Services Yet</h3>
-          <p>Get Supply Company Portals or other digital services to see them here.</p>
-          <Link to="/services/web-development/supply-company" className="btn btn-primary">
-            Explore Supply Portals <ArrowRight size={16} />
-          </Link>
+          <p>Purchased packages such as Tabby Business Account Setup will appear here.</p>
+          <div style={{ display: 'flex', gap: '0.6rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+            <Link to="/services/tabby-business" className="btn btn-primary">
+              Tabby Business <ArrowRight size={16} />
+            </Link>
+            <Link to="/services/web-development/supply-company" className="btn btn-secondary">
+              Supply Portals
+            </Link>
+          </div>
         </motion.div>
       ) : (
         <>
@@ -129,6 +163,52 @@ export default function ServicesTab() {
                   </tr>
                 </thead>
                 <tbody>
+                  {tabbyRows.map((item) => {
+                    const open = expandedId === `tabby-${item._id}`;
+                    return (
+                      <tr key={`tabby-${item._id}`}>
+                        <td>
+                          <div className="acct-services__name">{item.serviceName}</div>
+                          <div className="acct-services__portal-link" style={{ color: 'var(--color-text-muted)' }}>
+                            {item.company} · #{item.orderId}
+                          </div>
+                        </td>
+                        <td className="acct-services__package">{item.packageLabel}</td>
+                        <td><StatusBadge status={item.status} /></td>
+                        <td>{formatDate(item.startsAt)}</td>
+                        <td>{item.status === 'completed' ? '—' : formatDate(item.expiresAt)}</td>
+                        <td>{item.amountSAR != null ? `${item.amountSAR} SAR` : '—'}</td>
+                        <td>
+                          <div className="acct-services__actions">
+                            <button
+                              type="button"
+                              className="btn btn-ghost btn-sm"
+                              onClick={() => setExpandedId(open ? null : `tabby-${item._id}`)}
+                            >
+                              {open ? 'Hide' : 'Details'}
+                            </button>
+                            <button
+                              type="button"
+                              className="btn btn-primary btn-sm"
+                              onClick={() => navigate(`/my-account/tabby/${item._id}`)}
+                            >
+                              Open
+                            </button>
+                          </div>
+                          {open && (
+                            <div className="acct-services__details">
+                              <p><strong>Company:</strong> {item.company}</p>
+                              {item.merchantId && <p><strong>Tabby merchant ID:</strong> {item.merchantId}</p>}
+                              {item.notes && <p><strong>Notes:</strong> {item.notes}</p>}
+                              {!item.merchantId && !item.notes && (
+                                <p>Our team is processing this Tabby setup. Typical activation is within 3 working days.</p>
+                              )}
+                            </div>
+                          )}
+                        </td>
+                      </tr>
+                    );
+                  })}
                   {services.map((item) => {
                     const open = expandedId === item._id;
                     return (
@@ -195,6 +275,31 @@ export default function ServicesTab() {
           </div>
 
           <div className="acct-services__mobile">
+            {tabbyRows.map((item, i) => (
+              <motion.div
+                key={`tabby-m-${item._id}`}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: i * 0.05 }}
+                className="card-elevated acct-services__card"
+              >
+                <div className="acct-services__card-top">
+                  <strong>{item.serviceName}</strong>
+                  <StatusBadge status={item.status} />
+                </div>
+                <p className="acct-services__meta">
+                  {item.packageLabel} · {item.company}
+                </p>
+                <p className="acct-services__dates">Ordered {formatDate(item.startsAt)}</p>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm"
+                  onClick={() => navigate(`/my-account/tabby/${item._id}`)}
+                >
+                  View Tabby order <CreditCard size={14} />
+                </button>
+              </motion.div>
+            ))}
             {services.map((item, i) => (
               <motion.div
                 key={item._id}

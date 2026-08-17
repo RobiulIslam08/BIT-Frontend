@@ -18,6 +18,7 @@ import { selectCurrentUser, selectIsAuthenticated, updateUser } from '@/features
 import { getMyDomains } from '@/api/domainsApi';
 import { getMyHostings, openCpanelLogin, sendCpanelAccessEmail } from '@/api/hostingApi';
 import { getMyGmbProfiles } from '@/api/gmbProfileApi';
+import { getMyTabbyOrders } from '@/api/tabbyOrderApi';
 import { getMyProfile } from '@/api/userApi';
 import { useCurrency } from '@/context/CurrencyContext';
 import { toast } from '@/components/common/Toast/Toast';
@@ -32,6 +33,7 @@ const TABS = [
   { id: 'domains', label: 'My Domains', icon: Globe },
   { id: 'hosting', label: 'My Hosting', icon: Server },
   { id: 'gmb', label: 'My GMB', icon: MapPin },
+  { id: 'tabby', label: 'Tabby', icon: CreditCard },
   { id: 'services', label: 'Services', icon: Package },
   { id: 'wallet', label: 'Wallet', icon: Wallet },
   { id: 'billing', label: 'Billing', icon: CreditCard },
@@ -40,8 +42,10 @@ const TABS = [
 const statusConfig = {
   active: { label: 'Active', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', icon: CheckCircle2 },
   pending: { label: 'Pending', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', icon: Clock },
+  pending_review: { label: 'Pending Review', color: '#f59e0b', bg: 'rgba(245,158,11,0.1)', icon: Clock },
   in_progress: { label: 'In Progress', color: '#3b82f6', bg: 'rgba(59,130,246,0.1)', icon: Clock },
-  expired: { label: 'Expired', color: '#ef4444', bg: 'rgba(239,68,68,0.1)', icon: XCircle },
+  completed: { label: 'Activated', color: '#22c55e', bg: 'rgba(34,197,94,0.1)', icon: CheckCircle2 },
+  expired: { label: 'Expired', color: '#ef4444', bg: 'rgba(239,68,68,0.12)', icon: XCircle },
   cancelled: { label: 'Cancelled', color: '#9ca3af', bg: 'rgba(156,163,175,0.1)', icon: XCircle },
   suspended: { label: 'Suspended', color: '#f97316', bg: 'rgba(249,115,22,0.1)', icon: AlertTriangle },
   transferred_out: { label: 'Transferred', color: '#6366f1', bg: 'rgba(99,102,241,0.1)', icon: XCircle },
@@ -100,6 +104,9 @@ export default function MyAccount() {
   const [gmbProfiles, setGmbProfiles] = useState([]);
   const [isLoadingGmb, setIsLoadingGmb] = useState(true);
   const [gmbError, setGmbError] = useState('');
+  const [tabbyOrders, setTabbyOrders] = useState([]);
+  const [isLoadingTabby, setIsLoadingTabby] = useState(true);
+  const [tabbyError, setTabbyError] = useState('');
   const [cpanelBusy, setCpanelBusy] = useState({}); // { [id]: 'login' | 'email' }
 
   // Keep tab in sync with ?tab= query (default = profile)
@@ -204,7 +211,20 @@ export default function MyAccount() {
     }
   };
 
-  useEffect(() => { fetchDomains(); fetchHostings(); fetchGmbProfiles(); }, []);
+  const fetchTabbyOrders = async () => {
+    setIsLoadingTabby(true);
+    setTabbyError('');
+    try {
+      const res = await getMyTabbyOrders();
+      if (res.success) setTabbyOrders(res.data || []);
+    } catch (err) {
+      setTabbyError(err?.response?.data?.message || 'Failed to load Tabby orders.');
+    } finally {
+      setIsLoadingTabby(false);
+    }
+  };
+
+  useEffect(() => { fetchDomains(); fetchHostings(); fetchGmbProfiles(); fetchTabbyOrders(); }, []);
 
   // Hydrate the full profile (Namecheap-style fields + account balance) from the server.
   useEffect(() => {
@@ -712,6 +732,115 @@ export default function MyAccount() {
                             <div className="myaccount__domain-meta-item">
                               <Calendar size={13} />
                               <span>Created: {formatDate(item.createdAt)}</span>
+                            </div>
+                          </div>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                )}
+              </motion.div>
+            )}
+
+            {/* ─── TABBY TAB ─── */}
+            {activeTab === 'tabby' && (
+              <motion.div key="tabby" initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}>
+                <div className="myaccount__section-header">
+                  <div>
+                    <h2 className="h4">Tabby Business</h2>
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginTop: '0.25rem' }}>
+                      Track Tabby merchant account setup, documents, and refunds
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                    <button className="btn btn-ghost btn-sm" onClick={fetchTabbyOrders} disabled={isLoadingTabby}>
+                      <RefreshCw size={14} className={isLoadingTabby ? 'spin' : ''} /> Refresh
+                    </button>
+                    <Link to="/services/tabby-business" className="btn btn-primary btn-sm">
+                      <CreditCard size={14} /> New Tabby account
+                    </Link>
+                  </div>
+                </div>
+
+                {tabbyError && (
+                  <div style={{ display: 'flex', gap: '0.5rem', padding: '1rem', borderRadius: '10px', background: 'rgba(239,68,68,0.08)', border: '1px solid rgba(239,68,68,0.2)', color: '#dc2626', fontSize: 'var(--text-sm)', marginBottom: '1rem' }}>
+                    <AlertCircle size={16} style={{ flexShrink: 0, marginTop: '1px' }} /> {tabbyError}
+                  </div>
+                )}
+
+                {isLoadingTabby ? (
+                  <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--color-text-muted)' }}>
+                    <Loader2 size={32} className="spin" />
+                    <p style={{ marginTop: '1rem', fontSize: 'var(--text-sm)' }}>Loading Tabby orders...</p>
+                  </div>
+                ) : tabbyOrders.length === 0 ? (
+                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="card-elevated" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
+                    <CreditCard size={48} style={{ color: 'var(--color-text-muted)', marginBottom: '1rem' }} />
+                    <h3 className="h5" style={{ marginBottom: '0.5rem' }}>No Tabby orders yet</h3>
+                    <p style={{ color: 'var(--color-text-muted)', fontSize: 'var(--text-sm)', marginBottom: '1.5rem' }}>
+                      Apply for a Tabby Business account so your customers can buy now and pay later.
+                    </p>
+                    <Link to="/services/tabby-business" className="btn btn-primary">Get started — 500 SAR</Link>
+                  </motion.div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                    {tabbyOrders.map((item, i) => {
+                      const status = statusConfig[item.orderStatus] || statusConfig.pending;
+                      const StatusIcon = status.icon;
+                      return (
+                        <motion.div
+                          key={item._id}
+                          initial={{ opacity: 0, x: -12 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: i * 0.06 }}
+                          className="card-elevated myaccount__domain-card"
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => navigate(`/my-account/tabby/${item._id}`)}
+                        >
+                          <div className="myaccount__domain-top">
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', minWidth: 0 }}>
+                              <div style={{ width: 42, height: 42, borderRadius: '50%', background: 'rgba(13,148,136,0.12)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                                <CreditCard size={20} style={{ color: '#0d9488' }} />
+                              </div>
+                              <div style={{ minWidth: 0 }}>
+                                <div style={{ fontWeight: 800, fontSize: 'var(--text-lg)', fontFamily: 'var(--font-display)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {item.legalCompanyName}
+                                </div>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap', marginTop: '0.25rem' }}>
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.15rem 0.5rem', borderRadius: '999px', fontSize: '11px', fontWeight: 700, background: 'rgba(13,148,136,0.12)', color: '#0d9488' }}>
+                                    Tabby Business Account Setup
+                                  </span>
+                                  <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', padding: '0.15rem 0.5rem', borderRadius: '999px', fontSize: '11px', fontWeight: 700, background: status.bg, color: status.color }}>
+                                    <StatusIcon size={11} /> {status.label}
+                                  </span>
+                                  {item.refundStatus === 'requested' && (
+                                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#d97706' }}>Refund requested</span>
+                                  )}
+                                  <span style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>#{item.orderId}</span>
+                                </div>
+                              </div>
+                            </div>
+                            <div style={{ textAlign: 'right', flexShrink: 0 }}>
+                              <div style={{ fontWeight: 700, fontFamily: 'var(--font-display)', color: '#0d9488' }}>
+                                {item.amountSAR} SAR
+                              </div>
+                              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.2rem', fontSize: 'var(--text-xs)', color: 'var(--color-primary)', marginTop: '0.3rem', fontWeight: 600 }}>
+                                Details <ChevronRight size={13} />
+                              </div>
+                            </div>
+                          </div>
+                          <div className="myaccount__domain-meta">
+                            <div className="myaccount__domain-meta-item">
+                              <Building2 size={13} />
+                              <span>CR {item.crNumber}</span>
+                            </div>
+                            <div className="myaccount__domain-meta-item">
+                              <MapPin size={13} />
+                              <span>{item.city || '—'}</span>
+                            </div>
+                            <div className="myaccount__domain-meta-item">
+                              <Calendar size={13} />
+                              <span>{formatDate(item.createdAt)}</span>
                             </div>
                           </div>
                         </motion.div>

@@ -21,6 +21,7 @@ const NAV_LINKS = [
   { href: '#domains', icon: Globe, label: 'Domains' },
   { href: '#hosting', icon: Server, label: 'Hosting' },
   { href: '#gmb', icon: Shield, label: 'GMB Services' },
+  { href: '#tabby', icon: CreditCard, label: 'Tabby Business' },
   { href: '#payments', icon: Banknote, label: 'Payments' },
   { href: '#acceptable-use', icon: Ban, label: 'Acceptable Use' },
   { href: '#liability', icon: Gavel, label: 'Liability' },
@@ -177,6 +178,10 @@ export default function TermsAndConditions() {
                   </li>
                   <li>
                     <CheckCircle2 size={16} style={{ color: '#34A853' }} />
+                    <span><strong>Tabby Business Account Setup</strong> — we prepare and submit a Tabby merchant application for your Saudi business using the documents you provide.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#34A853' }} />
                     <span><strong>Wallet</strong> — account balance, promotional credit, top-ups, and withdrawals (subject to Our Policy).</span>
                   </li>
                 </ul>
@@ -293,6 +298,38 @@ export default function TermsAndConditions() {
             </FadeInUp>
 
             <FadeInUp>
+              <div id="tabby" className="terms-section">
+                <div className="terms-section-header">
+                  <div className="terms-section-icon green"><CreditCard size={20} /></div>
+                  <h2 className="terms-section-title">Tabby Business Account Setup</h2>
+                </div>
+                <p className="terms-text">
+                  The Tabby Business Account Setup service is a one-time application package. BIT Software
+                  collects your commercial documents and submits a merchant application to Tabby on your
+                  behalf. Tabby (not BIT) decides whether to approve the merchant account.
+                </p>
+                <ul className="terms-list">
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#0d9488' }} />
+                    <span>You must provide accurate CR, National Address, IBAN, and identity documents. False or incomplete files delay or block the application.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#0d9488' }} />
+                    <span>The setup fee is 500 SAR, payable by PayPal or wallet before we start work. We aim to complete our submission work within 3 working days after payment.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#0d9488' }} />
+                    <span>Final merchant approval, contract, dashboard access, and settlement terms are controlled by Tabby and may take additional time.</span>
+                  </li>
+                  <li>
+                    <CheckCircle2 size={16} style={{ color: '#0d9488' }} />
+                    <span>Refunds before activation, or if Tabby rejects the application after reasonable effort, are described on Our Policy. Successful activation is generally non-refundable.</span>
+                  </li>
+                </ul>
+              </div>
+            </FadeInUp>
+
+            <FadeInUp>
               <div id="payments" className="terms-section">
                 <div className="terms-section-header">
                   <div className="terms-section-icon yellow"><Banknote size={20} /></div>
@@ -300,7 +337,7 @@ export default function TermsAndConditions() {
                 </div>
                 <p className="terms-text">
                   Prices are shown at checkout in the currency displayed for that product (for example SAR
-                  for certain GMB packages, or USD for wallet-related amounts). Confirmed orders are honored
+                  for GMB packages and Tabby Business Account Setup, or USD for wallet-related amounts). Confirmed orders are honored
                   at the price displayed when you complete payment.
                 </p>
                 <ul className="terms-list">

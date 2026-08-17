@@ -4,7 +4,7 @@
 // ============================================
 
 import { useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'motion/react';
 import { User, Mail, Lock, Eye, EyeOff, UserPlus, ArrowRight, AlertCircle, CheckCircle } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
@@ -46,6 +46,14 @@ export default function Register() {
 
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+  const fromLocation = location.state?.from;
+  const redirectAfterAuth = (userRole) => {
+    if (fromLocation?.pathname) {
+      return `${fromLocation.pathname}${fromLocation.search || ''}${fromLocation.hash || ''}`;
+    }
+    return userRole === 'admin' ? '/dashboard' : '/';
+  };
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -73,7 +81,7 @@ export default function Register() {
       );
 
       setTimeout(() => {
-        const redirectTo = data.user.role === 'admin' ? '/dashboard' : '/';
+        const redirectTo = redirectAfterAuth(data.user.role);
         navigate(redirectTo, { replace: true });
       }, 1000);
     } catch (err) {
@@ -143,7 +151,7 @@ export default function Register() {
 
       // Registration এর পর role অনুযায়ী redirect
       setTimeout(() => {
-        const redirectTo = data.user.role === 'admin' ? '/dashboard' : '/';
+        const redirectTo = redirectAfterAuth(data.user.role);
         navigate(redirectTo, { replace: true });
       }, 1000);
     } catch (err) {
