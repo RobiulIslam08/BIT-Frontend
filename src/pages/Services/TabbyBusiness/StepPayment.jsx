@@ -112,10 +112,13 @@ export default function StepPayment({ form, files, onBack, onSubmit, isSubmittin
   }, [isAuthenticated]);
 
   const paypalClientId = (() => {
-    const envId = import.meta.env.VITE_PAYPAL_CLIENT_ID;
-    if (!envId || envId === 'YOUR_PAYPAL_SANDBOX_CLIENT_ID_HERE' || envId.trim() === '') return 'sb';
+    const envId = (import.meta.env.VITE_PAYPAL_CLIENT_ID || '').trim();
+    if (!envId || envId === 'YOUR_PAYPAL_SANDBOX_CLIENT_ID_HERE') {
+      return import.meta.env.DEV ? 'sb' : '';
+    }
     return envId;
   })();
+  const paypalReady = Boolean(paypalClientId);
 
   const walletNeededUSD = parseFloat((TABBY_PRICE_SAR / 3.75).toFixed(2));
   const walletBalance = walletSummary?.totalBalance ?? 0;
@@ -148,6 +151,7 @@ export default function StepPayment({ form, files, onBack, onSubmit, isSubmittin
   });
 
   const handleWalletPay = async () => {
+    if (isSubmitting || busy) return;
     if (!termsAccepted) {
       const msg = 'Please accept the Terms of Service and refund policy before paying with wallet.';
       setError(msg);
@@ -161,10 +165,13 @@ export default function StepPayment({ form, files, onBack, onSubmit, isSubmittin
       toast.error(msg);
       return;
     }
+    setBusy(true);
     try {
       await onSubmit(buildPayload({ paymentMethod: 'wallet' }));
     } catch {
       /* parent already shows a toast */
+    } finally {
+      setBusy(false);
     }
   };
 
@@ -261,11 +268,15 @@ export default function StepPayment({ form, files, onBack, onSubmit, isSubmittin
               <button
                 type="button"
                 className="btn btn-primary btn-lg"
-                disabled={isSubmitting}
+                disabled={isSubmitting || busy}
                 onClick={handleWalletPay}
               >
-                {isSubmitting ? <><Loader2 size={16} className="spin" /> Processing...</> : <><CheckCircle2 size={16} /> Pay {formatFromSARWithCode(TABBY_PRICE_SAR)}</>}
+                {isSubmitting || busy ? <><Loader2 size={16} className="spin" /> Processing...</> : <><CheckCircle2 size={16} /> Pay {formatFromSARWithCode(TABBY_PRICE_SAR)}</>}
               </button>
+            ) : !paypalReady ? (
+              <div className="tabby-error" style={{ display: 'flex', gap: '0.4rem', alignItems: 'center' }}>
+                <AlertCircle size={16} /> PayPal is not configured. Please pay with wallet or try again later.
+              </div>
             ) : (
               <div style={{ minWidth: 280, flex: 1 }}>
                 <PayPalScriptProvider options={{ 'client-id': paypalClientId, currency: 'USD', intent: 'capture', components: 'buttons' }}>

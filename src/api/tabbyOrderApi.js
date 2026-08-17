@@ -4,40 +4,18 @@
 
 import axiosInstance from './axiosInstance';
 
-const FILE_KEYS = ['crCopy', 'nationalAddressPdf', 'vatCertificate', 'ibanCertificate', 'ownerIdCopy'];
-
-const toFormData = (orderData) => {
-  const formData = new FormData();
-  Object.entries(orderData).forEach(([key, value]) => {
-    if (FILE_KEYS.includes(key) && value instanceof File) {
-      formData.append(key, value);
-    } else if (value !== null && value !== undefined && value !== '') {
-      if (typeof value === 'boolean' || typeof value === 'number') {
-        formData.append(key, String(value));
-      } else if (!(value instanceof File)) {
-        formData.append(key, value);
-      }
-    }
-  });
-  return formData;
-};
-
-const uploadConfig = {
-  timeout: 120000,
-};
-
 export const createTabbyPayPalOrder = async () => {
-  const response = await axiosInstance.post('/tabby-orders/create-paypal-order', null, { timeout: 60000 });
+  const response = await axiosInstance.post('/tabby-orders/create-paypal-order', {}, { timeout: 60000 });
   return response.data;
 };
 
 export const submitTabbyOrder = async (orderData) => {
-  const response = await axiosInstance.post('/tabby-orders', toFormData(orderData), uploadConfig);
+  const response = await axiosInstance.post('/tabby-orders', orderData, { timeout: 60000 });
   return response.data;
 };
 
 export const payTabbyWithWallet = async (orderData) => {
-  const response = await axiosInstance.post('/tabby-orders/pay-with-wallet', toFormData(orderData), uploadConfig);
+  const response = await axiosInstance.post('/tabby-orders/pay-with-wallet', orderData, { timeout: 60000 });
   return response.data;
 };
 
@@ -53,6 +31,16 @@ export const getMyTabbyOrderById = async (id) => {
 
 export const requestTabbyRefund = async (id, reason) => {
   const response = await axiosInstance.post(`/tabby-orders/${id}/refund-request`, { reason });
+  return response.data;
+};
+
+export const uploadTabbyOrderFile = async (orderId, key, file) => {
+  const formData = new FormData();
+  formData.append('key', key);
+  formData.append('file', file);
+  const response = await axiosInstance.post(`/tabby-orders/${orderId}/files`, formData, {
+    timeout: 120000,
+  });
   return response.data;
 };
 

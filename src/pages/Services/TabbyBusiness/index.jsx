@@ -11,9 +11,10 @@ import {
 import { SEOHead } from '@/components/common/SEOHead';
 import { FadeInUp } from '@/components/animations/FadeInUp';
 import { toast } from '@/components/common/Toast/Toast';
-import { submitTabbyOrder, payTabbyWithWallet } from '@/api/tabbyOrderApi';
+import { submitTabbyOrder, payTabbyWithWallet, uploadTabbyOrderFile } from '@/api/tabbyOrderApi';
 import { useCurrency } from '@/context/CurrencyContext';
 import { trackPurchase } from '@/utils/analytics';
+import { prepareTabbyUploadFile } from '@/utils/compressImage';
 import {
   TABBY_PRICE_SAR,
   TABBY_SAUDI_CITIES,
@@ -51,8 +52,8 @@ const emptyFiles = {
   ownerIdCopy: null,
 };
 
-const ACCEPTED = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
-const MAX_BYTES = 4 * 1024 * 1024;
+const ACCEPTED = ['application/pdf', 'image/jpeg', 'image/jpg', 'image/png', 'image/webp'];
+const FILE_KEYS = ['crCopy', 'nationalAddressPdf', 'vatCertificate', 'ibanCertificate', 'ownerIdCopy'];
 const DRAFT_KEY = 'bit_tabby_order_draft';
 const SAUDI_IBAN = /^SA[0-9]{22}$/;
 const EXAMPLE_SAUDI_IBAN = 'SA0380000000608010167519';
@@ -92,6 +93,8 @@ export default function TabbyBusiness() {
   const [errors, setErrors] = useState({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(null);
+  const payingRef = useRef(false);
+  const fileGenRef = useRef({});
 
   useEffect(() => {
     if (Number(draft?.step) >= 2) {
@@ -115,9 +118,10 @@ export default function TabbyBusiness() {
   };
 
   const validateFile = (file) => {
-    if (!file) return 'This document is required.';
-    if (!ACCEPTED.includes(file.type)) return 'Use PDF, JPG, PNG, or WebP.';
-    if (file.size > MAX_BYTES) return 'Maximum size is 4MB.';
+    if (!file) return '';
+    if (file.type && !ACCEPTED.includes(file.type) && !file.type.startsWith('image/')) {
+      return 'Use PDF, JPG, PNG, or WebP.';
+    }
     return '';
   };
 
@@ -138,14 +142,6 @@ export default function TabbyBusiness() {
       }
       if (form.vatRegistered && !form.vatNumber.trim()) next.vatNumber = 'VAT number is required.';
     }
-    if (current === 2) {
-      TABBY_DOC_FIELDS.forEach((doc) => {
-        const required = doc.required || (doc.requiredIfVat && form.vatRegistered);
-        if (!required) return;
-        const msg = validateFile(files[doc.key]);
-        if (msg) next[doc.key] = msg;
-      });
-    }
     setErrors(next);
     return Object.keys(next).length === 0;
   };
@@ -159,27 +155,58 @@ export default function TabbyBusiness() {
     scrollToForm();
   };
 
-  const handleFile = (key, file) => {
+  const handleFile = async (key, file) => {
+    const gen = (fileGenRef.current[key] || 0) + 1;
+    fileGenRef.current[key] = gen;
     if (!file) {
       setFiles((prev) => ({ ...prev, [key]: null }));
       return;
     }
-    const msg = validateFile(file);
-    if (msg) {
-      setErrors((prev) => ({ ...prev, [key]: msg }));
-      toast.error(msg);
+    const typeMsg = validateFile(file);
+    if (typeMsg) {
+      setErrors((prev) => ({ ...prev, [key]: typeMsg }));
+      toast.error(typeMsg);
       return;
     }
-    setFiles((prev) => ({ ...prev, [key]: file }));
-    setErrors((prev) => ({ ...prev, [key]: undefined }));
+    try {
+      const prepared = await prepareTabbyUploadFile(file);
+      if (fileGenRef.current[key] !== gen) return;
+      setFiles((prev) => ({ ...prev, [key]: prepared }));
+      setErrors((prev) => ({ ...prev, [key]: undefined }));
+    } catch (err) {
+      if (fileGenRef.current[key] !== gen) return;
+      const msg = err?.message || 'Could not process this file.';
+      setErrors((prev) => ({ ...prev, [key]: msg }));
+      toast.error(msg);
+    }
   };
 
   const handleSubmit = async (payload) => {
+    if (payingRef.current) return;
+    payingRef.current = true;
     setIsSubmitting(true);
     try {
+      const body = { ...payload };
+      FILE_KEYS.forEach((key) => { delete body[key]; });
       const api = payload.paymentMethod === 'wallet' ? payTabbyWithWallet : submitTabbyOrder;
-      const res = await api(payload);
+      const res = await api(body);
       if (!res?.success) throw new Error(res?.message || 'Order failed.');
+
+      const orderMongoId = res.data?._id;
+      const pendingFiles = FILE_KEYS.filter((key) => payload[key] instanceof File);
+      let failedUploads = 0;
+      if (orderMongoId) {
+        for (const key of pendingFiles) {
+          try {
+            await uploadTabbyOrderFile(orderMongoId, key, payload[key]);
+          } catch {
+            failedUploads += 1;
+          }
+        }
+      } else if (pendingFiles.length) {
+        failedUploads = pendingFiles.length;
+      }
+
       try { sessionStorage.removeItem(DRAFT_KEY); } catch { /* ignore */ }
       setSubmitted(res.data);
       trackPurchase({
@@ -188,9 +215,14 @@ export default function TabbyBusiness() {
         currency: 'SAR',
         items: [{ item_id: 'tabby_business', item_name: 'Tabby Business Account Setup', price: TABBY_PRICE_SAR, quantity: 1 }],
       });
-      toast.success('Payment received. Setup will be completed within 3 working days.');
+      if (failedUploads) {
+        toast.warning('Payment received. Some documents could not upload — add them from My Account.');
+      } else {
+        toast.success('Payment received. Setup will be completed within 3 working days.');
+      }
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (err) {
+      payingRef.current = false;
       const msg = err?.response?.data?.message || err.message || 'Could not place the order.';
       toast.error(msg);
       throw err;
@@ -223,7 +255,7 @@ export default function TabbyBusiness() {
               <h1 className="h2">Payment received</h1>
               <p style={{ color: 'var(--color-text-muted)', maxWidth: 520, margin: '0.75rem auto 1.25rem' }}>
                 Your Tabby Business account setup will be completed within <strong>3 working days</strong>.
-                We will use the documents you uploaded to apply on your behalf.
+                If you still need to add documents, you can upload them from My Account.
               </p>
               <div className="tabby-review" style={{ textAlign: 'left', maxWidth: 480, margin: '0 auto 1.5rem' }}>
                 <div className="tabby-review__row"><span>Order ID</span><strong>#{submitted.orderId}</strong></div>
@@ -393,17 +425,16 @@ export default function TabbyBusiness() {
             {step === 2 && (
               <div className="tabby-docs">
                 <p style={{ color: 'var(--color-text-muted)', fontSize: 14, marginTop: 0 }}>
-                  Upload clear scans. PDF, JPG, or PNG. Max 4MB each. Download National Address from SPL / Wasel.
+                  All documents are optional. Skip this step if you want — you can upload later from My Account.
+                  Photos from your phone are compressed automatically, so large files are fine.
                 </p>
                 {TABBY_DOC_FIELDS.map((doc) => {
-                  const required = doc.required || (doc.requiredIfVat && form.vatRegistered);
-                  if (doc.requiredIfVat && !form.vatRegistered) return null;
                   const file = files[doc.key];
                   return (
                     <div key={doc.key} className={`tabby-doc ${file ? 'is-ready' : ''}`}>
                       <div className="tabby-doc__top">
                         <div>
-                          <strong>{doc.label} {required && '*'}</strong>
+                          <strong>{doc.label}</strong>
                           {' '}<span className="ar">{doc.ar}</span>
                           <div className="hint">{doc.hint}</div>
                           {errors[doc.key] && <div className="tabby-error">{errors[doc.key]}</div>}
@@ -412,7 +443,7 @@ export default function TabbyBusiness() {
                           <Upload size={14} /> {file ? 'Replace' : 'Upload'}
                           <input
                             type="file"
-                            accept=".pdf,.jpg,.jpeg,.png,.webp"
+                            accept="image/*,.pdf,.jpg,.jpeg,.png,.webp"
                             hidden
                             onChange={(e) => handleFile(doc.key, e.target.files?.[0])}
                           />
@@ -451,7 +482,7 @@ export default function TabbyBusiness() {
                   </button>
                 ) : <span />}
                 <button type="button" className="btn btn-primary" onClick={goNext}>
-                  Continue <ArrowRight size={16} />
+                  {step === 2 ? 'Continue to pay' : 'Continue'} <ArrowRight size={16} />
                 </button>
               </div>
             )}
@@ -473,7 +504,7 @@ export default function TabbyBusiness() {
             </details>
             <details>
               <summary>What documents do you need?</summary>
-              <p>CR copy, National Address (Wasel) PDF, IBAN letter, owner ID, plus VAT certificate if you are VAT registered. These match Tabby’s typical KSA merchant checklist.</p>
+              <p>Documents are optional at checkout. CR copy, National Address, IBAN letter, and ID help us apply faster — you can add them later from My Account. Phone photos are compressed automatically, so large files are fine.</p>
             </details>
             <details>
               <summary>How long does activation take?</summary>

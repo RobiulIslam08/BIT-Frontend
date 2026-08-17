@@ -7,14 +7,15 @@ import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   ArrowLeft, Loader2, AlertCircle, CheckCircle2, Clock, XCircle,
-  RefreshCw, FileText, Building2, Phone, Mail, MapPin,
+  RefreshCw, FileText, Building2, Phone, Mail, MapPin, Upload,
 } from 'lucide-react';
 import { SEOHead } from '@/components/common/SEOHead';
 import { selectIsAuthenticated } from '@/features/auth/authSlice';
 import { toast } from '@/components/common/Toast/Toast';
-import { getMyTabbyOrderById, requestTabbyRefund, openTabbyFile } from '@/api/tabbyOrderApi';
+import { getMyTabbyOrderById, requestTabbyRefund, openTabbyFile, uploadTabbyOrderFile } from '@/api/tabbyOrderApi';
 import { TABBY_DOC_FIELDS } from '@/constants/tabbyService';
 import { useCurrency } from '@/context/CurrencyContext';
+import { prepareTabbyUploadFile } from '@/utils/compressImage';
 import '../MyAccount/MyAccount.css';
 import './TabbyOrderDetails.css';
 
@@ -31,6 +32,11 @@ const canRequestRefund = (order) =>
   order?.refundStatus !== 'requested' &&
   order?.refundStatus !== 'processed';
 
+const canUploadDocs = (order) =>
+  order?.paymentStatus === 'paid' &&
+  order?.orderStatus !== 'completed' &&
+  order?.orderStatus !== 'cancelled';
+
 export default function TabbyOrderDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
@@ -42,6 +48,7 @@ export default function TabbyOrderDetails() {
   const [error, setError] = useState('');
   const [reason, setReason] = useState('');
   const [refundBusy, setRefundBusy] = useState(false);
+  const [uploadingKey, setUploadingKey] = useState('');
 
   useEffect(() => {
     if (!isAuthenticated) navigate('/auth/login', { state: { from: location } });
@@ -71,6 +78,21 @@ export default function TabbyOrderDetails() {
       await openTabbyFile(order._id, file);
     } catch {
       toast.error('Could not open this document.');
+    }
+  };
+
+  const handleDocUpload = async (key, file) => {
+    if (!file || !order?._id) return;
+    setUploadingKey(key);
+    try {
+      const prepared = await prepareTabbyUploadFile(file);
+      const res = await uploadTabbyOrderFile(order._id, key, prepared);
+      if (res?.data) setOrder(res.data);
+      toast.success('Document uploaded.');
+    } catch (err) {
+      toast.error(err?.response?.data?.message || err.message || 'Could not upload this document.');
+    } finally {
+      setUploadingKey('');
     }
   };
 
@@ -172,17 +194,44 @@ export default function TabbyOrderDetails() {
             </div>
 
             <div className="card-elevated" style={{ padding: '1.25rem', marginBottom: '1rem' }}>
-              <h3 className="h5">Documents submitted</h3>
-              <div className="tabby-files">
-                {(order.files || []).map((file) => {
-                  const meta = TABBY_DOC_FIELDS.find((d) => d.key === file.key);
+              <h3 className="h5">Documents</h3>
+              <p style={{ fontSize: 14, color: 'var(--color-text-muted)', marginTop: 0 }}>
+                Optional. Phone photos are compressed automatically. You can add or replace files until the account is activated.
+              </p>
+              <div className="tabby-files" style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                {TABBY_DOC_FIELDS.map((doc) => {
+                  const existing = (order.files || []).find((f) => f.key === doc.key);
                   return (
-                    <button key={file._id} type="button" className="tabby-file-chip" onClick={() => openFile(file)}>
-                      <FileText size={14} /> {meta?.label || file.key} · {file.originalName}
-                    </button>
+                    <div key={doc.key} className="tabby-file-chip" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', width: '100%' }}>
+                      <span>
+                        <FileText size={14} /> {doc.label}
+                        {existing ? ` · ${existing.originalName}` : ' · not uploaded'}
+                      </span>
+                      <span style={{ display: 'flex', gap: 8, flexShrink: 0 }}>
+                        {existing && (
+                          <button type="button" className="btn btn-ghost btn-sm" onClick={() => openFile(existing)}>View</button>
+                        )}
+                        {canUploadDocs(order) && (
+                          <label className="btn btn-secondary btn-sm" style={{ cursor: 'pointer', margin: 0 }}>
+                            {uploadingKey === doc.key ? <Loader2 size={14} className="spin" /> : <Upload size={14} />}
+                            {existing ? 'Replace' : 'Upload'}
+                            <input
+                              type="file"
+                              accept="image/*,.pdf,.jpg,.jpeg,.png,.webp"
+                              hidden
+                              disabled={!!uploadingKey}
+                              onChange={(e) => {
+                                const picked = e.target.files?.[0];
+                                e.target.value = '';
+                                handleDocUpload(doc.key, picked);
+                              }}
+                            />
+                          </label>
+                        )}
+                      </span>
+                    </div>
                   );
                 })}
-                {!(order.files || []).length && <p style={{ color: 'var(--color-text-muted)', fontSize: 14 }}>No files listed.</p>}
               </div>
             </div>
 
