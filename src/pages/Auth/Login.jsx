@@ -14,6 +14,7 @@ import { authApi } from '@/api/authApi';
 import { toast } from '@/components/common/Toast/Toast';
 import { useGoogleLogin } from '@react-oauth/google';
 import { trackLogin } from '@/utils/analytics';
+import { getPostAuthRedirect } from '@/utils/authRedirect';
 
 // SVG Official Icons
 const GoogleIcon = () => (
@@ -42,14 +43,7 @@ export default function Login() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Login এর আগে যে পেইজে ছিল সেখানে রিডাইরেক্ট (pathname + search + hash), না হলে role অনুযায়ী
-  const fromLocation = location.state?.from;
-  const redirectAfterLogin = (userRole) => {
-    if (fromLocation?.pathname) {
-      return `${fromLocation.pathname}${fromLocation.search || ''}${fromLocation.hash || ''}`;
-    }
-    return userRole === 'admin' ? '/dashboard' : '/';
-  };
+  const redirectAfterLogin = (userRole) => getPostAuthRedirect({ location, userRole });
 
   const handleGoogleSuccess = async (tokenResponse) => {
     setError('');
@@ -229,7 +223,8 @@ export default function Login() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <label className="form-label">Password</label>
                 <Link
-                  to="/auth/forgot-password"
+                  to={{ pathname: '/auth/forgot-password', search: location.search }}
+                  state={location.state}
                   style={{ fontSize: 'var(--text-xs)', color: 'var(--color-primary)', fontWeight: 600, textDecoration: 'none' }}
                 >
                   Forgot?
@@ -298,7 +293,11 @@ export default function Login() {
           {/* Register Redirect */}
           <p style={{ textAlign: 'center', marginTop: '1.75rem', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
             New to BIT Software?{' '}
-            <Link to="/auth/register" style={{ color: 'var(--color-primary)', fontWeight: 700, textDecoration: 'none' }}>
+            <Link
+              to={{ pathname: '/auth/register', search: location.search }}
+              state={location.state}
+              style={{ color: 'var(--color-primary)', fontWeight: 700, textDecoration: 'none' }}
+            >
               Create an account
             </Link>
           </p>

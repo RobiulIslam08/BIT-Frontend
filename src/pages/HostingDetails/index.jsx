@@ -2,7 +2,7 @@
 // BIT SOFTWARE — Hosting Details (Customer)
 // ============================================
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { motion } from 'motion/react';
 import {
@@ -40,6 +40,7 @@ const formatBytes = (bytes) => {
 export default function HostingDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const { formatPrice } = useCurrency();
 
@@ -50,8 +51,8 @@ export default function HostingDetails() {
   const [cpanelBusy, setCpanelBusy] = useState(''); // '' | 'login' | 'email'
 
   useEffect(() => {
-    if (!isAuthenticated) navigate('/auth/login');
-  }, [isAuthenticated, navigate]);
+    if (!isAuthenticated) navigate('/auth/login', { state: { from: location } });
+  }, [isAuthenticated, navigate, location]);
 
   const fetchHosting = async () => {
     setLoading(true);

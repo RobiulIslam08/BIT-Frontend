@@ -3,7 +3,7 @@
 // ============================================
 import { useState, useEffect } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
-import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'motion/react';
 import {
   Globe, User, Settings, RefreshCw, Loader2,
@@ -85,6 +85,7 @@ const ExpiryBadge = ({ expiresAt }) => {
 
 export default function MyAccount() {
   const navigate = useNavigate();
+  const location = useLocation();
   const dispatch = useDispatch();
   const [searchParams] = useSearchParams();
   const isAuthenticated = useSelector(selectIsAuthenticated);
@@ -128,8 +129,8 @@ export default function MyAccount() {
   };
 
   useEffect(() => {
-    if (!isAuthenticated) navigate('/auth/login');
-  }, [isAuthenticated, navigate]);
+    if (!isAuthenticated) navigate('/auth/login', { state: { from: location } });
+  }, [isAuthenticated, navigate, location]);
 
   const fetchDomains = async () => {
     setIsLoadingDomains(true);

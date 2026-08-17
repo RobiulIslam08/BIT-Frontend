@@ -3,7 +3,7 @@
 // ============================================
 
 import { useEffect, useState } from 'react';
-import { useNavigate, useParams } from 'react-router-dom';
+import { useNavigate, useParams, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import {
   ArrowLeft, Loader2, AlertCircle, CheckCircle2, Clock, XCircle,
@@ -34,6 +34,7 @@ const canRequestRefund = (order) =>
 export default function TabbyOrderDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const { formatFromSARWithCode } = useCurrency();
   const [order, setOrder] = useState(null);
@@ -43,8 +44,8 @@ export default function TabbyOrderDetails() {
   const [refundBusy, setRefundBusy] = useState(false);
 
   useEffect(() => {
-    if (!isAuthenticated) navigate('/auth/login');
-  }, [isAuthenticated, navigate]);
+    if (!isAuthenticated) navigate('/auth/login', { state: { from: location } });
+  }, [isAuthenticated, navigate, location]);
 
   const fetchOrder = async () => {
     setLoading(true);

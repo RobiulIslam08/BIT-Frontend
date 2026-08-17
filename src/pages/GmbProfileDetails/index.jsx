@@ -2,7 +2,7 @@
 // BIT SOFTWARE — GMB Profile Details (Customer)
 // ============================================
 import { useState, useEffect } from 'react';
-import { useNavigate, useParams, Link } from 'react-router-dom';
+import { useNavigate, useParams, Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { motion } from 'motion/react';
 import {
@@ -36,6 +36,7 @@ const DAY_ORDER = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
 export default function GmbProfileDetails() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const isAuthenticated = useSelector(selectIsAuthenticated);
 
   const [profile, setProfile] = useState(null);
@@ -43,8 +44,8 @@ export default function GmbProfileDetails() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    if (!isAuthenticated) navigate('/auth/login');
-  }, [isAuthenticated, navigate]);
+    if (!isAuthenticated) navigate('/auth/login', { state: { from: location } });
+  }, [isAuthenticated, navigate, location]);
 
   const fetchProfile = async () => {
     setLoading(true);

@@ -3,7 +3,7 @@
 // ============================================
 
 import { useState, useCallback, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { PayPalScriptProvider, PayPalButtons, usePayPalScriptReducer } from '@paypal/react-paypal-js';
 import {
@@ -171,6 +171,7 @@ function PayPalCheckoutButtons({ finalPrice, serviceType, form, businessHours, h
 // ─── MAIN COMPONENT ───
 export default function Step5Payment({ form, businessHours, onBack, onSubmit, isSubmitting }) {
   const { currency, formatFromSARWithCode, formatPriceWithCode, rates } = useCurrency();
+  const location = useLocation();
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const [walletSummary, setWalletSummary] = useState(null);
 
@@ -708,7 +709,7 @@ export default function Step5Payment({ form, businessHours, onBack, onSubmit, is
             </div>
             <span className="gmb-payment-card-desc">
               {!isAuthenticated ? (
-                <>Please <Link to="/auth/login">log in</Link> to pay instantly from your wallet balance.</>
+                <>Please <Link to="/auth/login" state={{ from: location }}>log in</Link> to pay instantly from your wallet balance.</>
               ) : !walletLoaded ? (
                 <>Loading wallet balance…</>
               ) : (

@@ -14,6 +14,7 @@ import { authApi } from '@/api/authApi';
 import { toast } from '@/components/common/Toast/Toast';
 import { useGoogleLogin } from '@react-oauth/google';
 import { trackSignUp } from '@/utils/analytics';
+import { getPostAuthRedirect } from '@/utils/authRedirect';
 
 // SVG Official Icons
 const GoogleIcon = () => (
@@ -47,13 +48,7 @@ export default function Register() {
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
   const location = useLocation();
-  const fromLocation = location.state?.from;
-  const redirectAfterAuth = (userRole) => {
-    if (fromLocation?.pathname) {
-      return `${fromLocation.pathname}${fromLocation.search || ''}${fromLocation.hash || ''}`;
-    }
-    return userRole === 'admin' ? '/dashboard' : '/';
-  };
+  const redirectAfterAuth = (userRole) => getPostAuthRedirect({ location, userRole });
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -80,10 +75,8 @@ export default function Register() {
         })
       );
 
-      setTimeout(() => {
-        const redirectTo = redirectAfterAuth(data.user.role);
-        navigate(redirectTo, { replace: true });
-      }, 1000);
+      const redirectTo = redirectAfterAuth(data.user.role);
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       const message =
         err?.response?.data?.message ||
@@ -149,11 +142,8 @@ export default function Register() {
         })
       );
 
-      // Registration এর পর role অনুযায়ী redirect
-      setTimeout(() => {
-        const redirectTo = redirectAfterAuth(data.user.role);
-        navigate(redirectTo, { replace: true });
-      }, 1000);
+      const redirectTo = redirectAfterAuth(data.user.role);
+      navigate(redirectTo, { replace: true });
     } catch (err) {
       const message =
         err?.response?.data?.message ||
@@ -433,7 +423,11 @@ export default function Register() {
           {/* Login Redirect */}
           <p style={{ textAlign: 'center', marginTop: '1.75rem', fontSize: 'var(--text-sm)', color: 'var(--color-text-secondary)' }}>
             Already have an account?{' '}
-            <Link to="/auth/login" style={{ color: 'var(--color-primary)', fontWeight: 700, textDecoration: 'none' }}>
+            <Link
+              to={{ pathname: '/auth/login', search: location.search }}
+              state={location.state}
+              style={{ color: 'var(--color-primary)', fontWeight: 700, textDecoration: 'none' }}
+            >
               Sign In
             </Link>
           </p>

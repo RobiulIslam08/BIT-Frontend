@@ -4,7 +4,7 @@
 // JWT token check করে route guard।
 // isAuthenticated false হলে login-এ redirect।
 // isAdmin required হলে admin check করে।
-// GuestRoute — logged in থাকলে dashboard/home-এ redirect।
+// GuestRoute — logged in থাকলে saved page (বা role default) এ redirect।
 
 import { useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
@@ -15,6 +15,7 @@ import {
   selectCurrentUser,
 } from '@/features/auth/authSlice';
 import { toast } from '@/components/common/Toast/Toast';
+import { getPostAuthRedirect } from '@/utils/authRedirect';
 
 /**
  * ProtectedRoute — authenticated users only
@@ -69,15 +70,15 @@ export function AdminRoute() {
 
 /**
  * GuestRoute — logged-out users only (login/register pages)
- * Logged in থাকলে → role অনুযায়ী redirect
+ * Logged in থাকলে → saved page, otherwise role default
  */
 export function GuestRoute() {
   const isAuthenticated = useSelector(selectIsAuthenticated);
   const user = useSelector(selectCurrentUser);
+  const location = useLocation();
 
   if (isAuthenticated) {
-    // Admin হলে dashboard, user হলে home
-    const redirectTo = user?.role === 'admin' ? '/dashboard' : '/';
+    const redirectTo = getPostAuthRedirect({ location, userRole: user?.role });
     return <Navigate to={redirectTo} replace />;
   }
 
